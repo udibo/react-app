@@ -252,15 +252,6 @@ export function createApp<
 
   app.use(appRouter.routes(), appRouter.allowedMethods());
 
-  app.addEventListener("error", ({ error }) => {
-    console.error("Uncaught app error", error);
-  });
-
-  app.addEventListener("listen", ({ hostname, port, secure }) => {
-    const origin = `${secure ? "https://" : "http://"}${hostname}`;
-    console.log(`Listening on: ${origin}:${port}`);
-  });
-
   return app;
 }
 
@@ -274,6 +265,16 @@ export async function serve<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >({ port, ...options }: ServeOptions<AppContext>) {
   const app = createApp(options);
+
+  app.addEventListener("error", ({ error }) => {
+    console.error("Uncaught app error", error);
+  });
+
+  app.addEventListener("listen", ({ hostname, port, secure }) => {
+    const origin = `${secure ? "https://" : "http://"}${hostname}`;
+    console.log(`Listening on: ${origin}:${port}`);
+  });
+
   const listenOptions = {} as ListenOptions;
   if (typeof port === "number") listenOptions.port = port;
   await app.listen(listenOptions);
