@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "request": "launch",
+      "name": "deno task: build",
+      "type": "node",
+      "program": "${workspaceFolder}/build.ts",
+      "cwd": "${workspaceFolder}/example",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "-A",
+        "--inspect-wait"
+      ],
+      "env": {
+        "APP_ENV": "production"
+      },
+      "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "deno task: run",
+      "type": "node",
+      "program": "${workspaceFolder}/example/main.ts",
+      "cwd": "${workspaceFolder}/example",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "-A",
+        "--inspect-wait"
+      ],
+      "env": {
+        "APP_ENV": "production"
+      },
+      "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "deno task: test",
+      "type": "node",
+      "program": ".",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "test",
+        "-A",
+        "--inspect-wait"
+      ],
+      "env": {
+        "APP_ENV": "test"
+      },
+      "attachSimplePort": 9229
+    }
+  ]
+}

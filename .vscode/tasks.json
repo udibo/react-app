@@ -1,0 +1,60 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "deno task: build",
+      "type": "deno",
+      "problemMatcher": [
+        "$deno"
+      ],
+      "command": "task",
+      "args": [
+        "build"
+      ]
+    },
+    {
+      "label": "deno task: run",
+      "type": "deno",
+      "problemMatcher": [
+        "$deno"
+      ],
+      "command": "task",
+      "args": [
+        "run"
+      ]
+    },
+    {
+      "label": "deno task: test",
+      "type": "deno",
+      "problemMatcher": [
+        "$deno"
+      ],
+      "command": "task",
+      "args": [
+        "test"
+      ]
+    },
+    {
+      "label": "deno task: test-watch",
+      "type": "deno",
+      "problemMatcher": [
+        "$deno"
+      ],
+      "command": "task",
+      "args": [
+        "test-watch"
+      ]
+    },
+    {
+      "label": "deno task: check",
+      "type": "deno",
+      "problemMatcher": [
+        "$deno"
+      ],
+      "command": "task",
+      "args": [
+        "check"
+      ]
+    }
+  ]
+}

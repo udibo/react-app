@@ -1,0 +1,26 @@
+{
+  "tasks": {
+    "build": "export APP_ENV=production && deno run -A ../build.ts",
+    "run": "export APP_ENV=production && deno run -A ./main.ts",
+    "dev": "export APP_ENV=development && deno run -A ../dev.ts",
+    "test": "export APP_ENV=test && deno test -A .",
+    "test-watch": "export APP_ENV=test && deno test -A --watch .",
+    "check": "deno lint && deno fmt --check"
+  },
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "$npm/react"
+  },
+  "lint": {
+    "files": {
+      "exclude": ["public/build"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["public/build"]
+    }
+  },
+  "importMap": "./import_map.json"
+}

@@ -1,0 +1,30 @@
+import { Suspense } from "$npm/react";
+import { Link, Outlet } from "$npm/react-router-dom";
+import { Helmet } from "$npm/react-helmet-async";
+
+import { Loading } from "../components/loading.tsx";
+
+const navLinks = [
+  { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+  { label: "Blog", to: "/blog" },
+];
+
+export default () => (
+  <>
+    <Helmet defaultTitle="Example" titleTemplate="Example | %s">
+      <meta charSet="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    </Helmet>
+    <ul>
+      {navLinks.map((link) => (
+        <li>
+          <Link to={link.to}>{link.label}</Link>
+        </li>
+      ))}
+    </ul>
+    <Suspense fallback={<Loading />}>
+      <Outlet />
+    </Suspense>
+  </>
+);

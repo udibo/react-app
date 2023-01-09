@@ -1,0 +1,28 @@
+{
+  "tasks": {
+    "build": "cd ./example && export APP_ENV=production && deno run -A ../build.ts",
+    "run": "cd ./example && export APP_ENV=production && deno run -A ./main.ts",
+    "dev": "cd ./example && export APP_ENV=production && deno run -A ../dev.ts",
+    "test": "export APP_ENV=test && deno test -A .",
+    "test-watch": "export APP_ENV=test && deno test -A --watch .",
+    "test-coverage": "export APP_ENV=test && deno test -A --coverage=cov .",
+    "coverage": "deno coverage --lcov cov > cov.lcov",
+    "check": "deno lint && deno fmt --check"
+  },
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "$npm/react"
+  },
+  "lint": {
+    "files": {
+      "exclude": ["example/public/build"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "exclude": ["example/public/build"]
+    }
+  },
+  "importMap": "./import_map.json"
+}

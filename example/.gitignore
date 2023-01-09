@@ -1,0 +1,9 @@
+# Build
+public/build
+public/test/build
+_app.tsx
+_app.ts
+
+
+# VSCode
+.vscode/*.log
