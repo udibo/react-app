@@ -2,12 +2,13 @@
   "tasks": {
     "build": "cd ./example && export APP_ENV=production && deno run -A ../build.ts",
     "run": "cd ./example && export APP_ENV=production && deno run -A ./main.ts",
-    "dev": "cd ./example && export APP_ENV=production && deno run -A ../dev.ts",
+    "dev": "cd ./example && export APP_ENV=development && deno run -A ../dev.ts",
     "test": "export APP_ENV=test && deno test -A .",
     "test-watch": "export APP_ENV=test && deno test -A --watch .",
     "test-coverage": "export APP_ENV=test && deno test -A --coverage=cov .",
     "coverage": "deno coverage --lcov cov > cov.lcov",
-    "check": "deno lint && deno fmt --check"
+    "check": "deno lint && deno fmt --check",
+    "git-rebase": "git fetch origin main && git rebase --onto origin/main HEAD"
   },
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
