@@ -112,6 +112,7 @@ it("inEnvironment", async () => {
     Error,
     "rejects",
   );
+
   assertEquals(Deno.env.get("APP_ENV"), "test");
   await inEnvironment("fake", async () => {
     assertEquals(Deno.env.get("APP_ENV"), "fake");
@@ -119,6 +120,23 @@ it("inEnvironment", async () => {
     assertEquals(Deno.env.get("APP_ENV"), "fake");
   });
   assertEquals(Deno.env.get("APP_ENV"), "test");
+
+  const original = Deno.env.get("APP_ENV");
+  try {
+    Deno.env.delete("APP_ENV");
+
+    assertEquals(Deno.env.get("APP_ENV"), undefined);
+    await inEnvironment("fake", async () => {
+      assertEquals(Deno.env.get("APP_ENV"), "fake");
+      await delay(0);
+      assertEquals(Deno.env.get("APP_ENV"), "fake");
+    });
+    assertEquals(Deno.env.get("APP_ENV"), undefined);
+  } finally {
+    if (original) {
+      Deno.env.set("APP_ENV", original);
+    }
+  }
 });
 
 it("inEnvironmentSync", () => {
@@ -132,11 +150,27 @@ it("inEnvironmentSync", () => {
     Error,
     "throws",
   );
+
   assertEquals(Deno.env.get("APP_ENV"), "test");
   inEnvironmentSync("fake", () => {
     assertEquals(Deno.env.get("APP_ENV"), "fake");
   });
   assertEquals(Deno.env.get("APP_ENV"), "test");
+
+  const original = Deno.env.get("APP_ENV");
+  try {
+    Deno.env.delete("APP_ENV");
+
+    assertEquals(Deno.env.get("APP_ENV"), undefined);
+    inEnvironmentSync("fake", () => {
+      assertEquals(Deno.env.get("APP_ENV"), "fake");
+    });
+    assertEquals(Deno.env.get("APP_ENV"), undefined);
+  } finally {
+    if (original) {
+      Deno.env.set("APP_ENV", original);
+    }
+  }
 });
 
 const getEnvTests = describe("getEnv");
