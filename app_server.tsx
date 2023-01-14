@@ -178,8 +178,6 @@ export function createAppRouter<
     })
     .use(async (context: Context<AppState<AppContext>>, next) => {
       const { request, response, state } = context;
-      const start = Date.now();
-      let error;
       try {
         if (!state.app) {
           state._app = {
@@ -200,36 +198,22 @@ export function createAppRouter<
           };
         }
         await next();
-      } catch (cause) {
-        error = cause;
+      } catch (error) {
         console.error("app error", error);
 
         response.status = isHttpError(error) ? error.status : 500;
-        const ext = path.extname(request.url.pathname);
-        if (ext === "") {
-          // put error in env
+        if (path.extname(request.url.pathname) === "") {
+          // put error on state.app
           // maybe state.app.error = // json for error
           // implement AppError in error.ts
           await state.app.render();
         }
-      } finally {
-        const dt = Date.now() - start;
-        response.headers.set("X-Response-Time", `${dt}ms`);
-        console.log({
-          status: response.status,
-          method: request.method,
-          href: request.url.href,
-          responseTime: dt,
-          error: error,
-        });
       }
     })
-    .use(etag.factory())
     .use(router.routes(), router.allowedMethods())
     .get("/(.*)", async (context: Context<AppState<unknown>>, next) => {
       const { request, response, state } = context;
-      const { pathname } = request.url;
-      if (path.extname(pathname) === "") {
+      if (path.extname(request.url.pathname) === "") {
         response.status = 404;
         await state.app.render();
       } else {
