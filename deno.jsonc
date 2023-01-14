@@ -1,8 +1,10 @@
 {
   "tasks": {
-    "build": "cd ./example && export APP_ENV=production && deno run -A ../build.ts",
-    "run": "cd ./example && export APP_ENV=production && deno run -A ./main.ts",
-    "dev": "cd ./example && export APP_ENV=development && deno run -A ../dev.ts",
+    "build": "cd ./example && deno task build",
+    "build-dev": "cd ./example && deno task build-dev",
+    "run": "cd ./example && deno task run",
+    "run-dev": "cd ./example && deno task run-dev",
+    "dev": "cd ./example && deno task dev",
     "test": "export APP_ENV=test && deno test -A .",
     "test-watch": "export APP_ENV=test && deno test -A --watch .",
     "test-coverage": "export APP_ENV=test && deno test -A --coverage=cov .",

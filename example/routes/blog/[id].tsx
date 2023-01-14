@@ -16,6 +16,7 @@ export default () => {
       <>
         <Helmet>
           <title>{post.title}</title>
+          <meta name="description" content={post.content} />
         </Helmet>
         <h2>{post.title}</h2>
         <p>{post.content}</p>

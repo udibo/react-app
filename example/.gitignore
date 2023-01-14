@@ -1,6 +1,6 @@
 # Build
 public/build
-public/test/build
+public/test-build
 _app.tsx
 _app.ts
 
