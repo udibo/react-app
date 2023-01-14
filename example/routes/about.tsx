@@ -4,6 +4,10 @@ export default () => (
   <>
     <Helmet>
       <title>About</title>
+      <meta
+        name="description"
+        content="Udibo React App is a React Framework for Deno."
+      />
     </Helmet>
     <h1>About</h1>
     <h2>Udibo React App</h2>

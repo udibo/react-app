@@ -6,10 +6,6 @@ import { denoPlugin } from "$x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
 
-export interface UdiboReactAppOptions {
-  moduleUrl: string;
-}
-
 async function exists(filePath: string | URL): Promise<boolean> {
   try {
     await Deno.lstat(filePath);
@@ -269,22 +265,30 @@ async function buildRoutes(moduleUrl: string) {
   await Deno.writeTextFile(routeFile.path, routeFile.data);
   await Deno.writeTextFile(routerFile.path, routerFile.data);
 
-  await Deno.run({
+  const fmtProcess = Deno.run({
     cmd: [
       "deno",
       "fmt",
+      "--quiet",
       routeFile.path,
       routerFile.path,
     ],
+    stdin: "null",
+    stdout: "null",
   });
+  await fmtProcess.status();
 }
 
-export async function build(options: UdiboReactAppOptions) {
+export interface BuildOptions {
+  moduleUrl: string;
+}
+
+export async function build(options: BuildOptions) {
   const { moduleUrl } = options;
   const entryPoint = path.resolve(moduleUrl, "./app.tsx");
   const outdir = path.resolve(
     moduleUrl,
-    `./public/${isTest() ? "test/" : ""}build`,
+    `./public/${isTest() ? "test-" : ""}build`,
   );
   await ensureDir(outdir);
 
@@ -317,8 +321,25 @@ export async function build(options: UdiboReactAppOptions) {
 }
 
 if (import.meta.main) {
-  const stop = await build({
-    moduleUrl: Deno.cwd(),
-  });
-  stop();
+  console.log("Building app");
+  performance.mark("buildStart");
+  let success = false;
+  try {
+    const stop = await build({
+      moduleUrl: Deno.cwd(),
+    });
+    stop();
+    success = true;
+  } catch {
+    // Ignore error, esbuild already logs it
+  } finally {
+    performance.mark("buildEnd");
+    const measure = performance.measure("build", "buildStart", "buildEnd");
+    console.log(
+      `Build ${success ? "completed" : "failed"} in ${
+        Math.round(measure.duration)
+      } ms`,
+    );
+    if (!success) Deno.exit(1);
+  }
 }

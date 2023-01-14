@@ -22,7 +22,7 @@ export default () => (
     </Helmet>
     <ul>
       {navLinks.map((link) => (
-        <li>
+        <li key={link.label}>
           <Link to={link.to}>{link.label}</Link>
         </li>
       ))}

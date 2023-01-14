@@ -3,7 +3,6 @@ import { isHttpError } from "$x/http_error/mod.ts";
 import {
   Application,
   Context,
-  etag,
   ListenOptions,
   RouteParams,
   Router,
@@ -19,7 +18,13 @@ import {
 } from "$npm/react-router-dom";
 import serialize from "$npm/serialize-javascript";
 
-import { AppContext, AppEnvironment, getEnv, isTest } from "./env.ts";
+import {
+  AppContext,
+  AppEnvironment,
+  getEnv,
+  isDevelopment,
+  isTest,
+} from "./env.ts";
 
 const encoder = new TextEncoder();
 
@@ -44,6 +49,13 @@ function html<
     helmet.link.toString(),
     helmet.style.toString(),
     helmet.script.toString(),
+    `<script>
+      window.app = {
+        env: ${serialize(env, { isJSON: true })},
+        context: ${serialize(context, { isJSON: true })},
+      };
+    </script>`,
+    isDevelopment() && `<script type="module" src="/live-reload.js"></script>`,
     helmet.noscript.toString(),
   ].filter((tag: string) => Boolean(tag));
 
@@ -53,14 +65,8 @@ function html<
 <html ${helmet.htmlAttributes.toString()}>
   <head>
     ${headTags.join("\n    ")}
-    <script>
-      window.app = {
-        env: ${serialize(env, { isJSON: true })},
-        context: ${serialize(context, { isJSON: true })},
-      };
-    </script>
     <script type="module" src="/${
-      isTest() ? "test/" : ""
+      isTest() ? "test-" : ""
     }build/app.js" defer></script>
   </head>
   <body ${helmet.bodyAttributes.toString()}>`,
@@ -133,6 +139,7 @@ export interface AppState<AppContext = Record<string, unknown>> {
     env: AppEnvironment;
     context: AppContext;
     render: () => Promise<void>;
+    devPort?: number;
   };
 }
 
@@ -145,6 +152,7 @@ export interface AppRouterOptions<
   renderToReadableStream?: typeof renderToReadableStream<AppContext>;
   router?: Router;
   root?: string;
+  devPort?: number;
 }
 
 const TRAILING_SLASHES = /\/+$/;
@@ -159,6 +167,7 @@ export function createAppRouter<
     renderToReadableStream: renderAppToReadableStream,
     router,
     root,
+    devPort,
   }: AppRouterOptions<AppContext>,
 ) {
   renderAppToReadableStream ??= renderToReadableStream;
@@ -196,6 +205,9 @@ export function createAppRouter<
               response.body = await renderAppToReadableStream!(context);
             },
           };
+          if (isDevelopment() && devPort) {
+            state.app.devPort = devPort;
+          }
         }
         await next();
       } catch (error) {
@@ -219,10 +231,26 @@ export function createAppRouter<
       } else {
         await next();
       }
-    })
-    .use(async (context) => {
-      await context.send({ root: `${root}/public` });
     });
+
+  if (isDevelopment()) {
+    const liveReloadScript = Deno.readTextFileSync(
+      new URL("./live-reload.js", import.meta.url),
+    );
+    appRouter.use(async (context, next) => {
+      const { request, response } = context;
+      if (request.url.pathname === "/live-reload.js") {
+        response.headers.set("Content-Type", "text/javascript");
+        response.body = liveReloadScript;
+      } else {
+        await next();
+      }
+    });
+  }
+
+  appRouter.use(async (context) => {
+    await context.send({ root: `${root}/public` });
+  });
 
   return appRouter;
 }
@@ -237,6 +265,26 @@ export function createApp<
   app.use(appRouter.routes(), appRouter.allowedMethods());
 
   return app;
+}
+
+/**
+ * This function tells the dev server when the app server is listening.
+ * If you are not using serve, you must add an event listener to your app that will call this function once it's listening.
+ * If this function is not called, the browser will not automatically refresh when the app server is restarted.
+ * If called before the app server is listening, the browser will refresh before the app server is ready to handle the request.
+ * This function will not do anything if the app is not running in development mode.
+ */
+export async function listeningDev(
+  { hostname, secure }: { hostname: string; secure: boolean },
+) {
+  if (isDevelopment()) {
+    try {
+      const origin = `${secure ? "https://" : "http://"}${hostname}`;
+      await fetch(`${origin}:9002/listening`);
+    } catch {
+      // Ignore errors
+    }
+  }
 }
 
 export interface ServeOptions<
@@ -257,6 +305,7 @@ export async function serve<
   app.addEventListener("listen", ({ hostname, port, secure }) => {
     const origin = `${secure ? "https://" : "http://"}${hostname}`;
     console.log(`Listening on: ${origin}:${port}`);
+    queueMicrotask(() => listeningDev({ hostname, secure }));
   });
 
   const listenOptions = {} as ListenOptions;
