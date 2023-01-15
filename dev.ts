@@ -2,7 +2,7 @@ import * as path from "$std/path/mod.ts";
 import { debounce } from "$std/async/debounce.ts";
 import { Application, Router } from "$x/oak/mod.ts";
 import { HttpError } from "$x/http_error/mod.ts";
-import { isTest } from "./env.ts";
+import { getEnv, isTest } from "./env.ts";
 
 const sessions = new Map<number, WebSocket>();
 let nextSessionId = 0;
@@ -214,5 +214,10 @@ export function startDev({
 }
 
 if (import.meta.main) {
-  startDev();
+  const options: DevOptions = {};
+  const devPort = +(getEnv("DEV_PORT") ?? "");
+  if (devPort && !isNaN(devPort)) {
+    options.devPort = devPort;
+  }
+  startDev(options);
 }

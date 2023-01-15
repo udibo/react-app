@@ -34,12 +34,13 @@ export interface HTMLOptions<
   helmet: HelmetContext.HelmetServerState;
   env: AppEnvironment;
   context: AppContext;
+  devPort?: number;
 }
 
 function html<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
-  { helmet, env, context }: HTMLOptions<AppContext>,
+  { helmet, env, context, devPort }: HTMLOptions<AppContext>,
 ) {
   const headTags = [
     helmet.base.toString(),
@@ -55,6 +56,11 @@ function html<
         context: ${serialize(context, { isJSON: true })},
       };
     </script>`,
+    isDevelopment() && devPort
+      ? `<script>window.app.devPort = ${
+        serialize(devPort, { isJSON: true })
+      };</script>`
+      : null,
     isDevelopment() && `<script type="module" src="/live-reload.js"></script>`,
     helmet.noscript.toString(),
   ].filter((tag: string) => Boolean(tag));
@@ -84,7 +90,7 @@ export async function renderToReadableStream<
 ) {
   const { request, state } = context;
   const { route, Provider } = state._app;
-  const { env, context: appContext } = state.app;
+  const { env, context: appContext, devPort } = state.app;
   const { pathname, search } = request.url;
   const location = `${pathname}${search}`;
   const helmetContext = {} as HelmetContext;
@@ -115,6 +121,7 @@ export async function renderToReadableStream<
     helmet: helmetContext.helmet,
     env,
     context: appContext,
+    devPort,
   });
 
   return stream
@@ -275,12 +282,16 @@ export function createApp<
  * This function will not do anything if the app is not running in development mode.
  */
 export async function listeningDev(
-  { hostname, secure }: { hostname: string; secure: boolean },
+  { hostname, secure, devPort }: {
+    hostname: string;
+    secure: boolean;
+    devPort?: number;
+  },
 ) {
   if (isDevelopment()) {
     try {
       const origin = `${secure ? "https://" : "http://"}${hostname}`;
-      await fetch(`${origin}:9002/listening`);
+      await fetch(`${origin}:${devPort || 9002}/listening`);
     } catch {
       // Ignore errors
     }
@@ -305,7 +316,9 @@ export async function serve<
   app.addEventListener("listen", ({ hostname, port, secure }) => {
     const origin = `${secure ? "https://" : "http://"}${hostname}`;
     console.log(`Listening on: ${origin}:${port}`);
-    queueMicrotask(() => listeningDev({ hostname, secure }));
+    queueMicrotask(() =>
+      listeningDev({ hostname, secure, devPort: options.devPort })
+    );
   });
 
   const listenOptions = {} as ListenOptions;
