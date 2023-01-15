@@ -13,12 +13,26 @@ on:
         required: true
         type: string
 jobs:
+  variables:
+    name: Get variables
+    runs-on: ubuntu-latest
+    outputs:
+      DENO_DIR: ${{ steps.deno_dir.outputs.DENO_DIR }}
+    steps:
+      - id: deno_dir
+        name: Get cache directory
+        run: |
+          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT
   deploy:
     name: Deploy
+    needs: [variables]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+    env:
+      APP_ENV: production
+      DENO_DIR: ${{ needs.variables.outputs.DENO_DIR }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v3.3.0
@@ -26,11 +40,15 @@ jobs:
         uses: denoland/setup-deno@main
         with:
           deno-version: v1.x
+      - name: Cache Deno dependencies
+        uses: actions/cache@v3.2.3
+        with:
+          path: ${{ env.DENO_DIR }}
+          key: deno-dir-prod-${{ hashFiles('deno.lock') }}
+          restore-keys: deno-dir-${{ hashFiles('deno.lock') }}
       - name: Build
         working-directory: ${{ inputs.app-directory }}
         run: deno task build
-        env:
-          APP_ENV: production
       - name: Upload to Deno Deploy
         uses: denoland/deployctl@v1
         with:
