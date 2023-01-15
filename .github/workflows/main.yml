@@ -1,0 +1,27 @@
+name: CI/CD
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    with:
+      app-directory: ./example
+      test-args: '-A'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  deploy:
+    name: CD
+    needs: ci
+    uses: ./.github/workflows/deploy.yml
+    with:
+      project: udibo-react-app
+      app-directory: ./example
+  release:
+    name: CD
+    needs: ci
+    uses: ./.github/workflows/release.yml
+    if: startsWith(github.ref, 'refs/tags/')
