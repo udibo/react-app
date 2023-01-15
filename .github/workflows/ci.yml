@@ -1,58 +1,113 @@
 name: CI
-on: [push]
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: './'
+      app-directory:
+        required: false
+        type: string
+      lint-args:
+        required: false
+        type: string
+        default: ''
+      fmt-args:
+        required: false
+        type: string
+        default: ''
+      test-args:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 jobs:
-  deploy:
-    name: deploy
+  secrets:
+    name: Get secrets
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      fail-fast: true
-    permissions:
-      id-token: write
-      contents: read
+    outputs:
+      CODECOV_TOKEN: ${{ steps.secrets.outputs.CODECOV_TOKEN }}
+    steps:
+      - id: secrets
+        name: Get secrets
+        if: env.CODECOV_TOKEN != ''
+        run: |
+          if ["${{ secrets.CODECOV_TOKEN }}" != ""];
+          then
+            echo "::set-output name=CODECOV_TOKEN::'${{ secrets.CODECOV_TOKEN }}'"
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.3.0
       - name: Setup deno
         uses: denoland/setup-deno@main
         with:
           deno-version: v1.x
-      - name: Check formatting and lint
-        run: deno task check
+      - name: Lint source files
+        working-directory: ${{ inputs.working-directory }}
+        run: deno lint ${{ inputs.lint-args }}
+  format:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3.3.0
+      - name: Setup deno
+        uses: denoland/setup-deno@main
+        with:
+          deno-version: v1.x
+      - name: Check formatting
+        working-directory: ${{ inputs.working-directory }}
+        run: deno fmt --check ${{ inputs.fmt-args }}
+  test:
+    name: Test ${{ matrix.os }}
+    needs: [secrets, lint, format]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: true
+    env:
+      APP_ENV: test
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3.3.0
+      - name: Setup deno
+        uses: denoland/setup-deno@main
+        with:
+          deno-version: v1.x
       - name: Build
+        working-directory: ${{ inputs.app-directory || inputs.working-directory }}
         run: deno task build
       - name: Run tests
-        run: deno task test-coverage
+        working-directory: ${{ inputs.working-directory }}
+        if: |
+          matrix.os != 'ubuntu-latest'
+          || !needs.secrets.outputs.CODECOV_TOKEN
+        run: deno test ${{ inputs.test-args }} .
+      - name: Run tests and collect coverage
+        working-directory: ${{ inputs.working-directory }}
+        if: |
+          matrix.os == 'ubuntu-latest'
+          && needs.secrets.outputs.CODECOV_TOKEN
+        run: deno test --coverage=cov ${{ inputs.test-args }} .
       - name: Generate coverage
-        run: deno task coverage
+        working-directory: ${{ inputs.working-directory }}
+        if: |
+          matrix.os == 'ubuntu-latest'
+          && needs.secrets.outputs.CODECOV_TOKEN
+        run: deno coverage --lcov=cov ${{ inputs.test-args }} > cov.lcov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          files: cov.lcov
-          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ inputs.working-directory }}/cov.lcov
+          token: ${{ needs.secrets.outputs.CODECOV_TOKEN }}
           fail_ci_if_error: true
-      - name: Pre-deploy cleanup
-        run: |
-          rm cov.lcov
-          rm -rf cov
-      - name: Upload to Deno Deploy
-        uses: denoland/deployctl@v1
-        with:
-          project: 'udibo-react-app'
-          root: './'
-          entrypoint: './example/main.ts'
-          import-map: './example/import_map.json'
-      - name: Release info
         if: |
-          github.repository == 'udibo/react_app' &&
-          startsWith(github.ref, 'refs/tags/')
-        shell: bash
-        run: |
-          echo "RELEASE_VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: env.RELEASE_VERSION != ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          draft: true
+          matrix.os == 'ubuntu-latest'
+          && needs.secrets.outputs.CODECOV_TOKEN

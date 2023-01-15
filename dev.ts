@@ -97,7 +97,7 @@ async function buildDev({
       if (preBuild) await preBuild();
 
       const buildProcess = Deno.run({
-        cmd: ["deno", "run", "-A", "../build.ts"],
+        cmd: ["deno", "task", "build"],
         env: {
           APP_ENV: "development",
         },

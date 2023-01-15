@@ -1,0 +1,40 @@
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: './'
+      app-directory:
+        required: false
+        type: string
+      project:
+        required: true
+        type: string
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3.3.0
+      - name: Setup deno
+        uses: denoland/setup-deno@main
+        with:
+          deno-version: v1.x
+      - name: Build
+        working-directory: ${{ inputs.app-directory }}
+        run: deno task build
+        env:
+          APP_ENV: production
+      - name: Upload to Deno Deploy
+        uses: denoland/deployctl@v1
+        with:
+          project: ${{ inputs.project }}
+          root: ${{ inputs.working-directory }}
+          entrypoint: '${{ inputs.app-directory || inputs.working-directory }}/main.ts'
+          import-map: '${{ inputs.app-directory || inputs.working-directory }}/import_map.json'

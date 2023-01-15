@@ -1,14 +1,10 @@
 {
   "tasks": {
-    "build": "export APP_ENV=production && deno run -A ../build.ts",
-    "build-dev": "export APP_ENV=development && deno run -A ../build.ts",
-    "run": "export APP_ENV=production && deno run -A ./main.ts",
-    "run-dev": "export APP_ENV=development && deno run -A ./main.ts",
-    "dev": "export APP_ENV=development && deno run -A ../dev.ts",
+    "build": "deno run -A ../build.ts",
+    "run": "deno run -A ./main.ts",
+    "dev": "deno run -A ../dev.ts",
     "test": "export APP_ENV=test && deno test -A .",
     "test-watch": "export APP_ENV=test && deno test -A --watch .",
-    "test-coverage": "export APP_ENV=test && deno test -A --coverage=cov .",
-    "coverage": "deno coverage --lcov cov > cov.lcov",
     "check": "deno lint && deno fmt --check",
     "git-rebase": "git fetch origin main && git rebase --onto origin/main HEAD"
   },
