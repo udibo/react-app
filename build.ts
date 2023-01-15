@@ -71,7 +71,7 @@ async function buildRoutes(moduleUrl: string) {
     return route;
   }
 
-  const routesUrl = path.resolve(moduleUrl, "./routes");
+  const routesUrl = path.join(moduleUrl, "./routes");
   for await (const entry of walk(routesUrl)) {
     if (!entry.isFile) continue;
     const routeFileName = entry.name.match(ROUTE_FILE_NAME);
@@ -113,10 +113,10 @@ async function buildRoutes(moduleUrl: string) {
       const routePath = routePathFromName(route.name.slice(0, -4));
       const routerFileName = route.name.slice(0, -4);
       if (
-        await exists(path.resolve(routesUrl, directory, `${routerFileName}.ts`))
+        await exists(path.join(routesUrl, directory, `${routerFileName}.ts`))
       ) {
         routerFileImports += `import $${routeId} from "./${
-          path.posix.join("./routes", posixDirectory, routerFileName)
+          path.posix.join("./routes", posixDirectory, `${routerFileName}.ts`)
         }";\n`;
         routerFileExports += `const router${routeId} = new Router();\n`;
         routerFileExports +=
@@ -127,7 +127,7 @@ async function buildRoutes(moduleUrl: string) {
             `router${parentRouteId}.use("/${routerPath}", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
         }
       } else if (
-        await exists(path.resolve(routesUrl, directory, `${routerFileName}.js`))
+        await exists(path.join(routesUrl, directory, `${routerFileName}.js`))
       ) {
         routerFileImports += `import $${routeId} from "./${
           path.posix.join("./routes", posixDirectory, `${routerFileName}.js`)
@@ -161,13 +161,13 @@ async function buildRoutes(moduleUrl: string) {
 
       const mainRouteId = routeId;
       routerFileExports += `const router${mainRouteId} = new Router();\n`;
-      if (await exists(path.resolve(routesUrl, directory, "main.ts"))) {
+      if (await exists(path.join(routesUrl, directory, "main.ts"))) {
         routerFileImports += `import $${mainRouteId} from "./${
           path.posix.join("./routes", posixDirectory, "main.ts")
         }";\n`;
         routerFileExports +=
           `addMiddleware(router${mainRouteId}, ...$${mainRouteId});\n`;
-      } else if (await exists(path.resolve(routesUrl, directory, "main.js"))) {
+      } else if (await exists(path.join(routesUrl, directory, "main.js"))) {
         routerFileImports += `import $${mainRouteId} from "./${
           path.posix.join("./routes", posixDirectory, "main.js")
         }";\n`;
@@ -182,14 +182,14 @@ async function buildRoutes(moduleUrl: string) {
           path.posix.join("./routes", posixDirectory, route.index)
         }";\n`;
         routerFileExports += `const router${routeId} = new Router();\n`;
-        if (await exists(path.resolve(routesUrl, directory, "index.ts"))) {
+        if (await exists(path.join(routesUrl, directory, "index.ts"))) {
           routerFileImports += `import $${routeId} from "./${
             path.posix.join("./routes", posixDirectory, "index.ts")
           };\n`;
           routerFileExports +=
             `addMiddleware(router${routeId}, ...$${routeId});\n`;
         } else if (
-          await exists(path.resolve(routesUrl, directory, "index.js"))
+          await exists(path.join(routesUrl, directory, "index.js"))
         ) {
           routerFileImports += `import $${routeId} from "./${
             path.posix.join("./routes", posixDirectory, "index.js")
@@ -304,7 +304,7 @@ export interface BuildOptions {
 export async function build(options: BuildOptions) {
   const { moduleUrl } = options;
   const entryPoint = "app.tsx";
-  const outdir = path.resolve(
+  const outdir = path.join(
     moduleUrl,
     "public",
     `${isTest() ? "test-" : ""}build`,
@@ -312,7 +312,7 @@ export async function build(options: BuildOptions) {
   await ensureDir(outdir);
 
   const importMapURL = path.toFileUrl(
-    path.resolve(moduleUrl, "import_map.json"),
+    path.join(moduleUrl, "import_map.json"),
   );
 
   const buildOptions: esbuild.BuildOptions = isProduction() ? {} : {
