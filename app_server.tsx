@@ -57,7 +57,9 @@ function html<
       };
     </script>`,
     isDevelopment() && devPort
-      ? `<script>window.app.devPort = ${serialize(devPort, { isJSON: true })};</script>`
+      ? `<script>window.app.devPort = ${
+        serialize(devPort, { isJSON: true })
+      };</script>`
       : null,
     isDevelopment() && `<script type="module" src="/live-reload.js"></script>`,
     helmet.noscript.toString(),
@@ -280,7 +282,11 @@ export function createApp<
  * This function will not do anything if the app is not running in development mode.
  */
 export async function listeningDev(
-  { hostname, secure, devPort }: { hostname: string; secure: boolean, devPort?: number },
+  { hostname, secure, devPort }: {
+    hostname: string;
+    secure: boolean;
+    devPort?: number;
+  },
 ) {
   if (isDevelopment()) {
     try {
@@ -310,7 +316,9 @@ export async function serve<
   app.addEventListener("listen", ({ hostname, port, secure }) => {
     const origin = `${secure ? "https://" : "http://"}${hostname}`;
     console.log(`Listening on: ${origin}:${port}`);
-    queueMicrotask(() => listeningDev({ hostname, secure, devPort: options.devPort }));
+    queueMicrotask(() =>
+      listeningDev({ hostname, secure, devPort: options.devPort })
+    );
   });
 
   const listenOptions = {} as ListenOptions;

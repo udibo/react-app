@@ -214,8 +214,8 @@ export function startDev({
 }
 
 if (import.meta.main) {
-  const options: DevOptions = {}
-  const devPort = + (getEnv("DEV_PORT") ?? "");
+  const options: DevOptions = {};
+  const devPort = +(getEnv("DEV_PORT") ?? "");
   if (devPort && !isNaN(devPort)) {
     options.devPort = devPort;
   }
