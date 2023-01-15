@@ -28,12 +28,12 @@ interface Route {
 
 const ROUTE_FILE_NAME = /^([^\/]+)(\.tsx|\.jsx)$/;
 const ROUTE_PARAM = /^\[(.+)]$/;
-const ROUTE_WILDCARD = /^404$/;
+const ROUTE_WILDCARD = /^\[...\]$/;
 function routePathFromName(name: string) {
   if (!name) return "/";
   return name
-    .replace(ROUTE_PARAM, ":$1")
-    .replace(ROUTE_WILDCARD, "*");
+    .replace(ROUTE_WILDCARD, "*")
+    .replace(ROUTE_PARAM, ":$1");
 }
 
 async function buildRoutes(moduleUrl: string) {
@@ -233,7 +233,8 @@ async function buildRoutes(moduleUrl: string) {
           for (const childRoute of route.children.values()) {
             if (
               childRoute.isFile &&
-              (childRoute.name === "404.tsx" || childRoute.name === "404.jsx")
+              (childRoute.name === "[...].tsx" ||
+                childRoute.name === "[...].jsx")
             ) {
               notFoundRoute = childRoute;
               continue;
