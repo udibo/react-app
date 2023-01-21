@@ -1,5 +1,5 @@
 import { Router } from "$x/oak/mod.ts";
-import { HttpError, isHttpError } from "$x/udibo_react_app/error.tsx";
+import { HttpError } from "$x/udibo_react_app/error.tsx";
 
 import { blogRouter } from "./blog/main.ts";
 
@@ -8,9 +8,7 @@ const apiRouter = new Router()
     try {
       await next();
     } catch (cause) {
-      const error = isHttpError(cause)
-        ? HttpError.from(cause)
-        : new HttpError(500, { cause });
+      const error = HttpError.from(cause);
       console.error("api error", error);
 
       response.status = error.status;

@@ -224,9 +224,7 @@ export function createAppRouter<
         }
         await next();
       } catch (cause) {
-        const error = isHttpError(cause)
-          ? HttpError.from(cause)
-          : new HttpError(500, { cause });
+        const error = HttpError.from(cause);
         console.error("app error", error);
 
         response.status = error.status;
@@ -410,11 +408,10 @@ export function errorBoundary<
     try {
       await next();
     } catch (cause) {
-      app.error = isHttpError(cause)
-        ? HttpError.from<{ boundary?: string }>(cause)
-        : new HttpError<{ boundary?: string }>(500, { cause });
-      if (boundary) app.error.data.boundary = boundary;
-      response.status = app.error.status;
+      const error = HttpError.from<{ boundary?: string }>(cause);
+      app.error = error;
+      if (boundary) error.data.boundary = boundary;
+      response.status = error.status;
       await state.app.render();
     }
   });
