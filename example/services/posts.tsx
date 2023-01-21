@@ -1,5 +1,5 @@
 import { Context, useContext, useEffect, useState } from "$npm/react";
-import { HttpError } from "$x/http_error/mod.ts";
+import { HttpError, HttpErrorOptions } from "$x/udibo_react_app/error.tsx";
 import { AppContext, isBrowser } from "$x/udibo_react_app/env.ts";
 
 import { Post } from "../models/posts.ts";
@@ -37,9 +37,12 @@ export function getPosts() {
           setPosts(posts);
           setError(null);
         })
-        .catch((error: Error) => {
+        .catch((error: unknown) => {
           setPosts(null);
-          setError(error);
+          const options = error && typeof error === "object"
+            ? error as HttpErrorOptions
+            : {};
+          setError(new HttpError(options));
         });
     }
   }, []);
@@ -63,9 +66,12 @@ export function getPost(id: number) {
           setPost(post);
           setError(null);
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           setPost(null);
-          setError(error);
+          const options = error && typeof error === "object"
+            ? error as HttpErrorOptions
+            : {};
+          setError(new HttpError(options));
         });
     }
   }, []);

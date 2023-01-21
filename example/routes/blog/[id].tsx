@@ -1,10 +1,12 @@
 import { useParams } from "$npm/react-router-dom";
 import { HttpError } from "$x/http_error/mod.ts";
 import { Helmet } from "$npm/react-helmet-async";
+import { withAppErrorBoundary } from "$x/udibo_react_app/error.tsx";
 
 import { getPost } from "../../services/posts.tsx";
+import { ErrorFallback } from "../../components/error.tsx";
 
-export default () => {
+export default withAppErrorBoundary(() => {
   const params = useParams();
   const id = Number(params.id);
   if (isNaN(id) || Math.floor(id) !== id || id < 0) {
@@ -30,4 +32,7 @@ export default () => {
         <h2>Loading...</h2>
       </>
     );
-};
+}, {
+  boundary: "/blog/[id]",
+  FallbackComponent: ErrorFallback,
+});

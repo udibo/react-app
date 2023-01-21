@@ -95,10 +95,48 @@ async function buildRoutes(moduleUrl: string) {
   let routeFileExports = "export const route: RouteObject = ";
 
   let routerFileImports =
-    `import { Router } from "$x/oak/mod.ts";\nimport { addMiddleware, defaultRouter } from "../app_server.tsx";\n\n`;
+    `import { Router } from "$x/oak/mod.ts";\nimport { addMiddleware, defaultRouter } from "$x/udibo_react_app/app_server.tsx";\n\n`;
   let routerFileExports = "";
 
   let routeId = 0;
+
+  function addRouter({
+    parentRouteId,
+    posixDirectory,
+    routerFileName,
+    routePath,
+  }: {
+    parentRouteId: number;
+    posixDirectory: string;
+    routerFileName: string;
+    routePath: string;
+  }) {
+    routerFileImports += `import $${routeId} from "./${
+      path.posix.join("./routes", posixDirectory, routerFileName)
+    }";\n`;
+    routerFileExports += `const router${routeId} = new Router();\n`;
+    routerFileExports += `addMiddleware(router${routeId}, ...$${routeId});\n`;
+    if (parentRouteId !== -1) {
+      const routerPath = routePath === "*" ? "(.*)" : routePath;
+      routerFileExports +=
+        `router${parentRouteId}.use("/${routerPath}", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
+    }
+  }
+
+  /* used for main and index */
+  function addRouter2(
+    { routeId, posixDirectory, routerFileName }: {
+      routeId: number;
+      posixDirectory: string;
+      routerFileName: string;
+    },
+  ) {
+    routerFileImports += `import $${routeId} from "./${
+      path.posix.join("./routes", posixDirectory, routerFileName)
+    }";\n`;
+    routerFileExports += `addMiddleware(router${routeId}, ...$${routeId});\n`;
+  }
+
   async function addToFiles(
     parentRouteId: number,
     directory: string,
@@ -115,30 +153,21 @@ async function buildRoutes(moduleUrl: string) {
       if (
         await exists(path.join(routesUrl, directory, `${routerFileName}.ts`))
       ) {
-        routerFileImports += `import $${routeId} from "./${
-          path.posix.join("./routes", posixDirectory, `${routerFileName}.ts`)
-        }";\n`;
-        routerFileExports += `const router${routeId} = new Router();\n`;
-        routerFileExports +=
-          `addMiddleware(router${routeId}, ...$${routeId});\n`;
-        if (parentRouteId !== -1) {
-          const routerPath = routePath === "*" ? "(.*)" : routePath;
-          routerFileExports +=
-            `router${parentRouteId}.use("/${routerPath}", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
-        }
+        addRouter({
+          parentRouteId,
+          posixDirectory,
+          routerFileName: `${routerFileName}.ts`,
+          routePath,
+        });
       } else if (
         await exists(path.join(routesUrl, directory, `${routerFileName}.js`))
       ) {
-        routerFileImports += `import $${routeId} from "./${
-          path.posix.join("./routes", posixDirectory, `${routerFileName}.js`)
-        }";\n`;
-        routerFileExports += `const router${routeId} = new Router();\n`;
-        routerFileExports +=
-          `addMiddleware(router${routeId}, ...$${routeId});\n`;
-        if (parentRouteId !== -1) {
-          routerFileExports +=
-            `router${parentRouteId}.use("/${routePath}", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
-        }
+        addRouter({
+          parentRouteId,
+          posixDirectory,
+          routerFileName: `${routerFileName}.js`,
+          routePath,
+        });
       } else if (routePath !== "*") {
         routerFileExports +=
           `router${parentRouteId}.use("/${routePath}", defaultRouter.routes(), defaultRouter.allowedMethods());\n`;
@@ -162,17 +191,17 @@ async function buildRoutes(moduleUrl: string) {
       const mainRouteId = routeId;
       routerFileExports += `const router${mainRouteId} = new Router();\n`;
       if (await exists(path.join(routesUrl, directory, "main.ts"))) {
-        routerFileImports += `import $${mainRouteId} from "./${
-          path.posix.join("./routes", posixDirectory, "main.ts")
-        }";\n`;
-        routerFileExports +=
-          `addMiddleware(router${mainRouteId}, ...$${mainRouteId});\n`;
+        addRouter2({
+          routeId,
+          posixDirectory,
+          routerFileName: "main.ts",
+        });
       } else if (await exists(path.join(routesUrl, directory, "main.js"))) {
-        routerFileImports += `import $${mainRouteId} from "./${
-          path.posix.join("./routes", posixDirectory, "main.js")
-        }";\n`;
-        routerFileExports +=
-          `addMiddleware(router${mainRouteId}, ...$${mainRouteId});\n`;
+        addRouter2({
+          routeId,
+          posixDirectory,
+          routerFileName: "main.js",
+        });
       }
 
       routeId++;
@@ -183,19 +212,19 @@ async function buildRoutes(moduleUrl: string) {
         }";\n`;
         routerFileExports += `const router${routeId} = new Router();\n`;
         if (await exists(path.join(routesUrl, directory, "index.ts"))) {
-          routerFileImports += `import $${routeId} from "./${
-            path.posix.join("./routes", posixDirectory, "index.ts")
-          };\n`;
-          routerFileExports +=
-            `addMiddleware(router${routeId}, ...$${routeId});\n`;
+          addRouter2({
+            routeId,
+            posixDirectory,
+            routerFileName: "index.ts",
+          });
         } else if (
           await exists(path.join(routesUrl, directory, "index.js"))
         ) {
-          routerFileImports += `import $${routeId} from "./${
-            path.posix.join("./routes", posixDirectory, "index.js")
-          }";\n`;
-          routerFileExports +=
-            `addMiddleware(router${routeId}, ...$${routeId});\n`;
+          addRouter2({
+            routeId,
+            posixDirectory,
+            routerFileName: "index.js",
+          });
         } else {
           routerFileExports += `router${routeId}.use("${
             path.posix.join("/", routePath)
@@ -251,6 +280,36 @@ async function buildRoutes(moduleUrl: string) {
           if (notFoundRoute) {
             await addToFiles(mainRouteId, directory, notFoundRoute);
             routeFileExports += ",\n";
+          } else if (parentRouteId === -1) {
+            routeFileImports +=
+              `import { NotFound } from "$x/udibo_react_app/error.tsx";\n`;
+            routeFileExports += `{ path: "*", element: <NotFound /> },\n`;
+
+            routeId++;
+            if (
+              await exists(path.join(routesUrl, directory, "[...].ts"))
+            ) {
+              addRouter({
+                parentRouteId,
+                posixDirectory,
+                routerFileName: "[...].ts",
+                routePath,
+              });
+            } else if (
+              await exists(path.join(routesUrl, directory, "[...].js"))
+            ) {
+              addRouter({
+                parentRouteId,
+                posixDirectory,
+                routerFileName: "[...].js",
+                routePath,
+              });
+            } else {
+              routerFileImports +=
+                `import { notFoundRouter } from "$x/udibo_react_app/app_server.tsx";\n`;
+              routerFileExports +=
+                `router0.use(notFoundRouter.routes(), notFoundRouter.allowedMethods());\n`;
+            }
           }
         }
 
