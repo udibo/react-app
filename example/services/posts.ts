@@ -3,7 +3,11 @@ import { HttpError } from "$x/http_error/mod.ts";
 import { posts } from "../data/posts.ts";
 
 export function getPosts() {
-  return posts;
+  return [...posts, {
+    id: 2,
+    title: "Fake post",
+    content: "This post does not exist.",
+  }];
 }
 
 export function getPost(id: number) {

@@ -11,7 +11,9 @@ import {
   RouteObject,
   RouterProvider,
 } from "$npm/react-router-dom";
+
 import { AppContext, AppWindow } from "./env.ts";
+import { AppErrorContext, HttpError } from "./error.tsx";
 
 export interface HydrateOptions {
   route: RouteObject;
@@ -24,15 +26,18 @@ interface AppOptions extends HydrateOptions {
 
 function App({ route, Provider }: AppOptions) {
   const router = createBrowserRouter([route]);
-
+  const errorJSON = (window as AppWindow).app.error;
+  const appErrorContext = { error: errorJSON && new HttpError(errorJSON) };
   return (
     <StrictMode>
       <HelmetProvider>
-        <AppContext.Provider value={(window as AppWindow).app.context ?? {}}>
-          <Provider>
-            <RouterProvider router={router} />
-          </Provider>
-        </AppContext.Provider>
+        <AppErrorContext.Provider value={appErrorContext}>
+          <AppContext.Provider value={(window as AppWindow).app.context ?? {}}>
+            <Provider>
+              <RouterProvider router={router} />
+            </Provider>
+          </AppContext.Provider>
+        </AppErrorContext.Provider>
       </HelmetProvider>
     </StrictMode>
   );

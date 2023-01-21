@@ -1,5 +1,6 @@
 import { createContext } from "$npm/react";
 
+import { HttpErrorOptions } from "./error.tsx";
 import { _internals } from "./_internals.ts";
 
 export const isServer = () => _internals.isServer;
@@ -12,7 +13,9 @@ export interface AppEnvironment {
 
 export type AppWindow<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-> = typeof window & { app: { env: AppEnvironment; context: AppContext } };
+> = typeof window & {
+  app: { env: AppEnvironment; context: AppContext; error?: HttpErrorOptions };
+};
 
 export const getEnv = (
   key: string,

@@ -6,7 +6,9 @@ import { Loading } from "../../components/loading.tsx";
 
 export default () => (
   <>
-    <Helmet defaultTitle="Example | Blog" titleTemplate="Example | Blog | %s" />
+    <Helmet defaultTitle="Example | Blog" titleTemplate="Example | Blog | %s">
+      <title></title>
+    </Helmet>
     <h1>Blog</h1>
     <Suspense fallback={<Loading />}>
       <Outlet />

@@ -1,5 +1,4 @@
 import * as path from "$std/path/mod.ts";
-import { isHttpError } from "$x/http_error/mod.ts";
 import {
   Application,
   Context,
@@ -18,6 +17,7 @@ import {
 } from "$npm/react-router-dom";
 import serialize from "$npm/serialize-javascript";
 
+import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
 import {
   AppContext,
   AppEnvironment,
@@ -35,12 +35,13 @@ export interface HTMLOptions<
   env: AppEnvironment;
   context: AppContext;
   devPort?: number;
+  error?: HttpError<{ boundary?: string }>;
 }
 
 function html<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
-  { helmet, env, context, devPort }: HTMLOptions<AppContext>,
+  { helmet, env, context, devPort, error }: HTMLOptions<AppContext>,
 ) {
   const headTags = [
     helmet.base.toString(),
@@ -56,11 +57,12 @@ function html<
         context: ${serialize(context, { isJSON: true })},
       };
     </script>`,
-    isDevelopment() && devPort
-      ? `<script>window.app.devPort = ${
-        serialize(devPort, { isJSON: true })
-      };</script>`
-      : null,
+    error &&
+    `<script>window.app.error = ${serialize(HttpError.json(error))};</script>`,
+    isDevelopment() && devPort &&
+    `<script>window.app.devPort = ${
+      serialize(devPort, { isJSON: true })
+    };</script>`,
     isDevelopment() && `<script type="module" src="/live-reload.js"></script>`,
     helmet.noscript.toString(),
   ].filter((tag: string) => Boolean(tag));
@@ -90,7 +92,7 @@ export async function renderToReadableStream<
 ) {
   const { request, state } = context;
   const { route, Provider } = state._app;
-  const { env, context: appContext, devPort } = state.app;
+  const { env, context: appContext, error, devPort } = state.app;
   const { pathname, search } = request.url;
   const location = `${pathname}${search}`;
   const helmetContext = {} as HelmetContext;
@@ -102,11 +104,13 @@ export async function renderToReadableStream<
   const stream = await renderReactToReadableStream(
     <StrictMode>
       <HelmetProvider context={helmetContext}>
-        <AppContext.Provider value={appContext}>
-          <Provider>
-            <RouterProvider router={router} />
-          </Provider>
-        </AppContext.Provider>
+        <AppErrorContext.Provider value={{ error }}>
+          <AppContext.Provider value={appContext}>
+            <Provider>
+              <RouterProvider router={router} />
+            </Provider>
+          </AppContext.Provider>
+        </AppErrorContext.Provider>
       </HelmetProvider>
     </StrictMode>,
     {
@@ -121,6 +125,7 @@ export async function renderToReadableStream<
     helmet: helmetContext.helmet,
     env,
     context: appContext,
+    error,
     devPort,
   });
 
@@ -147,6 +152,7 @@ export interface AppState<AppContext = Record<string, unknown>> {
     context: AppContext;
     render: () => Promise<void>;
     devPort?: number;
+    error?: HttpError<{ boundary?: string }>;
   };
 }
 
@@ -217,28 +223,20 @@ export function createAppRouter<
           }
         }
         await next();
-      } catch (error) {
+      } catch (cause) {
+        const error = HttpError.from(cause);
         console.error("app error", error);
 
-        response.status = isHttpError(error) ? error.status : 500;
+        response.status = error.status;
         if (path.extname(request.url.pathname) === "") {
-          // put error on state.app
-          // maybe state.app.error = // json for error
-          // implement AppError in error.ts
+          state.app.error = error;
           await state.app.render();
+        } else {
+          response.body = HttpError.json(error);
         }
       }
     })
-    .use(router.routes(), router.allowedMethods())
-    .get("/(.*)", async (context: Context<AppState<unknown>>, next) => {
-      const { request, response, state } = context;
-      if (path.extname(request.url.pathname) === "") {
-        response.status = 404;
-        await state.app.render();
-      } else {
-        await next();
-      }
-    });
+    .use(router.routes(), router.allowedMethods());
 
   if (isDevelopment()) {
     const liveReloadScript = Deno.readTextFileSync(
@@ -326,6 +324,7 @@ export async function serve<
   await app.listen(listenOptions);
 }
 
+/** The type of requests handled by the middleware. */
 export type MiddlewareType =
   | "all"
   | "delete"
@@ -337,6 +336,7 @@ export type MiddlewareType =
   | "put"
   | "use";
 
+/** Used to generate middleware for the oak router associated with a route. */
 export interface Middleware<
   P extends RouteParams<string> = RouteParams<string>,
   S extends AppState = AppState,
@@ -345,6 +345,7 @@ export interface Middleware<
   middlewares: RouterMiddleware<string, P, S>[];
 }
 
+/** Creates middleware for a route. */
 export function middleware<
   P extends RouteParams<string> = RouteParams<string>,
   S extends AppState = AppState,
@@ -355,6 +356,7 @@ export function middleware<
   return { type, middlewares };
 }
 
+/** Adds middleware from routes onto an oak router. */
 export function addMiddleware<
   P extends RouteParams<string> = RouteParams<string>,
   S extends AppState = AppState,
@@ -365,7 +367,52 @@ export function addMiddleware<
   }
 }
 
+/**
+ * This router renders the application on get requests.
+ * It is used for all route components that do not have route middleware.
+ */
 export const defaultRouter = new Router()
   .get("/", async (context: Context<AppState>) => {
     await context.state.app.render();
   });
+
+/**
+ * This router will catch all requests and throw a not found error for those with a pathname that does not have an extension.
+ * It's used as the default wildcard router at the top level of your app.
+ */
+export const notFoundRouter = new Router()
+  .get("/(.*)", async (context: Context<AppState<unknown>>, next) => {
+    const { request } = context;
+    if (path.extname(request.url.pathname) === "") {
+      throw new HttpError(404, "Not found");
+    } else {
+      await next();
+    }
+  });
+
+/**
+ * This middleware ensures all errors in the route are HttpErrors.
+ * If an error isn't an HttpError, a new HttpError is created with it as the cause.
+ * If a boundary is specified, it will add the boundary to the HttpError.
+ * If an AppErrorBoundary exists with a matching boundary, it will be used to handle the error.
+ * If a boundary is not specified, the first AppErrorBoundary without a boundary specified will handle the error.
+ * If a boundary is specified, but no AppErrorBoundary exists with a matching boundary, the error will go unhandled.
+ */
+export function errorBoundary<
+  P extends RouteParams<string> = RouteParams<string>,
+  S extends AppState = AppState,
+>(boundary?: string): Middleware<P, S> {
+  return middleware("use", async (context, next) => {
+    const { response, state } = context;
+    const { app } = state;
+    try {
+      await next();
+    } catch (cause) {
+      const error = HttpError.from<{ boundary?: string }>(cause);
+      app.error = error;
+      if (boundary) error.data.boundary = boundary;
+      response.status = error.status;
+      await state.app.render();
+    }
+  });
+}
