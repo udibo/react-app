@@ -1,20 +1,20 @@
 {
   "imports": {
-    "$std/": "https://deno.land/std@0.173.0/",
+    "$std/": "https://deno.land/std@0.174.0/",
     "$x/udibo_react_app/": "./",
     "$x/oak/": "https://deno.land/x/oak@v11.1.0/",
     "$x/esbuild/": "https://deno.land/x/esbuild@v0.15.10/",
     "$x/esbuild_deno_loader/": "https://deno.land/x/esbuild_deno_loader@0.6.0/",
     "$x/http_error/": "https://deno.land/x/http_error@0.4.0/",
-    "$npm/react": "https://esm.sh/react@18.2.0?target=deno&pin=v103",
-    "$npm/react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?target=deno&pin=v103",
-    "$npm/react/jsx-dev-runtime": "https://esm.sh/react@18.2.0/jsx-dev-runtime?target=deno&pin=v103",
-    "$npm/react-dom/client": "https://esm.sh/react-dom@18.2.0/client?target=deno&pin=v103&deps=react@18.2.0",
-    "$npm/react-dom/server": "https://esm.sh/react-dom@18.2.0/server?target=deno&pin=v103&deps=react@18.2.0",
-    "$npm/react-error-boundary": "https://esm.sh/react-error-boundary@3.1.4?target=deno&pin=v103&deps=react@18.2.0,react-dom@18.2.0",
-    "$npm/react-router-dom": "https://esm.sh/react-router-dom@6.6.1?target=deno&pin=v103&deps=react@18.2.0,react-dom@18.2.0",
-    "$npm/react-router-dom/server": "https://esm.sh/react-router-dom@6.6.1/server?target=deno&pin=v103&deps=react@18.2.0,react-dom@18.2.0",
-    "$npm/react-helmet-async": "https://esm.sh/react-helmet-async@1.3.0?target=deno&pin=v103&deps=react@18.2.0,react-dom@18.2.0",
-    "$npm/serialize-javascript": "https://esm.sh/serialize-javascript@6.0.1?target=deno&pin=v103"
+    "$npm/react": "https://esm.sh/react@18.2.0?target=deno&pin=v104",
+    "$npm/react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?target=deno&pin=v104",
+    "$npm/react/jsx-dev-runtime": "https://esm.sh/react@18.2.0/jsx-dev-runtime?target=deno&pin=v104",
+    "$npm/react-dom/client": "https://esm.sh/react-dom@18.2.0/client?target=deno&pin=v104&deps=react@18.2.0",
+    "$npm/react-dom/server": "https://esm.sh/react-dom@18.2.0/server?target=deno&pin=v104&deps=react@18.2.0",
+    "$npm/react-error-boundary": "https://esm.sh/react-error-boundary@3.1.4?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0",
+    "$npm/react-router-dom": "https://esm.sh/react-router-dom@6.6.1?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0",
+    "$npm/react-router-dom/server": "https://esm.sh/react-router-dom@6.6.1/server?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0",
+    "$npm/react-helmet-async": "https://esm.sh/react-helmet-async@1.3.0?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0",
+    "$npm/serialize-javascript": "https://esm.sh/serialize-javascript@6.0.1?target=deno&pin=v104"
   }
 }

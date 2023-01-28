@@ -6,27 +6,100 @@ import { denoPlugin } from "$x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
 
-async function exists(filePath: string | URL): Promise<boolean> {
-  try {
-    await Deno.lstat(filePath);
-    return true;
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return false;
+interface Route {
+  name: string;
+  parent?: Route;
+  react?: boolean;
+  file?: {
+    react?: string;
+    oak?: string;
+  };
+  main?: {
+    react?: string;
+    oak?: string;
+  };
+  index?: {
+    react?: string;
+    oak?: string;
+  };
+  children?: Record<string, Route>;
+}
+
+const TEST_PATH = /(\.|_)test(\.(?:js|jsx|ts|tsx))$/;
+const IGNORE_PATH = /(\/|\\)_[^\/\\]*(\.(?:js|jsx|ts|tsx))$/;
+const ROUTE_PATH = /(\.(?:js|jsx|ts|tsx))$/;
+const REACT_EXT = /(\.(?:jsx|tsx))$/;
+
+function addFileToDir(route: Route, name: string, ext: string) {
+  const isReactFile = REACT_EXT.test(ext);
+  if (name === "main" || name === "index") {
+    if (!route[name]) {
+      route[name] = {};
     }
-    throw error;
+    if (isReactFile) {
+      route[name]!.react = `${name}${ext}`;
+    } else {
+      route[name]!.oak = `${name}${ext}`;
+    }
+  } else {
+    if (!route.children) route.children = {};
+    if (!route.children[name]) {
+      route.children[name] = { name, parent: route, file: {} };
+    }
+    const childRoute = route.children[name];
+
+    if (!childRoute.file) childRoute.file = {};
+    if (isReactFile) {
+      childRoute.react = true;
+      childRoute.file.react = `${name}${ext}`;
+    } else {
+      childRoute.file.oak = `${name}${ext}`;
+    }
+  }
+
+  if (isReactFile) {
+    let currentRoute: Route | undefined = route;
+    while (currentRoute && !currentRoute.react) {
+      currentRoute.react = true;
+      currentRoute = route.parent as Route;
+    }
   }
 }
 
-interface Route {
-  name: string;
-  isFile?: boolean;
-  main?: string;
-  index?: string;
-  children?: Map<string, Route>;
+async function generateRoutes(routesUrl: string): Promise<Route> {
+  const rootRoute = { name: "", children: {} } as Route;
+
+  for await (
+    const entry of walk(routesUrl, {
+      includeDirs: false,
+      match: [ROUTE_PATH],
+      skip: [TEST_PATH, IGNORE_PATH],
+    })
+  ) {
+    const parsedPath = path.parse(entry.path);
+    const { name, ext, dir } = parsedPath;
+    const relativePath = path.relative(routesUrl, dir);
+    const layers = relativePath.length ? relativePath.split(path.sep) : [];
+
+    let parentRoute = rootRoute;
+    for (const layer of layers) {
+      if (!parentRoute.children) parentRoute.children = {};
+      if (!parentRoute.children[layer]) {
+        parentRoute.children[layer] = {
+          name: layer,
+          children: {},
+          parent: parentRoute,
+        };
+      }
+      parentRoute = parentRoute.children[layer];
+    }
+
+    addFileToDir(parentRoute, name, ext);
+  }
+
+  return rootRoute;
 }
 
-const ROUTE_FILE_NAME = /^([^\/]+)(\.tsx|\.jsx)$/;
 const ROUTE_PARAM = /^\[(.+)]$/;
 const ROUTE_WILDCARD = /^\[...\]$/;
 function routePathFromName(name: string) {
@@ -36,378 +109,378 @@ function routePathFromName(name: string) {
     .replace(ROUTE_PARAM, ":$1");
 }
 
-async function buildRoutes(moduleUrl: string) {
-  const appRoute = {} as Route;
+function lazyImportLine(routeId: number, relativePath: string) {
+  return `const $${routeId} = lazy(() => import("./${relativePath}"));`;
+}
 
-  function registerRoute(
-    parentRoute: Route,
-    name: string,
-    isFile?: boolean,
-  ): Route {
-    let route: Route;
-    const isMain = isFile && (name === "main.tsx" || name === "main.jsx");
-    const isIndex = isFile && (name === "index.tsx" || name === "index.jsx");
+function routeFileData(routeId: number, relativePath: string, route: Route) {
+  const importLines: string[] = [];
+  let routeText = `{ path: "${routePathFromName(route.name)}"`;
 
-    if (!name || isIndex || isMain) {
-      route = parentRoute;
-    } else if (parentRoute.children?.has(name)) {
-      route = parentRoute.children.get(name)!;
-    } else {
-      if (!parentRoute.children) {
-        parentRoute.children = new Map();
-      }
-      route = { name } as Route;
-      parentRoute.children!.set(name, route);
-    }
-
-    if (isMain) {
-      route.main = name;
-    } else if (isIndex) {
-      route.index = name;
-    } else if (isFile && name) {
-      route.isFile = true;
-    }
-
-    return route;
-  }
-
-  const routesUrl = path.join(moduleUrl, "./routes");
-  for await (const entry of walk(routesUrl)) {
-    if (!entry.isFile) continue;
-    const routeFileName = entry.name.match(ROUTE_FILE_NAME);
-    if (!routeFileName) continue;
-
-    let relativePath = path.relative(routesUrl, entry.path);
-    if (relativePath[relativePath.length - 1] === path.sep) {
-      relativePath = relativePath.slice(0, relativePath.length - 1);
-    }
-
-    const paths = relativePath.split(path.sep);
-    let route = appRoute;
-    for (let i = 0; i < paths.length; i++) {
-      const name = paths[i];
-      route = registerRoute(route, name, i === (paths.length - 1));
-    }
-  }
-
-  let routeFileImports =
-    `import { lazy } from "$npm/react";\nimport { RouteObject } from "$npm/react-router-dom";\n\n`;
-  let routeFileExports = "export const route: RouteObject = ";
-
-  let routerFileImports =
-    `import { Router } from "$x/oak/mod.ts";\nimport { addMiddleware, defaultRouter } from "$x/udibo_react_app/app_server.tsx";\n\n`;
-  let routerFileExports = "";
-
-  let routeId = 0;
-
-  function addRouter({
-    parentRouteId,
-    posixDirectory,
-    routerFileName,
-    routePath,
-  }: {
-    parentRouteId: number;
-    posixDirectory: string;
-    routerFileName: string;
-    routePath: string;
-  }) {
-    routerFileImports += `import $${routeId} from "./${
-      path.posix.join("./routes", posixDirectory, routerFileName)
-    }";\n`;
-    routerFileExports += `const router${routeId} = new Router();\n`;
-    routerFileExports += `addMiddleware(router${routeId}, ...$${routeId});\n`;
-    if (parentRouteId !== -1) {
-      const routerPath = routePath === "*" ? "(.*)" : routePath;
-      routerFileExports +=
-        `router${parentRouteId}.use("/${routerPath}", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
-    }
-  }
-
-  /* used for main and index */
-  function addRouter2(
-    { routeId, posixDirectory, routerFileName }: {
-      routeId: number;
-      posixDirectory: string;
-      routerFileName: string;
-    },
-  ) {
-    routerFileImports += `import $${routeId} from "./${
-      path.posix.join("./routes", posixDirectory, routerFileName)
-    }";\n`;
-    routerFileExports += `addMiddleware(router${routeId}, ...$${routeId});\n`;
-  }
-
-  async function addToFiles(
-    parentRouteId: number,
-    directory: string,
-    route: Route,
-  ) {
-    const posixDirectory = directory.replaceAll(path.SEP, path.posix.sep);
-    if (route.isFile) {
-      routerFileImports += `import "./${
-        path.posix.join("./routes", posixDirectory, route.name)
-      }";\n`;
-
-      const routePath = routePathFromName(route.name.slice(0, -4));
-      const routerFileName = route.name.slice(0, -4);
-      if (
-        await exists(path.join(routesUrl, directory, `${routerFileName}.ts`))
-      ) {
-        addRouter({
-          parentRouteId,
-          posixDirectory,
-          routerFileName: `${routerFileName}.ts`,
-          routePath,
-        });
-      } else if (
-        await exists(path.join(routesUrl, directory, `${routerFileName}.js`))
-      ) {
-        addRouter({
-          parentRouteId,
-          posixDirectory,
-          routerFileName: `${routerFileName}.js`,
-          routePath,
-        });
-      } else if (routePath !== "*") {
-        routerFileExports +=
-          `router${parentRouteId}.use("/${routePath}", defaultRouter.routes(), defaultRouter.allowedMethods());\n`;
-      }
-
-      routeFileImports += `const $${routeId} = lazy(() => import("./${
-        path.posix.join("./routes", posixDirectory, route.name)
-      }"));\n`;
-      routeFileExports += `{path:"${routePath}", element: <$${routeId} />}`;
-
+  const { file, main, index, children } = route;
+  if (file?.react) {
+    importLines.push(
+      lazyImportLine(
+        routeId,
+        path.join(relativePath, routeId === 0 ? "" : "../", file.react),
+      ),
+    );
+    routeText += `, element: <$${routeId} /> }`;
+    routeId++;
+  } else {
+    if (main?.react) {
+      importLines.push(
+        lazyImportLine(routeId, path.join(relativePath, main.react)),
+      );
+      routeText += `, element: <$${routeId} />`;
       routeId++;
-    } else {
-      if (route.main) {
-        routerFileImports += `import "./${
-          path.posix.join("./routes", posixDirectory, route.main)
-        }";\n`;
-      }
+    }
 
-      const routePath = routePathFromName(route.name);
-
-      const mainRouteId = routeId;
-      routerFileExports += `const router${mainRouteId} = new Router();\n`;
-      if (await exists(path.join(routesUrl, directory, "main.ts"))) {
-        addRouter2({
-          routeId,
-          posixDirectory,
-          routerFileName: "main.ts",
-        });
-      } else if (await exists(path.join(routesUrl, directory, "main.js"))) {
-        addRouter2({
-          routeId,
-          posixDirectory,
-          routerFileName: "main.js",
-        });
-      }
-
+    const childRouteTexts: string[] = [];
+    if (index?.react) {
+      importLines.push(
+        lazyImportLine(routeId, path.join(relativePath, index.react)),
+      );
+      childRouteTexts.push(`{ index: true, element: <$${routeId} /> }`);
       routeId++;
+    }
 
-      if (route.index) {
-        routerFileImports += `import "./${
-          path.posix.join("./routes", posixDirectory, route.index)
-        }";\n`;
-        routerFileExports += `const router${routeId} = new Router();\n`;
-        if (await exists(path.join(routesUrl, directory, "index.ts"))) {
-          addRouter2({
-            routeId,
-            posixDirectory,
-            routerFileName: "index.ts",
-          });
-        } else if (
-          await exists(path.join(routesUrl, directory, "index.js"))
-        ) {
-          addRouter2({
-            routeId,
-            posixDirectory,
-            routerFileName: "index.js",
-          });
-        } else {
-          routerFileExports += `router${routeId}.use("${
-            path.posix.join("/", routePath)
-          }", defaultRouter.routes(), defaultRouter.allowedMethods());\n`;
-        }
-        routerFileExports +=
-          `router${mainRouteId}.use("/", router${routeId}.routes(), router${routeId}.allowedMethods());\n`;
+    let notFoundRoute: Route | undefined = undefined;
+    for (const childRoute of Object.values(children ?? {})) {
+      if (!childRoute.react) continue;
+      if (childRoute.name === "[...]") {
+        notFoundRoute = childRoute;
+        continue;
+      }
+      const {
+        importLines: childImportLines,
+        routeText: childRouteText,
+        nextRouteId,
+      } = routeFileData(
+        routeId,
+        path.join(relativePath, childRoute.name),
+        childRoute,
+      );
+      importLines.push(...childImportLines);
+      childRouteTexts.push(childRouteText);
+      routeId = nextRouteId;
+    }
 
+    if (notFoundRoute) {
+      const {
+        importLines: childImportLines,
+        routeText: childRouteText,
+        nextRouteId,
+      } = routeFileData(
+        routeId,
+        path.join(relativePath, notFoundRoute.name),
+        notFoundRoute,
+      );
+      importLines.push(...childImportLines);
+      childRouteTexts.push(childRouteText);
+      routeId = nextRouteId;
+    } else if (relativePath === ".") {
+      importLines.push(
+        `import { NotFound } from "$x/udibo_react_app/error.tsx";`,
+      );
+      childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
+    }
+
+    if (childRouteTexts.length) {
+      routeText += `, children: [${childRouteTexts.join(", ")}]`;
+    }
+    routeText += "}";
+  }
+
+  return {
+    importLines,
+    routeText,
+    nextRouteId: routeId,
+  };
+}
+
+function routeImportLine(routeId: number, relativePath: string) {
+  return `import * as $${routeId} from "./${relativePath}";`;
+}
+
+function routerImportLine(routeId: number, relativePath: string) {
+  return `import $${routeId} from "./${relativePath}";`;
+}
+
+function routerFileData(
+  parentRouteId: number,
+  routeId: number,
+  relativePath: string,
+  route: Route,
+) {
+  const importLines: string[] = [];
+  const routerLines: string[] = [];
+
+  const { name, file, main, index, react, children, parent } = route;
+  if (file) {
+    if (file.react) {
+      importLines.push(
+        routeImportLine(
+          routeId,
+          path.join(relativePath, routeId > 0 ? "../" : "", file.react),
+        ),
+      );
+      routeId++;
+    }
+
+    if (file.oak) {
+      importLines.push(
+        routerImportLine(
+          routeId,
+          path.join(relativePath, routeId > 0 ? "../" : "", file.oak),
+        ),
+      );
+      if (relativePath !== ".") {
+        routerLines.push(
+          `$${parentRouteId}.use("/${
+            routePathFromName(name)
+          }", $${routeId}.routes(), $${routeId}.allowedMethods());`,
+        );
+      }
+      routeId++;
+    } else if (file.react) {
+      routerLines.push(
+        `$${parentRouteId}.use("/${
+          routePathFromName(name)
+        }", defaultRouter.routes(), defaultRouter.allowedMethods())`,
+      );
+    }
+  } else {
+    const mainRouteId = routeId++;
+    if (main) {
+      if (main.react) {
+        importLines.push(
+          routeImportLine(
+            routeId,
+            path.join(relativePath, main.react),
+          ),
+        );
         routeId++;
       }
 
-      routeFileExports += `{path: "${routePathFromName(route.name)}",`;
+      if (main.oak) {
+        importLines.push(
+          routerImportLine(
+            mainRouteId,
+            path.join(relativePath, main.oak),
+          ),
+        );
+      } else {
+        routerLines.push(`const $${mainRouteId} = new Router();`);
+      }
+    } else {
+      routerLines.push(`const $${mainRouteId} = new Router();`);
+    }
 
-      if (route.main) {
-        routeFileImports += `const $${routeId} = lazy(() => import("./${
-          path.posix.join("./routes", posixDirectory, route.main)
-        }"));\n`;
-        routeFileExports += `element: <$${routeId} />,`;
+    if (index) {
+      if (index.react) {
+        importLines.push(
+          routeImportLine(
+            routeId,
+            path.join(relativePath, index.react),
+          ),
+        );
         routeId++;
       }
 
-      if (route.index || route.children) {
-        routeFileExports += "children: [\n";
+      if (index.oak) {
+        importLines.push(
+          routerImportLine(
+            routeId,
+            path.join(relativePath, index.oak),
+          ),
+        );
 
-        if (route.index) {
-          routeFileImports += `const $${routeId} = lazy(() => import("./${
-            path.posix.join("./routes", posixDirectory, route.index)
-          }"));\n`;
-          routeFileExports += `{index:true, element: <$${routeId} />},\n`;
-          routeId++;
-        }
-
-        if (route.children) {
-          let notFoundRoute;
-          for (const childRoute of route.children.values()) {
-            if (
-              childRoute.isFile &&
-              (childRoute.name === "[...].tsx" ||
-                childRoute.name === "[...].jsx")
-            ) {
-              notFoundRoute = childRoute;
-              continue;
-            }
-
-            let childDirectory = directory;
-            if (!childRoute.isFile && childRoute.name) {
-              childDirectory = path.join(directory, childRoute.name);
-            }
-            await addToFiles(mainRouteId, childDirectory, childRoute);
-            routeFileExports += ",\n";
-          }
-
-          if (notFoundRoute) {
-            await addToFiles(mainRouteId, directory, notFoundRoute);
-            routeFileExports += ",\n";
-          } else if (parentRouteId === -1) {
-            routeFileImports +=
-              `import { NotFound } from "$x/udibo_react_app/error.tsx";\n`;
-            routeFileExports += `{ path: "*", element: <NotFound /> },\n`;
-
-            routeId++;
-            if (
-              await exists(path.join(routesUrl, directory, "[...].ts"))
-            ) {
-              addRouter({
-                parentRouteId,
-                posixDirectory,
-                routerFileName: "[...].ts",
-                routePath,
-              });
-            } else if (
-              await exists(path.join(routesUrl, directory, "[...].js"))
-            ) {
-              addRouter({
-                parentRouteId,
-                posixDirectory,
-                routerFileName: "[...].js",
-                routePath,
-              });
-            } else {
-              routerFileImports +=
-                `import { notFoundRouter } from "$x/udibo_react_app/app_server.tsx";\n`;
-              routerFileExports +=
-                `router0.use(notFoundRouter.routes(), notFoundRouter.allowedMethods());\n`;
-            }
-          }
-        }
-
-        routeFileExports += "],\n";
+        routerLines.push(
+          `$${mainRouteId}.use("/", $${routeId}.routes(), $${routeId}.allowedMethods());`,
+        );
+        routeId++;
+      } else if (react) {
+        routerLines.push(
+          `$${mainRouteId}.use("/", defaultRouter.routes(), defaultRouter.allowedMethods())`,
+        );
       }
-      routeFileExports += "}";
+    }
 
-      if (parentRouteId !== -1) {
-        routerFileExports +=
-          `router${parentRouteId}.use("/${routePath}", router${mainRouteId}.routes(), router${mainRouteId}.allowedMethods());\n`;
+    let notFoundRoute: Route | undefined = undefined;
+    for (const childRoute of Object.values(children ?? {})) {
+      if (childRoute.name === "[...]") {
+        notFoundRoute = childRoute;
+        continue;
       }
+      const {
+        importLines: childImportLines,
+        routerLines: childRouterLines,
+        nextRouteId,
+      } = routerFileData(
+        mainRouteId,
+        routeId,
+        path.join(relativePath, childRoute.name),
+        childRoute,
+      );
+      importLines.push(...childImportLines);
+      routerLines.push(...childRouterLines);
+      routeId = nextRouteId;
+    }
+    notFoundRoute;
+
+    if (notFoundRoute) {
+      const {
+        importLines: childImportLines,
+        routerLines: childRouterLines,
+        nextRouteId,
+      } = routerFileData(
+        mainRouteId,
+        routeId,
+        path.join(relativePath, notFoundRoute.name),
+        notFoundRoute,
+      );
+      importLines.push(...childImportLines);
+      routerLines.push(...childRouterLines);
+      routeId = nextRouteId;
+    }
+
+    if (relativePath === ".") {
+      routerLines.push("", `export default $0;`);
+    } else {
+      routerLines.push(
+        `const $${mainRouteId}Main = ${
+          parent?.react && !react
+            ? `createApiRouter($${mainRouteId})`
+            : `$${mainRouteId}`
+        };`,
+      );
+      routerLines.push(
+        `$${parentRouteId}.use("/${
+          routePathFromName(name)
+        }", $${mainRouteId}Main.routes(), $${mainRouteId}Main.allowedMethods());`,
+      );
     }
   }
 
-  await addToFiles(-1, path.sep, appRoute);
-
-  const routeFile = {
-    path: path.resolve(moduleUrl, "./_app.tsx"),
-    data: [routeFileImports, routeFileExports].join("\n"),
+  return {
+    importLines,
+    routerLines,
+    nextRouteId: routeId,
   };
+}
 
-  const routerFile = {
-    path: path.resolve(moduleUrl, "./_app.ts"),
-    data: [
-      routerFileImports,
-      routerFileExports,
-      `export const router = router0;\n`,
-    ].join("\n"),
-  };
-
-  await Deno.writeTextFile(routeFile.path, routeFile.data);
-  await Deno.writeTextFile(routerFile.path, routerFile.data);
-
-  const fmtProcess = Deno.run({
-    cmd: [
-      "deno",
-      "fmt",
-      "--quiet",
-      routeFile.path,
-      routerFile.path,
-    ],
-    stdin: "null",
-    stdout: "null",
+async function writeRoutes(path: string, text: string) {
+  const fmt = Deno.run({
+    cmd: ["deno", "fmt", "-"],
+    stdin: "piped",
+    stdout: "piped",
   });
-  await fmtProcess.status();
+  const encoder = new TextEncoder();
+  await fmt.stdin.write(encoder.encode(text));
+  fmt.stdin.close();
+  const [status, rawOutput] = await Promise.all([fmt.status(), fmt.output()]);
+  if (status.success) {
+    Deno.writeFile(path, rawOutput);
+  } else {
+    console.log("fmt routes failed", { path, ...status });
+  }
+}
+
+async function updateRoutes(routesUrl: string, rootRoute: Route) {
+  if (rootRoute.react) {
+    const lines = [
+      `import { lazy } from "$npm/react";`,
+      `import { RouteObject } from "$npm/react-router-dom";`,
+      "",
+    ];
+    const { importLines, routeText } = routeFileData(0, ".", rootRoute);
+    lines.push(...importLines, "");
+    lines.push(`export default ${routeText} as RouteObject;`, "");
+
+    await writeRoutes(path.join(routesUrl, "_main.tsx"), lines.join("\n"));
+  }
+
+  const lines = [
+    `import { Router } from "$x/oak/mod.ts";`,
+    `import { defaultRouter, createApiRouter } from "$x/udibo_react_app/app_server.tsx";`,
+    "",
+  ];
+  const { importLines, routerLines } = routerFileData(-1, 0, ".", rootRoute);
+  lines.push(...importLines, "", ...routerLines);
+
+  await writeRoutes(path.join(routesUrl, "_main.ts"), lines.join("\n"));
+}
+
+async function buildRoutes(routesUrl: string) {
+  const appRoute = await generateRoutes(routesUrl);
+  await updateRoutes(routesUrl, appRoute);
 }
 
 export interface BuildOptions {
-  moduleUrl: string;
+  /** The client entry point for your application. */
+  entryPoint: string;
+  /**
+   * Urls for all routes directories that your app uses.
+   * Each routes directory will have 2 files generated in them.
+   * - `_main.ts`: Contains the oak router for the routes.
+   * - `_main.tsx`: Contains the react router routes for controlling navigation in the app.
+   * Your server entrypoint should import and use both of the generated files for each routes directory.
+   * Your client entry point should only import the react router routes.
+   * In most cases, you will only need a single routesUrl.
+   */
+  routesUrls: string[];
+  /**
+   * The application will serve all files from this directory.
+   * The build for your client entry point will be stored in public/build.
+   * Test builds will be stored in public/test-build.
+   */
+  publicUrl: string;
+  /** File url for your import map. */
+  importMapUrl: string;
 }
 
+/** Builds the application and all of it's routes. */
 export async function build(options: BuildOptions) {
-  const { moduleUrl } = options;
-  const entryPoint = "app.tsx";
-  const outdir = path.join(
-    moduleUrl,
-    "public",
-    `${isTest() ? "test-" : ""}build`,
-  );
-  await ensureDir(outdir);
-
-  const importMapURL = path.toFileUrl(
-    path.join(moduleUrl, "import_map.json"),
-  );
-
-  const buildOptions: esbuild.BuildOptions = isProduction() ? {} : {
-    jsxDev: true,
-    sourcemap: "linked",
-  };
-
-  await buildRoutes(moduleUrl);
-
-  await esbuild.build({
-    plugins: [
-      denoPlugin({ importMapURL }),
-    ],
-    entryPoints: [entryPoint],
-    outdir,
-    bundle: true,
-    splitting: true,
-    minify: true,
-    format: "esm",
-    jsx: "automatic",
-    jsxImportSource: "$npm/react",
-    ...buildOptions,
-  });
-  return () => esbuild.stop();
-}
-
-if (import.meta.main) {
   console.log("Building app");
   performance.mark("buildStart");
   let success = false;
   try {
-    const stop = await build({
-      moduleUrl: Deno.cwd(),
+    const { entryPoint, routesUrls, publicUrl, importMapUrl } = options;
+    const outdir = path.join(
+      publicUrl,
+      `${isTest() ? "test-" : ""}build`,
+    );
+    await ensureDir(outdir);
+
+    const importMapURL = path.toFileUrl(importMapUrl);
+
+    const buildOptions: esbuild.BuildOptions = isProduction() ? {} : {
+      jsxDev: true,
+      sourcemap: "linked",
+    };
+
+    for (const routesUrl of routesUrls) {
+      await buildRoutes(routesUrl);
+    }
+
+    await esbuild.build({
+      plugins: [
+        denoPlugin({ importMapURL }),
+      ],
+      entryPoints: [entryPoint],
+      outdir,
+      bundle: true,
+      splitting: true,
+      minify: true,
+      treeShaking: true,
+      platform: "neutral",
+      format: "esm",
+      jsx: "automatic",
+      jsxImportSource: "$npm/react",
+      ...buildOptions,
     });
-    stop();
+    esbuild.stop();
     success = true;
   } catch {
     // Ignore error, esbuild already logs it
@@ -421,4 +494,21 @@ if (import.meta.main) {
     );
     if (!success) Deno.exit(1);
   }
+  return success;
+}
+
+if (import.meta.main) {
+  const cwd = Deno.cwd();
+  const entryPoint = path.join(cwd, "app.tsx");
+  const publicUrl = path.join(cwd, "public");
+  const routesUrl = path.join(cwd, "routes");
+  const importMapUrl = path.join(cwd, "import_map.json");
+
+  const success = await build({
+    entryPoint,
+    publicUrl,
+    routesUrls: [routesUrl],
+    importMapUrl,
+  });
+  if (!success) Deno.exit(1);
 }

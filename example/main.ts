@@ -1,10 +1,9 @@
 import * as path from "$std/path/mod.ts";
-import { etag, Router } from "$x/oak/mod.ts";
+import { Router } from "$x/oak/mod.ts";
 import { serve } from "$x/udibo_react_app/app_server.tsx";
 
-import { route } from "./_app.tsx";
-import { router as appRouter } from "./_app.ts";
-import { apiRouter } from "./api/main.ts";
+import route from "./routes/_main.tsx";
+import mainRouter from "./routes/_main.ts";
 
 const router = new Router()
   .use(async (context, next) => {
@@ -23,9 +22,7 @@ const router = new Router()
       });
     }
   })
-  .use("/api", apiRouter.routes(), apiRouter.allowedMethods())
-  .use(etag.factory())
-  .use(appRouter.routes(), appRouter.allowedMethods());
+  .use(mainRouter.routes(), mainRouter.allowedMethods());
 
 await serve({
   port: 9000,
