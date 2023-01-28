@@ -199,9 +199,11 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
   };
 }
 
-function routeImportLine(_routeId: number, relativePath: string) {
-  // return `import * as $${routeId} from "./${relativePath}";`;
-  return `import "./${relativePath}";`;
+function routeImportLines(routeId: number, relativePath: string) {
+  return [
+    `import "./${relativePath}";`,
+    `import * as $${routeId} from "./${relativePath}";`,
+  ];
 }
 
 function routerImportLine(routeId: number, relativePath: string) {
@@ -221,7 +223,7 @@ function routerFileData(
   if (file) {
     if (file.react) {
       importLines.push(
-        routeImportLine(
+        ...routeImportLines(
           routeId,
           path.posix.join(relativePath, routeId > 0 ? "../" : "", file.react),
         ),
@@ -256,7 +258,7 @@ function routerFileData(
     if (main) {
       if (main.react) {
         importLines.push(
-          routeImportLine(
+          ...routeImportLines(
             routeId,
             path.posix.join(relativePath, main.react),
           ),
@@ -281,7 +283,7 @@ function routerFileData(
     if (index) {
       if (index.react) {
         importLines.push(
-          routeImportLine(
+          ...routeImportLines(
             routeId,
             path.posix.join(relativePath, index.react),
           ),
