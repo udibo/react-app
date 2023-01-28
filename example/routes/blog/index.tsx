@@ -3,7 +3,7 @@ import { Helmet } from "$npm/react-helmet-async";
 
 import { getPosts } from "../../services/posts.tsx";
 
-export default () => {
+export default function BlogIndex() {
   const posts = getPosts();
   return posts
     ? (
@@ -21,4 +21,4 @@ export default () => {
       </>
     )
     : <div>Loading posts...</div>;
-};
+}

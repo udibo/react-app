@@ -448,7 +448,13 @@ export async function build(options: BuildOptions) {
   performance.mark("buildStart");
   let success = false;
   try {
-    const { entryPoint, routesUrls, publicUrl, importMapUrl, workingDirectory } = options;
+    const {
+      entryPoint,
+      routesUrls,
+      publicUrl,
+      importMapUrl,
+      workingDirectory,
+    } = options;
     const outdir = path.join(
       publicUrl,
       `${isTest() ? "test-" : ""}build`,
@@ -457,10 +463,15 @@ export async function build(options: BuildOptions) {
 
     const importMapURL = path.toFileUrl(importMapUrl);
 
-    const buildOptions: esbuild.BuildOptions = isProduction() ? {} : {
-      jsxDev: true,
-      sourcemap: "linked",
-    };
+    const buildOptions: esbuild.BuildOptions = isProduction()
+      ? { minify: true }
+      : {
+        minifyIdentifiers: false,
+        minifySyntax: true,
+        minifyWhitespace: true,
+        jsxDev: true,
+        sourcemap: "linked",
+      };
 
     for (const routesUrl of routesUrls) {
       await buildRoutes(routesUrl);
@@ -475,7 +486,6 @@ export async function build(options: BuildOptions) {
       outdir,
       bundle: true,
       splitting: true,
-      minify: true,
       treeShaking: true,
       platform: "neutral",
       format: "esm",

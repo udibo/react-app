@@ -6,7 +6,7 @@ import { withAppErrorBoundary } from "$x/udibo_react_app/error.tsx";
 import { getPost } from "../../services/posts.tsx";
 import { ErrorFallback } from "../../components/error.tsx";
 
-export default withAppErrorBoundary(() => {
+export default withAppErrorBoundary(function BlogPost() {
   const params = useParams();
   const id = Number(params.id);
   if (isNaN(id) || Math.floor(id) !== id || id < 0) {
