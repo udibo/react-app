@@ -401,8 +401,6 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
     lines.push(...importLines, "");
     lines.push(`export default ${routeText} as RouteObject;`, "");
 
-    console.log("_main.tsx");
-    console.log(lines.join("\n"));
     await writeRoutes(path.join(routesUrl, "_main.tsx"), lines.join("\n"));
   }
 
@@ -414,8 +412,6 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
   const { importLines, routerLines } = routerFileData(-1, 0, ".", rootRoute);
   lines.push(...importLines, "", ...routerLines);
 
-  console.log("_main.ts");
-  console.log(lines.join("\n"));
   await writeRoutes(path.join(routesUrl, "_main.ts"), lines.join("\n"));
 }
 
@@ -523,13 +519,6 @@ if (import.meta.main) {
   const publicUrl = path.join(cwd, "public");
   const routesUrl = path.join(cwd, "routes");
   const importMapUrl = path.join(cwd, "import_map.json");
-  console.log({
-    cwd,
-    entryPoint,
-    publicUrl,
-    routesUrl,
-    importMapUrl,
-  });
 
   const success = await build({
     workingDirectory: cwd,
