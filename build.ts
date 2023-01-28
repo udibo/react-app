@@ -418,6 +418,8 @@ async function buildRoutes(routesUrl: string) {
 }
 
 export interface BuildOptions {
+  /** The absolute path to the working directory for your application. */
+  workingDirectory: string;
   /** The client entry point for your application. */
   entryPoint: string;
   /**
@@ -446,7 +448,7 @@ export async function build(options: BuildOptions) {
   performance.mark("buildStart");
   let success = false;
   try {
-    const { entryPoint, routesUrls, publicUrl, importMapUrl } = options;
+    const { entryPoint, routesUrls, publicUrl, importMapUrl, workingDirectory } = options;
     const outdir = path.join(
       publicUrl,
       `${isTest() ? "test-" : ""}build`,
@@ -468,6 +470,7 @@ export async function build(options: BuildOptions) {
       plugins: [
         denoPlugin({ importMapURL }),
       ],
+      absWorkingDir: workingDirectory,
       entryPoints: [entryPoint],
       outdir,
       bundle: true,
@@ -503,8 +506,16 @@ if (import.meta.main) {
   const publicUrl = path.join(cwd, "public");
   const routesUrl = path.join(cwd, "routes");
   const importMapUrl = path.join(cwd, "import_map.json");
+  console.log({
+    cwd,
+    entryPoint,
+    publicUrl,
+    routesUrl,
+    importMapUrl,
+  });
 
   const success = await build({
+    workingDirectory: cwd,
     entryPoint,
     publicUrl,
     routesUrls: [routesUrl],
