@@ -156,8 +156,8 @@ const buildDir = path.resolve(
   `./public/${isTest() ? "test-" : ""}build`,
 );
 const artifacts = new Set();
-artifacts.add(path.resolve(cwd, "./_app.tsx"));
-artifacts.add(path.resolve(cwd, "./_app.ts"));
+artifacts.add(path.resolve(cwd, "./routes/_main.tsx"));
+artifacts.add(path.resolve(cwd, "./routes/_main.ts"));
 
 function isBuildArtifact(pathname: string) {
   return pathname.startsWith(buildDir) || artifacts.has(pathname);

@@ -20,8 +20,16 @@ export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };
 
 export const AppErrorContext = createContext<{ error?: HttpError }>({});
 
-export type AppErrorBoundaryProps = ErrorBoundaryProps & { boundary?: string };
+export type AppErrorBoundaryProps = ErrorBoundaryProps & {
+  /** Used to associate errors on the server side with the boundary when using server side rendering. */
+  boundary?: string;
+};
 
+/**
+ * Any errors within the boundary will be captured by it.
+ * Unlike ErrorBoundary, the AppErrorBoundary can be used to render errors on the server.
+ * For the error on the server to be caught by it, it must have the same boundary.
+ */
 export function AppErrorBoundary(
   props: PropsWithChildren<AppErrorBoundaryProps>,
 ) {
@@ -70,6 +78,12 @@ export function AppErrorBoundary(
   }
 }
 
+/**
+ * Wraps a component with an AppErrorBoundary.
+ * Any errors within the boundary will be captured by it.
+ * Unlike withErrorBoundary, withAppErrorBoundary can be used to render errors on the server.
+ * For the error on the server to be caught by it, it must have the same boundary.
+ */
 export function withAppErrorBoundary<P>(
   Component: ComponentType<P>,
   errorBoundaryProps: AppErrorBoundaryProps,

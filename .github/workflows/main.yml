@@ -21,7 +21,7 @@ jobs:
       project: udibo-react-app
       app-directory: ./example
   release:
-    name: CD
+    name: Release
     needs: ci
     uses: ./.github/workflows/release.yml
     if: startsWith(github.ref, 'refs/tags/')

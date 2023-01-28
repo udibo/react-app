@@ -6,6 +6,7 @@ import {
   RouteParams,
   Router,
   RouterMiddleware,
+  Status,
 } from "$x/oak/mod.ts";
 import { ComponentType, ReactNode, StrictMode } from "$npm/react";
 import { HelmetContext, HelmetProvider } from "$npm/react-helmet-async";
@@ -228,12 +229,8 @@ export function createAppRouter<
         console.error("app error", error);
 
         response.status = error.status;
-        if (path.extname(request.url.pathname) === "") {
-          state.app.error = error;
-          await state.app.render();
-        } else {
-          response.body = HttpError.json(error);
-        }
+        state.app.error = error;
+        await state.app.render();
       }
     })
     .use(router.routes(), router.allowedMethods());
@@ -253,8 +250,16 @@ export function createAppRouter<
     });
   }
 
-  appRouter.use(async (context) => {
-    await context.send({ root: `${root}/public` });
+  appRouter.get("/(.*)", async (context) => {
+    try {
+      await context.send({ root: `${root}/public` });
+    } catch (cause) {
+      if (isHttpError(cause) && cause.status === Status.NotFound) {
+        throw new HttpError(404, "Not found", { cause });
+      } else {
+        throw cause;
+      }
+    }
   });
 
   return appRouter;
@@ -324,47 +329,23 @@ export async function serve<
   await app.listen(listenOptions);
 }
 
-/** The type of requests handled by the middleware. */
-export type MiddlewareType =
-  | "all"
-  | "delete"
-  | "get"
-  | "head"
-  | "options"
-  | "patch"
-  | "post"
-  | "put"
-  | "use";
+/**
+ * Wraps an API router with an error handler that responds with the error in json format.
+ */
+export function createApiRouter(router: Router) {
+  return new Router()
+    .use(async ({ response }, next) => {
+      try {
+        await next();
+      } catch (cause) {
+        const error = HttpError.from(cause);
+        console.error("api error", error);
 
-/** Used to generate middleware for the oak router associated with a route. */
-export interface Middleware<
-  P extends RouteParams<string> = RouteParams<string>,
-  S extends AppState = AppState,
-> {
-  type: MiddlewareType;
-  middlewares: RouterMiddleware<string, P, S>[];
-}
-
-/** Creates middleware for a route. */
-export function middleware<
-  P extends RouteParams<string> = RouteParams<string>,
-  S extends AppState = AppState,
->(
-  type: MiddlewareType,
-  ...middlewares: RouterMiddleware<string, P, S>[]
-): Middleware<P, S> {
-  return { type, middlewares };
-}
-
-/** Adds middleware from routes onto an oak router. */
-export function addMiddleware<
-  P extends RouteParams<string> = RouteParams<string>,
-  S extends AppState = AppState,
->(router: Router, ...middlewares: Middleware<P, S>[]) {
-  for (const entry of middlewares) {
-    const [middleware, ...middlewares] = entry.middlewares;
-    router[entry.type as "all"]("/", middleware, ...middlewares);
-  }
+        response.status = error.status;
+        response.body = HttpError.json(error);
+      }
+    })
+    .use(router.routes(), router.allowedMethods());
 }
 
 /**
@@ -374,20 +355,6 @@ export function addMiddleware<
 export const defaultRouter = new Router()
   .get("/", async (context: Context<AppState>) => {
     await context.state.app.render();
-  });
-
-/**
- * This router will catch all requests and throw a not found error for those with a pathname that does not have an extension.
- * It's used as the default wildcard router at the top level of your app.
- */
-export const notFoundRouter = new Router()
-  .get("/(.*)", async (context: Context<AppState<unknown>>, next) => {
-    const { request } = context;
-    if (path.extname(request.url.pathname) === "") {
-      throw new HttpError(404, "Not found");
-    } else {
-      await next();
-    }
   });
 
 /**
@@ -401,8 +368,8 @@ export const notFoundRouter = new Router()
 export function errorBoundary<
   P extends RouteParams<string> = RouteParams<string>,
   S extends AppState = AppState,
->(boundary?: string): Middleware<P, S> {
-  return middleware("use", async (context, next) => {
+>(boundary?: string): RouterMiddleware<string, P, S> {
+  return async (context, next) => {
     const { response, state } = context;
     const { app } = state;
     try {
@@ -414,5 +381,5 @@ export function errorBoundary<
       response.status = error.status;
       await state.app.render();
     }
-  });
+  };
 }
