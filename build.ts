@@ -122,7 +122,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     importLines.push(
       lazyImportLine(
         routeId,
-        path.join(relativePath, routeId === 0 ? "" : "../", file.react),
+        path.posix.join(relativePath, routeId === 0 ? "" : "../", file.react),
       ),
     );
     routeText += `, element: <$${routeId} /> }`;
@@ -130,7 +130,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
   } else {
     if (main?.react) {
       importLines.push(
-        lazyImportLine(routeId, path.join(relativePath, main.react)),
+        lazyImportLine(routeId, path.posix.join(relativePath, main.react)),
       );
       routeText += `, element: <$${routeId} />`;
       routeId++;
@@ -139,7 +139,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     const childRouteTexts: string[] = [];
     if (index?.react) {
       importLines.push(
-        lazyImportLine(routeId, path.join(relativePath, index.react)),
+        lazyImportLine(routeId, path.posix.join(relativePath, index.react)),
       );
       childRouteTexts.push(`{ index: true, element: <$${routeId} /> }`);
       routeId++;
@@ -158,7 +158,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
         nextRouteId,
       } = routeFileData(
         routeId,
-        path.join(relativePath, childRoute.name),
+        path.posix.join(relativePath, childRoute.name),
         childRoute,
       );
       importLines.push(...childImportLines);
@@ -173,7 +173,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
         nextRouteId,
       } = routeFileData(
         routeId,
-        path.join(relativePath, notFoundRoute.name),
+        path.posix.join(relativePath, notFoundRoute.name),
         notFoundRoute,
       );
       importLines.push(...childImportLines);
@@ -222,7 +222,7 @@ function routerFileData(
       importLines.push(
         routeImportLine(
           routeId,
-          path.join(relativePath, routeId > 0 ? "../" : "", file.react),
+          path.posix.join(relativePath, routeId > 0 ? "../" : "", file.react),
         ),
       );
       routeId++;
@@ -232,7 +232,7 @@ function routerFileData(
       importLines.push(
         routerImportLine(
           routeId,
-          path.join(relativePath, routeId > 0 ? "../" : "", file.oak),
+          path.posix.join(relativePath, routeId > 0 ? "../" : "", file.oak),
         ),
       );
       if (relativePath !== ".") {
@@ -257,7 +257,7 @@ function routerFileData(
         importLines.push(
           routeImportLine(
             routeId,
-            path.join(relativePath, main.react),
+            path.posix.join(relativePath, main.react),
           ),
         );
         routeId++;
@@ -267,7 +267,7 @@ function routerFileData(
         importLines.push(
           routerImportLine(
             mainRouteId,
-            path.join(relativePath, main.oak),
+            path.posix.join(relativePath, main.oak),
           ),
         );
       } else {
@@ -282,7 +282,7 @@ function routerFileData(
         importLines.push(
           routeImportLine(
             routeId,
-            path.join(relativePath, index.react),
+            path.posix.join(relativePath, index.react),
           ),
         );
         routeId++;
@@ -292,7 +292,7 @@ function routerFileData(
         importLines.push(
           routerImportLine(
             routeId,
-            path.join(relativePath, index.oak),
+            path.posix.join(relativePath, index.oak),
           ),
         );
 
@@ -320,7 +320,7 @@ function routerFileData(
       } = routerFileData(
         mainRouteId,
         routeId,
-        path.join(relativePath, childRoute.name),
+        path.posix.join(relativePath, childRoute.name),
         childRoute,
       );
       importLines.push(...childImportLines);
@@ -337,7 +337,7 @@ function routerFileData(
       } = routerFileData(
         mainRouteId,
         routeId,
-        path.join(relativePath, notFoundRoute.name),
+        path.posix.join(relativePath, notFoundRoute.name),
         notFoundRoute,
       );
       importLines.push(...childImportLines);
