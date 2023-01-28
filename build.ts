@@ -199,8 +199,9 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
   };
 }
 
-function routeImportLine(routeId: number, relativePath: string) {
-  return `import * as $${routeId} from "./${relativePath}";`;
+function routeImportLine(_routeId: number, relativePath: string) {
+  // return `import * as $${routeId} from "./${relativePath}";`;
+  return `import "./${relativePath}";`;
 }
 
 function routerImportLine(routeId: number, relativePath: string) {
@@ -398,6 +399,8 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
     lines.push(...importLines, "");
     lines.push(`export default ${routeText} as RouteObject;`, "");
 
+    console.log("_main.tsx");
+    console.log(lines.join("\n"));
     await writeRoutes(path.join(routesUrl, "_main.tsx"), lines.join("\n"));
   }
 
@@ -409,6 +412,8 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
   const { importLines, routerLines } = routerFileData(-1, 0, ".", rootRoute);
   lines.push(...importLines, "", ...routerLines);
 
+  console.log("_main.ts");
+  console.log(lines.join("\n"));
   await writeRoutes(path.join(routesUrl, "_main.ts"), lines.join("\n"));
 }
 
