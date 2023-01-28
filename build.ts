@@ -78,8 +78,8 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
   ) {
     const parsedPath = path.parse(entry.path);
     const { name, ext, dir } = parsedPath;
-    const relativePath = path.relative(routesUrl, dir);
-    const layers = relativePath.length ? relativePath.split(path.sep) : [];
+    const relativePath = path.relative(routesUrl, dir.replaceAll("\\", "/"));
+    const layers = relativePath.length ? relativePath.split("/") : [];
 
     let parentRoute = rootRoute;
     for (const layer of layers) {
