@@ -420,7 +420,7 @@ async function buildRoutes(routesUrl: string) {
 export interface BuildOptions {
   /** The absolute path to the working directory for your application. */
   workingDirectory: string;
-  /** The client entry point for your application. */
+  /** The client entry point for your application relative to the workingDirectory. */
   entryPoint: string;
   /**
    * Urls for all routes directories that your app uses.
@@ -512,7 +512,7 @@ export async function build(options: BuildOptions) {
 
 if (import.meta.main) {
   const cwd = Deno.cwd();
-  const entryPoint = path.join(cwd, "app.tsx");
+  const entryPoint = "app.tsx";
   const publicUrl = path.join(cwd, "public");
   const routesUrl = path.join(cwd, "routes");
   const importMapUrl = path.join(cwd, "import_map.json");
