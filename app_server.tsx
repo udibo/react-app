@@ -225,7 +225,6 @@ export function createAppRouter<
         }
         await next();
       } catch (cause) {
-        console.log("cause", cause);
         const error = HttpError.from(cause);
         console.error("app error", error);
 
