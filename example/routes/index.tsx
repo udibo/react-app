@@ -10,7 +10,10 @@ export default () => (
       />
     </Helmet>
     <h1>Home</h1>
-    <p>This is an example of a Udibo React App. Testing dynamic imports on build that was successfully deployed</p>
+    <p>
+      This is an example of a Udibo React App. Testing dynamic imports on build
+      that was successfully deployed
+    </p>
     <ul>
       <li>
         <a href="https://github.com/udibo/react_app">GitHub Repository</a>
