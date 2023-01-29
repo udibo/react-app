@@ -28,5 +28,5 @@ await serve({
   port: 9000,
   router,
   route,
-  root: path.dirname(path.fromFileUrl(import.meta.url)),
+  workingDirectory: path.dirname(path.fromFileUrl(import.meta.url)),
 });

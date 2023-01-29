@@ -14,7 +14,17 @@ import {
   RouterProvider,
 } from "$npm/react-router-dom";
 
-import { AppContext, AppWindow } from "./env.ts";
+import { AppContext, AppEnvironment, AppWindow } from "./env.ts";
+export {
+  AppContext,
+  getEnv,
+  isBrowser,
+  isDevelopment,
+  isProduction,
+  isServer,
+  isTest,
+} from "./env.ts";
+export type { AppEnvironment } from "./env.ts";
 import {
   AppErrorBoundaryProps,
   AppErrorContext,
@@ -22,9 +32,46 @@ import {
   HttpError,
   withAppErrorBoundary,
 } from "./error.tsx";
+export { HttpError, isHttpError } from "$x/http_error/mod.ts";
+export type { HttpErrorOptions } from "$x/http_error/mod.ts";
+export {
+  AppErrorBoundary,
+  DefaultErrorFallback,
+  NotFound,
+  withAppErrorBoundary,
+} from "./error.tsx";
+export type { AppErrorBoundaryProps, ErrorBoundaryProps } from "./error.tsx";
+
+export interface AppState<AppContext = Record<string, unknown>> {
+  /** A container for application data and functions. */
+  app: {
+    /**
+     * Environment variables that will be shared with the browser.
+     */
+    env: AppEnvironment;
+    /**
+     * A container for your application's own data that is serialized and sent to the browser.
+     * It can be accessed via AppContext.
+     */
+    context: AppContext;
+    /**
+     * If an error occurs when handling the request, this will be set to that error.
+     * The error will be serialized and sent to the browser.
+     * The browser will recreate the error for an AppErrorBoundary to catch.
+     * If the server error is not getting caught, the boundary doesn't match the AppErrorBoundary you expect to catch it.
+     */
+    error?: HttpError<{ boundary?: string }>;
+  };
+}
 
 export interface HydrateOptions {
+  /**
+   * A react router route object.
+   * The build script will automatically generate these for your application's routes.
+   * The route object is a default export from `_main.tsx` in your routes directory.
+   */
   route: RouteObject;
+  /** Adds your own providers around the application. */
   Provider?: ComponentType<{ children: ReactNode }>;
 }
 
@@ -51,6 +98,23 @@ function App({ route, Provider }: AppOptions) {
   );
 }
 
+/**
+ * Used to hydrate the app in the browser.
+ * Hydration isn't required if you want to do server side rendering only.
+ * This function will turn the application into an SPA.
+ *
+ * If you are using the default configuration, this will load the route generated from your application's routes.
+ *
+ * ```tsx
+ * import { hydrate } from "$x/udibo_react_app/app.tsx";
+ *
+ * import route from "./routes/_main.tsx";
+ *
+ * hydrate({ route });
+ * ```
+ *
+ * You can optionally add a Provider argument to add your own providers around the application.
+ */
 export function hydrate({ route, Provider }: HydrateOptions) {
   const hydrate = () =>
     startTransition(() => {
@@ -72,8 +136,14 @@ export function hydrate({ route, Provider }: HydrateOptions) {
   }
 }
 
+/**
+ * A file containing the react component for a route.
+ * Optionally, it can export an ErrorFallback that will be used for an AppErrorBoundary on the component.
+ */
 export type RouteFile = {
+  /** The react component for the route. */
   default: ComponentType;
+  /** An ErrorFallback for an AppErrorBoundary around the react component for the route. */
   ErrorFallback?: ComponentType<FallbackProps>;
 };
 

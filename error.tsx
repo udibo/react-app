@@ -10,15 +10,19 @@ import {
   useState,
 } from "$npm/react";
 import { useLocation } from "$npm/react-router-dom";
-import { ErrorBoundary, withErrorBoundary } from "$npm/react-error-boundary";
+import { ErrorBoundary } from "$npm/react-error-boundary";
 import type {
   ErrorBoundaryProps,
   FallbackProps,
 } from "$npm/react-error-boundary";
 
-export { ErrorBoundary, HttpError, isHttpError, withErrorBoundary };
+export { HttpError, isHttpError };
 export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };
 
+/**
+ * For internal use only.
+ * Used to provider errors on the server to the browser.
+ */
 export const AppErrorContext = createContext<{ error?: HttpError }>({});
 
 export type AppErrorBoundaryProps = ErrorBoundaryProps & {
@@ -109,6 +113,10 @@ export function withAppErrorBoundary<P>(
   return Wrapped;
 }
 
+/**
+ * A simple error fallback that will show the error and provide a button for trying again.
+ * The error will clear when clicking the try again button or navigating to a different route.
+ */
 export function DefaultErrorFallback(
   { error, resetErrorBoundary }: FallbackProps,
 ) {
