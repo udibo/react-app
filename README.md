@@ -1,12 +1,12 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.1.2-success)](https://github.com/udibo/react_app/releases/tag/0.1.2)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.1.2)
+[![release](https://img.shields.io/badge/release-0.1.3-success)](https://github.com/udibo/react_app/releases/tag/0.1.3)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.1.3)
 [![CI](https://github.com/udibo/react_app/workflows/CI/badge.svg)](https://github.com/udibo/react_app/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
 
-A React Framework for [Deno](https://deno.land). It makes it easy to create
+A React Framework for [Deno](https://deno.land) that makes it easy to create
 highly interactive apps that have server side rendering with file based routing
 for both your UI and API.
 
@@ -31,22 +31,25 @@ Apps are created using [React Router](https://reactrouter.com),
 
 This module has 2 entry points.
 
-- [app.tsx](https://deno.land/x/udibo_react_app@0.1.2/app.tsx): For use in code
+- [app.tsx](https://deno.land/x/udibo_react_app@0.1.3/app.tsx): For use in code
   that will be used both in the browser and on the server.
-- [app_server.tsx](https://deno.land/x/udibo_react_app@0.1.2/app_server.tsx):
+- [app_server.tsx](https://deno.land/x/udibo_react_app@0.1.3/app_server.tsx):
   For use in code that will only be used on the server.
 
 You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.1.2) to learn more about
+[deno docs](https://deno.land/x/udibo_react_app@0.1.3) to learn more about
 usage.
 
 ### Examples
 
 This repository contains one example for manually testing changes. To use it as
 the base for a new project, you would need to update the `import_map.json` file
-to use udibo_react_app from the deno.land/x registry.
+and deno.jsonc file to use udibo_react_app from the deno.land/x registry. The
+deno task commands in `deno.jsonc` would need to also use your
+`import_map.json`.
 
-TODO: Add more examples to other repositories to make it easy to clone them.
+- [Example](https://github.com/udibo/react_app_example): A basic example of a
+  Udibo React App.
 
 ### Tasks
 
@@ -66,6 +69,24 @@ Udibo React Apps have 2 types of routes, UI Routes and API Routes. UI Routes
 that do not have an API Route with the same path will default to rendering the
 application on the server. The naming convention is the same for both types of
 routes.
+
+In each directory within the routes directory, the main and index files have a
+special purpose. Neither the main or index file are required.
+
+For the UI routes:
+
+- The `index.tsx` or `index.jsx` file's react component will be used for
+  requests to the directory.
+- The `main.tsx` or `main.tsx` file's react component will be used as a wrapper
+  around all routes in the directory. This can be useful for updating the head
+  for all routes in the directory.
+
+For the API routes:
+
+- The `index.ts` or `index.js` file will be used for requests to the directory.
+- The `main.ts` or `main.js` file will be used before all routes in the
+  directory. This can be useful for adding middleware to all routes in the
+  directory.
 
 #### UI Routes
 

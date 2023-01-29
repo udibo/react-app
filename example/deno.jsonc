@@ -2,7 +2,7 @@
   "tasks": {
     "build": "deno run -A ../build.ts",
     "run": "deno run -A ./main.ts",
-    "dev": "deno run -A ../dev.ts",
+    "dev": "deno run -A --import-map=./import_map.json ../dev.ts",
     "test": "export APP_ENV=test && deno test -A .",
     "test-watch": "export APP_ENV=test && deno test -A --watch .",
     "check": "deno lint && deno fmt --check",
