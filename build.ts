@@ -102,11 +102,14 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
 
 const ROUTE_PARAM = /^\[(.+)]$/;
 const ROUTE_WILDCARD = /^\[...\]$/;
-function routePathFromName(name: string) {
+function routePathFromName(name: string, forServer = false) {
   if (!name) return "/";
   return name
-    .replace(ROUTE_WILDCARD, "*")
+    .replace(ROUTE_WILDCARD, forServer ? "(.*)" : "*")
     .replace(ROUTE_PARAM, ":$1");
+}
+function routerPathFromName(name: string) {
+  return routePathFromName(name, true);
 }
 
 function lazyImportLine(routeId: number, routePath: string, filePath: string) {
@@ -251,7 +254,7 @@ function routerFileData(
       routerLines.push(
         `if (($${routeId} as RouteFile).ErrorFallback) {`,
         `  $${parentRouteId}.use("/${
-          routePathFromName(name)
+          routerPathFromName(name)
         }", errorBoundary("/${relativePath}"));`,
         `}`,
       );
@@ -268,7 +271,7 @@ function routerFileData(
       if (relativePath !== "") {
         routerLines.push(
           `$${parentRouteId}.use("/${
-            routePathFromName(name)
+            routerPathFromName(name)
           }", $${routeId}.routes(), $${routeId}.allowedMethods());`,
         );
       }
@@ -276,7 +279,7 @@ function routerFileData(
     } else if (file.react) {
       routerLines.push(
         `$${parentRouteId}.use("/${
-          routePathFromName(name)
+          routerPathFromName(name)
         }", defaultRouter.routes(), defaultRouter.allowedMethods())`,
       );
     }
@@ -404,7 +407,7 @@ function routerFileData(
       );
       routerLines.push(
         `$${parentRouteId}.use("/${
-          routePathFromName(name)
+          routerPathFromName(name)
         }", $${mainRouteId}Main.routes(), $${mainRouteId}Main.allowedMethods());`,
       );
     }
