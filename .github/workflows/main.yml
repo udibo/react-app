@@ -1,9 +1,10 @@
 name: CI/CD
 on:
+  create:
+  pull_request:
   push:
     branches:
       - main
-  pull_request:
 jobs:
   ci:
     name: CI
