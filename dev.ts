@@ -78,15 +78,7 @@ let restarting = false;
 let restartAgain = false;
 let reload = false;
 
-export interface BuildDevOptions {
-  preBuild?: (() => Promise<void>) | (() => void);
-  postBuild?: (() => Promise<void>) | (() => void);
-}
-
-async function buildDev({
-  preBuild,
-  postBuild,
-}: BuildDevOptions = {}) {
+async function buildDev() {
   if (building) {
     buildAgain = true;
   } else {
@@ -103,8 +95,6 @@ async function buildDev({
 
     let status: Deno.ProcessStatus | null = null;
     try {
-      if (preBuild) await preBuild();
-
       const buildProcess = Deno.run({
         cmd: ["deno", "task", "build"],
         env: {
@@ -113,8 +103,6 @@ async function buildDev({
         stdin: "null",
       });
       status = await buildProcess.status();
-
-      if (postBuild) await postBuild();
     } finally {
       building = false;
       if (buildAgain) {
@@ -172,9 +160,14 @@ function isBuildArtifact(pathname: string) {
   return pathname.startsWith(buildDir) || artifacts.has(pathname);
 }
 
-export interface DevOptions extends BuildDevOptions {
+export interface DevOptions {
+  /**
+   * Used to identify and ignore additional build artifacts created in your preBuild and postBuild functions.
+   */
   isCustomBuildArtifact?: (pathname: string) => boolean;
+  /** The port that the application uses. */
   appPort?: number;
+  /** The port for the dev script's live reload server. */
   devPort?: number;
 }
 
@@ -185,8 +178,6 @@ export interface DevOptions extends BuildDevOptions {
  */
 export function startDev({
   isCustomBuildArtifact,
-  preBuild,
-  postBuild,
   appPort,
   devPort,
 }: DevOptions = {}) {
@@ -204,13 +195,7 @@ export function startDev({
   async function watcher() {
     console.log(`Watching ${cwd}`);
     const build = debounce(
-      () =>
-        queueMicrotask(() =>
-          buildDev({
-            preBuild,
-            postBuild,
-          })
-        ),
+      () => queueMicrotask(() => buildDev()),
       20,
     );
     for await (const event of Deno.watchFs(Deno.cwd())) {

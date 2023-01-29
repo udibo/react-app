@@ -493,10 +493,24 @@ export interface BuildOptions {
    * These plugins will be added after the deno plugin.
    */
   esbuildPlugins?: esbuild.Plugin[];
+  /**
+   * Called before building the application.
+   * This can be used to add additional steps before the build starts.
+   */
+  preBuild?: (() => Promise<void>) | (() => void);
+  /**
+   * Called after building the application.
+   * This can be used to add additional steps after the build is completed.
+   */
+  postBuild?: (() => Promise<void>) | (() => void);
 }
 
 /** Builds the application and all of it's routes. */
 export async function build(options: BuildOptions) {
+  const { preBuild, postBuild } = options;
+
+  if (preBuild) await preBuild();
+
   console.log("Building app");
   performance.mark("buildStart");
   let success = false;
@@ -562,6 +576,9 @@ export async function build(options: BuildOptions) {
     );
     if (!success) Deno.exit(1);
   }
+
+  if (postBuild) await postBuild();
+
   return success;
 }
 
