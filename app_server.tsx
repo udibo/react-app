@@ -300,12 +300,15 @@ export function createAppRouter<
     .use(router.routes(), router.allowedMethods());
 
   if (isDevelopment()) {
-    const liveReloadScript = Deno.readTextFileSync(
-      new URL("./live-reload.js", import.meta.url),
-    );
+    let liveReloadScript = "";
     appRouter.use(async (context, next) => {
       const { request, response } = context;
       if (request.url.pathname === "/live-reload.js") {
+        if (!liveReloadScript) {
+          liveReloadScript = await (await fetch(
+            new URL("./live-reload.js", import.meta.url),
+          )).text();
+        }
         response.headers.set("Content-Type", "text/javascript");
         response.body = liveReloadScript;
       } else {
