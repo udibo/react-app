@@ -13,7 +13,6 @@ export default function About() {
       <h1>About</h1>
       <h2>Udibo React App</h2>
       <p>A React Framework for Deno.</p>
-      <p>This is a work in progress.</p>
     </>
   );
 }

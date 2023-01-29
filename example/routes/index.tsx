@@ -7,11 +7,11 @@ export default function Index() {
         <title>Home</title>
         <meta
           name="description"
-          content="This is an example of a Udibo React App."
+          content="This is a basic example of a Udibo React App."
         />
       </Helmet>
       <h1>Home</h1>
-      <p>This is an example of a Udibo React App.</p>
+      <p>This is a basic example of a Udibo React App.</p>
       <ul>
         <li>
           <a href="https://github.com/udibo/react_app">GitHub Repository</a>

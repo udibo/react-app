@@ -1,4 +1,3 @@
-import * as path from "$std/path/mod.ts";
 import {
   Application,
   Context,
@@ -19,17 +18,33 @@ import {
 import serialize from "$npm/serialize-javascript";
 
 import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
+export { HttpError, isHttpError } from "$x/http_error/mod.ts";
+export type { HttpErrorOptions } from "$x/http_error/mod.ts";
 import {
   AppContext,
   AppEnvironment,
   getEnv,
+  isBrowser,
   isDevelopment,
   isTest,
 } from "./env.ts";
+export {
+  AppContext,
+  getEnv,
+  isBrowser,
+  isDevelopment,
+  isProduction,
+  isServer,
+  isTest,
+} from "./env.ts";
+
+if (isBrowser()) {
+  throw new Error("Cannot import app_server.tsx in the browser.");
+}
 
 const encoder = new TextEncoder();
 
-export interface HTMLOptions<
+interface HTMLOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
   helmet: HelmetContext.HelmetServerState;
@@ -86,6 +101,11 @@ function html<
   };
 }
 
+/**
+ * The default renderToReadableStream function.
+ * If you'd like to transform the stream before it is returned to the client,
+ * you can wrap this function with a custom renderToReadableStream function.
+ */
 export async function renderToReadableStream<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
@@ -144,15 +164,32 @@ export async function renderToReadableStream<
 }
 
 export interface AppState<AppContext = Record<string, unknown>> {
+  /** For internal use only. */
   _app: {
     route: RouteObject;
     Provider: ComponentType<{ children: ReactNode }>;
   };
+  /** A container for application data and functions. */
   app: {
+    /**
+     * Environment variables that will be shared with the browser.
+     */
     env: AppEnvironment;
+    /**
+     * A container for your application's own data that is serialized and sent to the browser.
+     * It can be accessed via AppContext.
+     */
     context: AppContext;
+    /** Renders the application to a readable stream and responds to the request with it. */
     render: () => Promise<void>;
+    /** The port for the dev script's live reload server. */
     devPort?: number;
+    /**
+     * If an error occurs when handling the request, this will be set to that error.
+     * The error will be serialized and sent to the browser.
+     * The browser will recreate the error for an AppErrorBoundary to catch.
+     * If the server error is not getting caught, the boundary doesn't match the AppErrorBoundary you expect to catch it.
+     */
     error?: HttpError<{ boundary?: string }>;
   };
 }
@@ -160,17 +197,44 @@ export interface AppState<AppContext = Record<string, unknown>> {
 export interface AppRouterOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
+  /**
+   * A react router route object.
+   * The build script will automatically generate these for your application's routes.
+   * The route object is a default export from the `_main.tsx` in your routes directory.
+   */
   route: RouteObject;
+  /**
+   * Default environment variables that you would like to share with the browser for all requests.
+   */
   env?: AppEnvironment;
+  /** Adds your own providers around the application. */
   Provider?: ComponentType<{ children: ReactNode }>;
+  /**
+   * Used to render the application.
+   * If you'd like to transform the stream before it is returned to the client,
+   * you can wrap the default renderToReadableStream function with a custom renderToReadableStream function.
+   */
   renderToReadableStream?: typeof renderToReadableStream<AppContext>;
+  /**
+   * The oak router for your application.
+   * The build script will automatically generate these for your application's routes.
+   * The router object is a default export from the `_main.ts` in your routes directory.
+   */
   router?: Router;
-  root?: string;
+  /**
+   * The working directory of your application.
+   * Defaults to the current working directory that your application is running from.
+   */
+  workingDirectory?: string;
+  /** The port for the dev script's live reload server. */
   devPort?: number;
 }
 
 const TRAILING_SLASHES = /\/+$/;
 
+/**
+ * Creates an oak router for your application.
+ */
 export function createAppRouter<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
@@ -180,13 +244,13 @@ export function createAppRouter<
     Provider,
     renderToReadableStream: renderAppToReadableStream,
     router,
-    root,
+    workingDirectory,
     devPort,
   }: AppRouterOptions<AppContext>,
 ) {
   renderAppToReadableStream ??= renderToReadableStream;
   router ??= new Router();
-  root ??= Deno.cwd();
+  workingDirectory ??= Deno.cwd();
 
   const appRouter = new Router()
     .use(async (context, next) => {
@@ -252,7 +316,7 @@ export function createAppRouter<
 
   appRouter.get("/(.*)", async (context) => {
     try {
-      await context.send({ root: `${root}/public` });
+      await context.send({ root: `${workingDirectory}/public` });
     } catch (cause) {
       if (isHttpError(cause) && cause.status === Status.NotFound) {
         throw new HttpError(404, "Not found", { cause });
@@ -265,6 +329,7 @@ export function createAppRouter<
   return appRouter;
 }
 
+/** Creates a Udibo React App. */
 export function createApp<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(options: AppRouterOptions<AppContext>) {
@@ -304,9 +369,11 @@ export async function listeningDev(
 export interface ServeOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > extends AppRouterOptions<AppContext> {
+  /** The port your application will listen on. */
   port?: number;
 }
 
+/** Creates and serves a Udibo React App. */
 export async function serve<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >({ port, ...options }: ServeOptions<AppContext>) {
@@ -349,6 +416,7 @@ export function createApiRouter(router: Router) {
 }
 
 /**
+ * For internal use only.
  * This router renders the application on get requests.
  * It is used for all route components that do not have route middleware.
  */
@@ -364,6 +432,33 @@ export const defaultRouter = new Router()
  * If an AppErrorBoundary exists with a matching boundary, it will be used to handle the error.
  * If a boundary is not specified, the first AppErrorBoundary without a boundary specified will handle the error.
  * If a boundary is specified, but no AppErrorBoundary exists with a matching boundary, the error will go unhandled.
+ *
+ * By default, any route that has an ErrorFallback will have an errorBoundary automatically added to it.
+ * The automatic error boundaries name will match the route.
+ * You can add your own error boundaries anywhere.
+ *
+ * To ensure an error boundary catches the error, your router needs to use this middleware.
+ *
+ * ```ts
+ * const router = new Router()
+ *  .use(errorBoundary("MyComponentErrorBoundary"))
+ * ```
+ *
+ * Then the related react component for the route needs to either use `withAppErrorBoundary` or `AppErrorBoundary` to be able to catch the error during rendering.
+ * The boundary identifier must match the one on the server.
+ *
+ * ```tsx
+ * const MyComponentSafe = withAppErrorBoundary(MyComponent, {
+ *  FallbackComponent: DefaultErrorFallback,
+ *  boundary: "MyComponentErrorBoundary"
+ * })
+ * ```
+ *
+ * ```tsx
+ * <AppErrorBoundary FallbackComponent={DefaultErrorFallback} boundary="MyComponentErrorBoundary">
+ *   <MyComponent />
+ * </AppErrorBoundary>
+ * ```
  */
 export function errorBoundary<
   P extends RouteParams<string> = RouteParams<string>,

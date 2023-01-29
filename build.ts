@@ -145,7 +145,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     } else if (!relativePath) {
       importLines.push(
         `import { Outlet } from "$npm/react-router-dom";`,
-        `import { withAppErrorBoundary, DefaultErrorFallback } from "$x/udibo_react_app/error.tsx";`,
+        `import { withAppErrorBoundary, DefaultErrorFallback } from "$x/udibo_react_app/app.tsx";`,
         `const $${routeId} = withAppErrorBoundary(() => <Outlet />, { FallbackComponent: DefaultErrorFallback });`,
       );
       routeText += `, element: <$${routeId} />`;
@@ -201,7 +201,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       routeId = nextRouteId;
     } else if (relativePath === "") {
       importLines.push(
-        `import { NotFound } from "$x/udibo_react_app/error.tsx";`,
+        `import { NotFound } from "$x/udibo_react_app/app.tsx";`,
       );
       childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
     }
@@ -488,6 +488,11 @@ export interface BuildOptions {
   publicUrl: string;
   /** File url for your import map. */
   importMapUrl: string;
+  /**
+   * ESBuild plugins to use when building your application.
+   * These plugins will be added after the deno plugin.
+   */
+  esbuildPlugins?: esbuild.Plugin[];
 }
 
 /** Builds the application and all of it's routes. */
@@ -525,9 +530,11 @@ export async function build(options: BuildOptions) {
       await buildRoutes(routesUrl);
     }
 
+    const esbuildPlugins = options.esbuildPlugins ?? [];
     await esbuild.build({
       plugins: [
         denoPlugin({ importMapURL }),
+        ...esbuildPlugins,
       ],
       absWorkingDir: workingDirectory,
       entryPoints: [entryPoint],
