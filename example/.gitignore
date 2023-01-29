@@ -4,6 +4,5 @@ public/test-build
 routes/_main.tsx
 routes/_main.ts
 
-
 # VSCode
 .vscode/*.log
