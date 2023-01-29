@@ -44,9 +44,12 @@ usage.
 
 This repository contains one example for manually testing changes. To use it as
 the base for a new project, you would need to update the `import_map.json` file
-to use udibo_react_app from the deno.land/x registry.
+and deno.jsonc file to use udibo_react_app from the deno.land/x registry. The
+deno task commands in `deno.jsonc` would need to also use your
+`import_map.json`.
 
-TODO: Add more examples to other repositories to make it easy to clone them.
+- [Example](https://github.com/udibo/react_app_example): A basic example of a
+  Udibo React App.
 
 ### Tasks
 
