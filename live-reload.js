@@ -1,19 +1,18 @@
 const devPort = window.app.devPort ?? 9002;
-const ws = new WebSocket(`ws://localhost:${devPort}/live-reload`);
-ws.onopen = () => {
+console.log(`http://localhost:${devPort}/live-reload`);
+const source = new EventSource(`http://localhost:${devPort}/live-reload`);
+source.addEventListener("open", () => {
   console.log("Live reload: Waiting for change");
-};
-ws.onclose = () => {
+});
+source.addEventListener("close", () => {
   console.log("Live reload: Stopped");
-};
-ws.onmessage = (message) => {
-  const data = JSON.parse(message.data);
-  const { command } = data;
-  if (command === "reload") {
-    console.log("Live reload: Reloading");
-    location.reload();
-  }
-};
-ws.onerror = (event) => {
+});
+source.addEventListener("error", (event) => {
   console.log("Live reload: Error", event);
-};
+});
+source.addEventListener("reload", () => {
+  console.log("Live reload: Reloading");
+  location.reload();
+});
+
+globalThis.addEventListener("beforeunload", () => source.close());

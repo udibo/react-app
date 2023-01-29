@@ -1,57 +1,66 @@
 import * as path from "$std/path/mod.ts";
 import { debounce } from "$std/async/debounce.ts";
-import { Application, Router } from "$x/oak/mod.ts";
-import { HttpError } from "$x/http_error/mod.ts";
+import {
+  Application,
+  Router,
+  ServerSentEvent,
+  ServerSentEventTarget,
+} from "$x/oak/mod.ts";
 import { getEnv, isTest } from "./env.ts";
 
-const sessions = new Map<number, WebSocket>();
+const sessions = new Map<number, ServerSentEventTarget>();
 let nextSessionId = 0;
 
-const app = new Application();
-const router = new Router()
-  .get("/live-reload", (context) => {
-    if (!context.isUpgradable) {
-      throw new HttpError(501);
-    }
-    const ws = context.upgrade();
-
-    const sessionId = nextSessionId++;
-    ws.onopen = () => {
-      sessions.set(sessionId, ws);
-    };
-    ws.onclose = () => {
-      sessions.delete(sessionId);
-    };
-    ws.onerror = (event) => {
-      console.log("Live reload: Error", event);
-    };
-  })
-  .get("/listening", ({ response }) => {
-    response.status = 200;
-
-    if (reload) {
-      console.log("Server restarted");
-      reload = false;
-      queueMicrotask(() => {
-        for (const ws of [...sessions.values()]) {
-          ws.send(JSON.stringify({ command: "reload" }));
-        }
+function createDevApp(appPort = 9000) {
+  const app = new Application();
+  const router = new Router()
+    .get("/live-reload", (context) => {
+      const target = context.sendEvents({
+        headers: new Headers({
+          "Access-Control-Allow-Origin": `http://localhost:${appPort}`,
+        }),
+        keepAlive: true,
       });
-    } else {
-      console.log("Server started");
-    }
+
+      const sessionId = nextSessionId++;
+      target.addEventListener("close", () => {
+        sessions.delete(sessionId);
+      });
+      target.addEventListener("error", (event) => {
+        console.log("Live reload: Error", event);
+      });
+      sessions.set(sessionId, target);
+      target.dispatchMessage("Waiting");
+    })
+    .get("/listening", ({ response }) => {
+      response.status = 200;
+
+      if (reload) {
+        console.log("Server restarted");
+        reload = false;
+        queueMicrotask(() => {
+          for (const target of [...sessions.values()]) {
+            target.dispatchEvent(new ServerSentEvent("reload", null));
+          }
+        });
+      } else {
+        console.log("Server started");
+      }
+    });
+
+  app.use(router.routes(), router.allowedMethods());
+
+  app.addEventListener("error", ({ error }) => {
+    console.error("Uncaught app error", error);
   });
 
-app.use(router.routes(), router.allowedMethods());
+  app.addEventListener("listen", ({ hostname, port, secure }) => {
+    const origin = `${secure ? "https://" : "http://"}${hostname}`;
+    console.log(`Live reload listening on: ${origin}:${port}`);
+  });
 
-app.addEventListener("error", ({ error }) => {
-  console.error("Uncaught app error", error);
-});
-
-app.addEventListener("listen", ({ hostname, port, secure }) => {
-  const origin = `${secure ? "https://" : "http://"}${hostname}`;
-  console.log(`Live reload listening on: ${origin}:${port}`);
-});
+  return app;
+}
 
 let runProcess: Deno.Process | null = null;
 function runDev() {
@@ -165,6 +174,7 @@ function isBuildArtifact(pathname: string) {
 
 export interface DevOptions extends BuildDevOptions {
   isCustomBuildArtifact?: (pathname: string) => boolean;
+  appPort?: number;
   devPort?: number;
 }
 
@@ -177,6 +187,7 @@ export function startDev({
   isCustomBuildArtifact,
   preBuild,
   postBuild,
+  appPort,
   devPort,
 }: DevOptions = {}) {
   const shouldBuild = isCustomBuildArtifact
@@ -210,11 +221,18 @@ export function startDev({
   }
   queueMicrotask(watcher);
 
-  queueMicrotask(() => app.listen({ port: devPort ?? 9002 }));
+  queueMicrotask(() => {
+    const app = createDevApp(appPort);
+    app.listen({ port: devPort ?? 9002 });
+  });
 }
 
 if (import.meta.main) {
   const options: DevOptions = {};
+  const appPort = +(getEnv("APP_PORT") ?? "");
+  if (appPort && !isNaN(appPort)) {
+    options.appPort = appPort;
+  }
   const devPort = +(getEnv("DEV_PORT") ?? "");
   if (devPort && !isNaN(devPort)) {
     options.devPort = devPort;
