@@ -11,7 +11,7 @@
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
-    "jsxImportSource": "$npm/react"
+    "jsxImportSource": "npm/react"
   },
   "lint": {
     "files": {

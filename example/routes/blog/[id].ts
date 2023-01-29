@@ -1,5 +1,5 @@
-import { AppState, HttpError } from "$x/udibo_react_app/app_server.tsx";
-import { Router } from "$x/oak/mod.ts";
+import { AppState, HttpError } from "x/udibo_react_app/app_server.tsx";
+import { Router } from "x/oak/mod.ts";
 
 import { getPost } from "../../services/posts.ts";
 

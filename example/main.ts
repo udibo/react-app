@@ -1,6 +1,6 @@
-import * as path from "$std/path/mod.ts";
-import { Router } from "$x/oak/mod.ts";
-import { serve } from "$x/udibo_react_app/app_server.tsx";
+import * as path from "std/path/mod.ts";
+import { Router } from "x/oak/mod.ts";
+import { serve } from "x/udibo_react_app/app_server.tsx";
 
 import route from "./routes/_main.tsx";
 import mainRouter from "./routes/_main.ts";

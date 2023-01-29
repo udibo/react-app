@@ -5,14 +5,14 @@ import {
   ReactNode,
   startTransition,
   StrictMode,
-} from "$npm/react";
-import { HelmetProvider } from "$npm/react-helmet-async";
-import { hydrateRoot } from "$npm/react-dom/client";
+} from "npm/react";
+import { HelmetProvider } from "npm/react-helmet-async";
+import { hydrateRoot } from "npm/react-dom/client";
 import {
   createBrowserRouter,
   RouteObject,
   RouterProvider,
-} from "$npm/react-router-dom";
+} from "npm/react-router-dom";
 
 import { AppContext, AppEnvironment, AppWindow } from "./env.ts";
 export {
@@ -32,8 +32,8 @@ import {
   HttpError,
   withAppErrorBoundary,
 } from "./error.tsx";
-export { HttpError, isHttpError } from "$x/http_error/mod.ts";
-export type { HttpErrorOptions } from "$x/http_error/mod.ts";
+export { HttpError, isHttpError } from "x/http_error/mod.ts";
+export type { HttpErrorOptions } from "x/http_error/mod.ts";
 export {
   AppErrorBoundary,
   DefaultErrorFallback,
@@ -106,7 +106,7 @@ function App({ route, Provider }: AppOptions) {
  * If you are using the default configuration, this will load the route generated from your application's routes.
  *
  * ```tsx
- * import { hydrate } from "$x/udibo_react_app/app.tsx";
+ * import { hydrate } from "x/udibo_react_app/app.tsx";
  *
  * import route from "./routes/_main.tsx";
  *

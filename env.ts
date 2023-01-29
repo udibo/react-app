@@ -1,4 +1,4 @@
-import { createContext } from "$npm/react";
+import { createContext } from "npm/react";
 
 import { HttpErrorOptions } from "./error.tsx";
 import { _internals } from "./_internals.ts";

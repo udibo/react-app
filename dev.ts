@@ -1,11 +1,11 @@
-import * as path from "$std/path/mod.ts";
-import { debounce } from "$std/async/debounce.ts";
+import * as path from "std/path/mod.ts";
+import { debounce } from "std/async/debounce.ts";
 import {
   Application,
   Router,
   ServerSentEvent,
   ServerSentEventTarget,
-} from "$x/oak/mod.ts";
+} from "x/oak/mod.ts";
 import { getEnv, isTest } from "./env.ts";
 
 const sessions = new Map<number, ServerSentEventTarget>();

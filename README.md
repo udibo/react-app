@@ -99,8 +99,8 @@ parameters are stored on the context's params property. The key for wildcard
 parameters will be "0".
 
 ```ts
-import { Router } from "$x/oak/mod.ts";
-import { AppState } from "$x/udibo_react_app/app_server.tsx";
+import { Router } from "x/oak/mod.ts";
+import { AppState } from "x/udibo_react_app/app_server.tsx";
 
 export default new Router<AppState>()
   .get("/", async (context) => {

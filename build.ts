@@ -1,8 +1,8 @@
-import { walk } from "$std/fs/walk.ts";
-import { ensureDir } from "$std/fs/ensure_dir.ts";
-import * as path from "$std/path/mod.ts";
-import * as esbuild from "$x/esbuild/mod.js";
-import { denoPlugin } from "$x/esbuild_deno_loader/mod.ts";
+import { walk } from "std/fs/walk.ts";
+import { ensureDir } from "std/fs/ensure_dir.ts";
+import * as path from "std/path/mod.ts";
+import * as esbuild from "x/esbuild/mod.js";
+import { denoPlugin } from "x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
 
@@ -147,8 +147,8 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       routeId++;
     } else if (!relativePath) {
       importLines.push(
-        `import { Outlet } from "$npm/react-router-dom";`,
-        `import { withAppErrorBoundary, DefaultErrorFallback } from "$x/udibo_react_app/app.tsx";`,
+        `import { Outlet } from "npm/react-router-dom";`,
+        `import { withAppErrorBoundary, DefaultErrorFallback } from "x/udibo_react_app/app.tsx";`,
         `const $${routeId} = withAppErrorBoundary(() => <Outlet />, { FallbackComponent: DefaultErrorFallback });`,
       );
       routeText += `, element: <$${routeId} />`;
@@ -204,7 +204,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       routeId = nextRouteId;
     } else if (relativePath === "") {
       importLines.push(
-        `import { NotFound } from "$x/udibo_react_app/app.tsx";`,
+        `import { NotFound } from "x/udibo_react_app/app.tsx";`,
       );
       childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
     }
@@ -440,8 +440,8 @@ async function writeRoutes(path: string, text: string) {
 async function updateRoutes(routesUrl: string, rootRoute: Route) {
   if (rootRoute.react) {
     const lines = [
-      `import { lazy } from "$x/udibo_react_app/app.tsx";`,
-      `import { RouteObject } from "$npm/react-router-dom";`,
+      `import { lazy } from "x/udibo_react_app/app.tsx";`,
+      `import { RouteObject } from "npm/react-router-dom";`,
       "",
     ];
     const { importLines, routeText } = routeFileData(0, "", rootRoute);
@@ -452,9 +452,9 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
   }
 
   const lines = [
-    `import { Router } from "$x/oak/mod.ts";`,
-    `import { defaultRouter, createApiRouter, errorBoundary } from "$x/udibo_react_app/app_server.tsx";`,
-    `import { RouteFile } from "$x/udibo_react_app/app.tsx";`,
+    `import { Router } from "x/oak/mod.ts";`,
+    `import { defaultRouter, createApiRouter, errorBoundary } from "x/udibo_react_app/app_server.tsx";`,
+    `import { RouteFile } from "x/udibo_react_app/app.tsx";`,
     "",
   ];
   const { importLines, routerLines } = routerFileData(-1, 0, "", rootRoute);
@@ -562,7 +562,7 @@ export async function build(options: BuildOptions) {
       platform: "neutral",
       format: "esm",
       jsx: "automatic",
-      jsxImportSource: "$npm/react",
+      jsxImportSource: "npm/react",
       ...buildOptions,
     });
     esbuild.stop();

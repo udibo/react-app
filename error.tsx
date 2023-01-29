@@ -1,4 +1,4 @@
-import { HttpError, HttpErrorOptions, isHttpError } from "$x/http_error/mod.ts";
+import { HttpError, HttpErrorOptions, isHttpError } from "x/http_error/mod.ts";
 import {
   ComponentType,
   createContext,
@@ -8,13 +8,13 @@ import {
   useContext,
   useEffect,
   useState,
-} from "$npm/react";
-import { useLocation } from "$npm/react-router-dom";
-import { ErrorBoundary } from "$npm/react-error-boundary";
+} from "npm/react";
+import { useLocation } from "npm/react-router-dom";
+import { ErrorBoundary } from "npm/react-error-boundary";
 import type {
   ErrorBoundaryProps,
   FallbackProps,
-} from "$npm/react-error-boundary";
+} from "npm/react-error-boundary";
 
 export { HttpError, isHttpError };
 export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };

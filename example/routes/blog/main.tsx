@@ -1,6 +1,6 @@
-import { Suspense } from "$npm/react";
-import { Outlet } from "$npm/react-router-dom";
-import { Helmet } from "$npm/react-helmet-async";
+import { Suspense } from "npm/react";
+import { Outlet } from "npm/react-router-dom";
+import { Helmet } from "npm/react-helmet-async";
 
 import { Loading } from "../../components/loading.tsx";
 

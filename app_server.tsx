@@ -6,20 +6,20 @@ import {
   Router,
   RouterMiddleware,
   Status,
-} from "$x/oak/mod.ts";
-import { ComponentType, ReactNode, StrictMode } from "$npm/react";
-import { HelmetContext, HelmetProvider } from "$npm/react-helmet-async";
-import { renderToReadableStream as renderReactToReadableStream } from "$npm/react-dom/server";
+} from "x/oak/mod.ts";
+import { ComponentType, ReactNode, StrictMode } from "npm/react";
+import { HelmetContext, HelmetProvider } from "npm/react-helmet-async";
+import { renderToReadableStream as renderReactToReadableStream } from "npm/react-dom/server";
 import {
   createMemoryRouter,
   RouteObject,
   RouterProvider,
-} from "$npm/react-router-dom";
-import serialize from "$npm/serialize-javascript";
+} from "npm/react-router-dom";
+import serialize from "npm/serialize-javascript";
 
 import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
-export { HttpError, isHttpError } from "$x/http_error/mod.ts";
-export type { HttpErrorOptions } from "$x/http_error/mod.ts";
+export { HttpError, isHttpError } from "x/http_error/mod.ts";
+export type { HttpErrorOptions } from "x/http_error/mod.ts";
 import {
   AppContext,
   AppEnvironment,
