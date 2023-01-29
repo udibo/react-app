@@ -64,7 +64,7 @@ function html<
     `<script>window.app.devPort = ${
       serialize(devPort, { isJSON: true })
     };</script>`,
-    isDevelopment() && `<script type="module" src="/live-reload.js"></script>`,
+    isDevelopment() && `<script src="/live-reload.js"></script>`,
     helmet.noscript.toString(),
   ].filter((tag: string) => Boolean(tag));
 
