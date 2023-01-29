@@ -1,4 +1,4 @@
-import { Helmet } from "$npm/react-helmet-async";
+import { Helmet } from "npm/react-helmet-async";
 
 export default function About() {
   return (

@@ -3,9 +3,9 @@ import {
   assertRejects,
   assertStrictEquals,
   assertThrows,
-} from "$std/testing/asserts.ts";
-import { describe, it } from "$std/testing/bdd.ts";
-import { delay } from "$std/async/delay.ts";
+} from "std/testing/asserts.ts";
+import { describe, it } from "std/testing/bdd.ts";
+import { delay } from "std/async/delay.ts";
 
 import {
   AppWindow,

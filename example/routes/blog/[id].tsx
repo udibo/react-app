@@ -1,7 +1,7 @@
-import { useParams } from "$npm/react-router-dom";
-import { HttpError } from "$x/http_error/mod.ts";
-import { Helmet } from "$npm/react-helmet-async";
-import { DefaultErrorFallback } from "$x/udibo_react_app/app.tsx";
+import { useParams } from "npm/react-router-dom";
+import { HttpError } from "x/http_error/mod.ts";
+import { Helmet } from "npm/react-helmet-async";
+import { DefaultErrorFallback } from "x/udibo_react_app/app.tsx";
 
 import { getPost } from "../../services/posts.tsx";
 

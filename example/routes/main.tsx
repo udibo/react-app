@@ -1,10 +1,10 @@
-import { Suspense } from "$npm/react";
-import { Link, Outlet } from "$npm/react-router-dom";
-import { Helmet } from "$npm/react-helmet-async";
+import { Suspense } from "npm/react";
+import { Link, Outlet } from "npm/react-router-dom";
+import { Helmet } from "npm/react-helmet-async";
 import {
   AppErrorBoundary,
   DefaultErrorFallback,
-} from "$x/udibo_react_app/app.tsx";
+} from "x/udibo_react_app/app.tsx";
 
 import { Loading } from "../components/loading.tsx";
 

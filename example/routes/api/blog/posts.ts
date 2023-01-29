@@ -1,5 +1,5 @@
-import { Router } from "$x/oak/mod.ts";
-import { HttpError } from "$x/http_error/mod.ts";
+import { Router } from "x/oak/mod.ts";
+import { HttpError } from "x/http_error/mod.ts";
 
 import { getPost, getPosts } from "../../../services/posts.ts";
 

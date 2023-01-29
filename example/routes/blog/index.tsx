@@ -1,5 +1,5 @@
-import { Link } from "$npm/react-router-dom";
-import { Helmet } from "$npm/react-helmet-async";
+import { Link } from "npm/react-router-dom";
+import { Helmet } from "npm/react-helmet-async";
 
 import { getPosts } from "../../services/posts.tsx";
 
