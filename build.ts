@@ -109,19 +109,23 @@ function routePathFromName(name: string) {
     .replace(ROUTE_PARAM, ":$1");
 }
 
-function lazyImportLine(routeId: number, relativePath: string) {
-  return `const $${routeId} = lazy(() => import("./${relativePath}"));`;
+function lazyImportLine(routeId: number, routePath: string, filePath: string) {
+  return `const $${routeId} = lazy(${
+    routePath ? `"/${routePath}", ` : ""
+  }() => import("./${filePath}"));`;
 }
 
 function routeFileData(routeId: number, relativePath: string, route: Route) {
   const importLines: string[] = [];
-  let routeText = `{ path: "${routePathFromName(route.name)}"`;
+  const name = routePathFromName(route.name);
+  let routeText = `{ path: "${name}"`;
 
   const { file, main, index, children } = route;
   if (file?.react) {
     importLines.push(
       lazyImportLine(
         routeId,
+        relativePath,
         path.posix.join(relativePath, routeId === 0 ? "" : "../", file.react),
       ),
     );
@@ -130,7 +134,19 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
   } else {
     if (main?.react) {
       importLines.push(
-        lazyImportLine(routeId, path.posix.join(relativePath, main.react)),
+        lazyImportLine(
+          routeId,
+          relativePath,
+          path.posix.join(relativePath, main.react),
+        ),
+      );
+      routeText += `, element: <$${routeId} />`;
+      routeId++;
+    } else if (!relativePath) {
+      importLines.push(
+        `import { Outlet } from "$npm/react-router-dom";`,
+        `import { withAppErrorBoundary, DefaultErrorFallback } from "$x/udibo_react_app/error.tsx";`,
+        `const $${routeId} = withAppErrorBoundary(() => <Outlet />, { FallbackComponent: DefaultErrorFallback });`,
       );
       routeText += `, element: <$${routeId} />`;
       routeId++;
@@ -139,7 +155,11 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     const childRouteTexts: string[] = [];
     if (index?.react) {
       importLines.push(
-        lazyImportLine(routeId, path.posix.join(relativePath, index.react)),
+        lazyImportLine(
+          routeId,
+          path.posix.join(relativePath, "index"),
+          path.posix.join(relativePath, index.react),
+        ),
       );
       childRouteTexts.push(`{ index: true, element: <$${routeId} /> }`);
       routeId++;
@@ -179,7 +199,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       importLines.push(...childImportLines);
       childRouteTexts.push(childRouteText);
       routeId = nextRouteId;
-    } else if (relativePath === ".") {
+    } else if (relativePath === "") {
       importLines.push(
         `import { NotFound } from "$x/udibo_react_app/error.tsx";`,
       );
@@ -228,6 +248,13 @@ function routerFileData(
           path.posix.join(relativePath, routeId > 0 ? "../" : "", file.react),
         ),
       );
+      routerLines.push(
+        `if (($${routeId} as RouteFile).ErrorFallback) {`,
+        `  $${parentRouteId}.use("/${
+          routePathFromName(name)
+        }", errorBoundary("/${relativePath}"));`,
+        `}`,
+      );
       routeId++;
     }
 
@@ -238,7 +265,7 @@ function routerFileData(
           path.posix.join(relativePath, routeId > 0 ? "../" : "", file.oak),
         ),
       );
-      if (relativePath !== ".") {
+      if (relativePath !== "") {
         routerLines.push(
           `$${parentRouteId}.use("/${
             routePathFromName(name)
@@ -256,16 +283,6 @@ function routerFileData(
   } else {
     const mainRouteId = routeId++;
     if (main) {
-      if (main.react) {
-        importLines.push(
-          ...routeImportLines(
-            routeId,
-            path.posix.join(relativePath, main.react),
-          ),
-        );
-        routeId++;
-      }
-
       if (main.oak) {
         importLines.push(
           routerImportLine(
@@ -276,8 +293,28 @@ function routerFileData(
       } else {
         routerLines.push(`const $${mainRouteId} = new Router();`);
       }
+
+      if (main.react) {
+        importLines.push(
+          ...routeImportLines(
+            routeId,
+            path.posix.join(relativePath, main.react),
+          ),
+        );
+        routerLines.push(
+          `if (($${routeId} as RouteFile).ErrorFallback) {`,
+          `  $${mainRouteId}.use(errorBoundary(${
+            relativePath ? `"/${relativePath}"` : ""
+          }));`,
+          `}`,
+        );
+        routeId++;
+      }
     } else {
       routerLines.push(`const $${mainRouteId} = new Router();`);
+      if (!relativePath && react) {
+        routerLines.push(`$${mainRouteId}.use(errorBoundary());`);
+      }
     }
 
     if (index) {
@@ -287,6 +324,13 @@ function routerFileData(
             routeId,
             path.posix.join(relativePath, index.react),
           ),
+        );
+        routerLines.push(
+          `if (($${routeId} as RouteFile).ErrorFallback) {`,
+          `  $${mainRouteId}.use("/", errorBoundary("/${
+            path.join(relativePath, "index")
+          }"));`,
+          `}`,
         );
         routeId++;
       }
@@ -348,7 +392,7 @@ function routerFileData(
       routeId = nextRouteId;
     }
 
-    if (relativePath === ".") {
+    if (relativePath === "") {
       routerLines.push("", `export default $0;`);
     } else {
       routerLines.push(
@@ -393,11 +437,11 @@ async function writeRoutes(path: string, text: string) {
 async function updateRoutes(routesUrl: string, rootRoute: Route) {
   if (rootRoute.react) {
     const lines = [
-      `import { lazy } from "$npm/react";`,
+      `import { lazy } from "$x/udibo_react_app/app.tsx";`,
       `import { RouteObject } from "$npm/react-router-dom";`,
       "",
     ];
-    const { importLines, routeText } = routeFileData(0, ".", rootRoute);
+    const { importLines, routeText } = routeFileData(0, "", rootRoute);
     lines.push(...importLines, "");
     lines.push(`export default ${routeText} as RouteObject;`, "");
 
@@ -406,10 +450,11 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
 
   const lines = [
     `import { Router } from "$x/oak/mod.ts";`,
-    `import { defaultRouter, createApiRouter } from "$x/udibo_react_app/app_server.tsx";`,
+    `import { defaultRouter, createApiRouter, errorBoundary } from "$x/udibo_react_app/app_server.tsx";`,
+    `import { RouteFile } from "$x/udibo_react_app/app.tsx";`,
     "",
   ];
-  const { importLines, routerLines } = routerFileData(-1, 0, ".", rootRoute);
+  const { importLines, routerLines } = routerFileData(-1, 0, "", rootRoute);
   lines.push(...importLines, "", ...routerLines);
 
   await writeRoutes(path.join(routesUrl, "_main.ts"), lines.join("\n"));

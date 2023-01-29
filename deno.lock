@@ -111,11 +111,17 @@
     "https://deno.land/x/oak@v11.1.0/util.ts": "3af8c4ed04c6cc2bedbe66e562a77fc59c72df31c55a902a63885861ca1639d6",
     "https://deno.land/x/path_to_regexp@v6.2.1/index.ts": "894060567837bae8fc9c5cbd4d0a05e9024672083d5883b525c031eea940e556",
     "https://esm.sh/react-error-boundary@3.1.4?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0": "0ca263c5d1a046860ef4ac159139a7dd13a1ab6c34d6206ea149640b68d18186",
+    "https://esm.sh/react-router-dom@6.6.1?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0": "7647c649fb2af509494d2297b0d6dbe8f7afe0138019fc2201893e06766654a5",
     "https://esm.sh/react@18.2.0/jsx-runtime?target=deno&pin=v104": "8e5e22ae56773ef989a95772b9b9f6d4e5d7891f2d20875c25e51015df018f7c",
     "https://esm.sh/react@18.2.0?target=deno&pin=v104": "84aa07282d2f3c843f7d56daeae0be41ceae768391c4418f7358dd64e8fe4eca",
     "https://esm.sh/stable/react@18.2.0/deno/jsx-runtime.js": "4f0af3ce145cdcac00e75bea66889f321aa1d0c63714ae71986a6540f881fe04",
     "https://esm.sh/stable/react@18.2.0/deno/react.js": "0113c672572d23a90490f1b03731866a18bbbfe2ab4ff8e52c2e91b60c4188f0",
     "https://esm.sh/v104/@babel/runtime@7.20.13/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/helpers/esm/inheritsLoose.js": "eac697ef29cf6a616beb80f462867b1129298f257b0186f49755bc5ba998208b",
+    "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/router.js": "42e51ce33e9ee1ccd622ad4b3e4eadca29f526cd6b7f9641eeba681786ffe59a",
+    "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/history.d.ts": "036b2bdb6931917cd8c03e4448d26d14b760035ff0cc636f582eedbac84cdb8c",
+    "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "114a26463a271a23086eb06b3948896592e601fd7be628f14ce0dd2d6e3986b9",
+    "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/router.d.ts": "3f4f94c9550ac5eeba4ef8640f4e627034df6fb1f414f17af3c8f8002c6a808f",
+    "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/utils.d.ts": "ba1875e8ea5b6e51c89f2a54af93d3fab9c329edd4a640ef10a1f2bf6d0eb564",
     "https://esm.sh/v104/@types/prop-types@15.7.5/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/index.d.ts": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
     "https://esm.sh/v104/@types/prop-types@15.7.5/index.d.ts": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
     "https://esm.sh/v104/@types/react@18.0.26/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/global.d.ts": "bbdf156fea2fabed31a569445835aeedcc33643d404fcbaa54541f06c109df3f",
@@ -128,6 +134,14 @@
     "https://esm.sh/v104/csstype@3.1.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/index.d.ts": "1c29793071152b207c01ea1954e343be9a44d85234447b2b236acae9e709a383",
     "https://esm.sh/v104/csstype@3.1.1/index.d.ts": "1c29793071152b207c01ea1954e343be9a44d85234447b2b236acae9e709a383",
     "https://esm.sh/v104/react-error-boundary@3.1.4/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/react-error-boundary.js": "8ea3a68077c325b16c76cb198b84e3143dd3c2b384aab80ffc959d7651c9b034",
-    "https://esm.sh/v104/react-error-boundary@3.1.4/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "3a86e5c918bd174534d5224ae12f8540e56dc3a03e5ff12917530984589b110d"
+    "https://esm.sh/v104/react-error-boundary@3.1.4/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "3a86e5c918bd174534d5224ae12f8540e56dc3a03e5ff12917530984589b110d",
+    "https://esm.sh/v104/react-router-dom@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/react-router-dom.js": "035819346f1e479c676bb84113d6bb9836c67589808efe5561613439d47d205f",
+    "https://esm.sh/v104/react-router-dom@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/dom.d.ts": "9f69742c8c58738a3432db727b57f452d03e8d7bbe058f68bb4e39255a2debb2",
+    "https://esm.sh/v104/react-router-dom@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "777cd785fd5a607a98bf974e2a47a17d2f2b5e4ccdfde7fa9e23d449673e8e13",
+    "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/react-router.js": "30efb2eff91629efe06977edf103665d37880392b9afb2ed77219376a3180cdc",
+    "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "cbcbe0be36dd35b2d60bef5f6216491980642d46e7a7b1c8270bef6c62deac3f",
+    "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/lib/components.d.ts": "4aa1791401ee6f18066a11ab9b53475c9e51b5d8926760e64e442581d3a5e48a",
+    "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/lib/context.d.ts": "bbdb5bf8bf45d1f472e8e0c322a6f88679c0749d4b55665392c50db323958056",
+    "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/lib/hooks.d.ts": "221f0cde2b44da811708e5258737b1af15afb569d3a0325c993b6d87ae241dc3"
   }
 }
