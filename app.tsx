@@ -1,5 +1,7 @@
 import {
   ComponentType,
+  lazy as reactLazy,
+  LazyExoticComponent,
   ReactNode,
   startTransition,
   StrictMode,
@@ -13,7 +15,13 @@ import {
 } from "$npm/react-router-dom";
 
 import { AppContext, AppWindow } from "./env.ts";
-import { AppErrorContext, HttpError } from "./error.tsx";
+import {
+  AppErrorBoundaryProps,
+  AppErrorContext,
+  FallbackProps,
+  HttpError,
+  withAppErrorBoundary,
+} from "./error.tsx";
 
 export interface HydrateOptions {
   route: RouteObject;
@@ -62,4 +70,47 @@ export function hydrate({ route, Provider }: HydrateOptions) {
     // https://caniuse.com/requestidlecallback
     setTimeout(hydrate, 1);
   }
+}
+
+export type RouteFile = {
+  default: ComponentType;
+  ErrorFallback?: ComponentType<FallbackProps>;
+};
+
+/**
+ * For internal use only.
+ * This is used in the generated _main.tsx file for routes to automatically add error boundaries to routes that have a FallbackComponent.
+ */
+export function lazy<
+  T extends RouteFile,
+>(factory: () => Promise<T>): LazyExoticComponent<ComponentType>;
+export function lazy<
+  T extends RouteFile,
+>(
+  boundary: string,
+  factory: () => Promise<T>,
+): LazyExoticComponent<ComponentType>;
+export function lazy<
+  T extends RouteFile,
+>(
+  boundaryOrFactory?: string | (() => Promise<T>),
+  factory?: () => Promise<T>,
+): LazyExoticComponent<ComponentType> {
+  const boundary = typeof boundaryOrFactory === "string"
+    ? boundaryOrFactory
+    : undefined;
+  if (typeof boundaryOrFactory !== "string") factory = boundaryOrFactory;
+  return reactLazy(async () => {
+    const { default: Component, ErrorFallback } = await factory!();
+    const errorBoundaryProps = {
+      FallbackComponent: ErrorFallback,
+    } as AppErrorBoundaryProps;
+    if (boundary) errorBoundaryProps.boundary = boundary;
+
+    return {
+      default: errorBoundaryProps.FallbackComponent
+        ? withAppErrorBoundary(Component, errorBoundaryProps)
+        : Component,
+    };
+  });
 }

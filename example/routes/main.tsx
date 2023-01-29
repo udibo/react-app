@@ -1,10 +1,12 @@
 import { Suspense } from "$npm/react";
 import { Link, Outlet } from "$npm/react-router-dom";
 import { Helmet } from "$npm/react-helmet-async";
-import { AppErrorBoundary } from "$x/udibo_react_app/error.tsx";
+import {
+  AppErrorBoundary,
+  DefaultErrorFallback,
+} from "$x/udibo_react_app/error.tsx";
 
 import { Loading } from "../components/loading.tsx";
-import { ErrorFallback } from "../components/error.tsx";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -32,7 +34,7 @@ export default function Main() {
         ))}
       </ul>
       <Suspense fallback={<Loading />}>
-        <AppErrorBoundary FallbackComponent={ErrorFallback}>
+        <AppErrorBoundary FallbackComponent={DefaultErrorFallback}>
           <Outlet />
         </AppErrorBoundary>
       </Suspense>

@@ -208,6 +208,7 @@
     "https://deno.land/x/oak@v11.1.0/types.d.ts": "41951a18c3bfdb11e40707cab75da078ba8a4907cd7d4e11d8536bc2db0dde05",
     "https://deno.land/x/oak@v11.1.0/util.ts": "3af8c4ed04c6cc2bedbe66e562a77fc59c72df31c55a902a63885861ca1639d6",
     "https://deno.land/x/path_to_regexp@v6.2.1/index.ts": "894060567837bae8fc9c5cbd4d0a05e9024672083d5883b525c031eea940e556",
+    "https://esm.sh/react-dom@18.2.0/client?target=deno&pin=v104&deps=react@18.2.0": "d3c142741adb4a0b9c0e964f5d2b1804b4debe5a6aaea59d88cfcadf05d0e40f",
     "https://esm.sh/react-dom@18.2.0/server?target=deno&pin=v104&deps=react@18.2.0": "e0b2552b8827bc842685ca97b6c194443e23d34a88c417aa44642ba387cf1574",
     "https://esm.sh/react-error-boundary@3.1.4?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0": "0ca263c5d1a046860ef4ac159139a7dd13a1ab6c34d6206ea149640b68d18186",
     "https://esm.sh/react-helmet-async@1.3.0?target=deno&pin=v104&deps=react@18.2.0,react-dom@18.2.0": "2bbf4924c7dcd80003bd7d256dc0e4193a41d7cbfc28f9acbebed9b4a15f0116",
@@ -225,6 +226,7 @@
     "https://esm.sh/v104/@remix-run/router@1.2.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/utils.d.ts": "ba1875e8ea5b6e51c89f2a54af93d3fab9c329edd4a640ef10a1f2bf6d0eb564",
     "https://esm.sh/v104/@types/prop-types@15.7.5/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/index.d.ts": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
     "https://esm.sh/v104/@types/prop-types@15.7.5/index.d.ts": "6a386ff939f180ae8ef064699d8b7b6e62bc2731a62d7fbf5e02589383838dea",
+    "https://esm.sh/v104/@types/react-dom@18.0.10/client~.d.ts": "5d3268ce4054ea4e345e39cfd820a653c7ed6311f46bb39c5f0d7ec6a0026a23",
     "https://esm.sh/v104/@types/react-dom@18.0.10/server~.d.ts": "321734586419a9f1654e65a62e40d5055d7b941313621da6e26b7d510b8b9ef8",
     "https://esm.sh/v104/@types/react@18.0.26/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/global.d.ts": "bbdf156fea2fabed31a569445835aeedcc33643d404fcbaa54541f06c109df3f",
     "https://esm.sh/v104/@types/react@18.0.26/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/index.d.ts": "2c181bd161ee80887a1e8fbeb15e83bd72216622feccadd68de01755a333e160",
@@ -242,6 +244,7 @@
     "https://esm.sh/v104/node_buffer.js": "445d389cb8c9f9fad5ff869ca2c2a863d178d410795ebd5f2f39d9a029156d56",
     "https://esm.sh/v104/prop-types@15.8.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/prop-types.js": "780d5e86852e689138c654703094d97bff56837193455ee932356a2eff741420",
     "https://esm.sh/v104/randombytes@2.1.0/deno/randombytes.js": "03f9953078bc071ee2b352d6406a67bd7d25f8aa35cecca0af51c98ca30be140",
+    "https://esm.sh/v104/react-dom@18.2.0/deno/client.js": "42a606d69fc39c1207f0bcf29f44f67a19a306ba09e03ca24e7f0ff2a9d953a3",
     "https://esm.sh/v104/react-dom@18.2.0/deno/server.js": "ba341a4e1e32f3f6403536e1e89d701b7a660e7010983f853158ed08adeab322",
     "https://esm.sh/v104/react-error-boundary@3.1.4/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/react-error-boundary.js": "8ea3a68077c325b16c76cb198b84e3143dd3c2b384aab80ffc959d7651c9b034",
     "https://esm.sh/v104/react-error-boundary@3.1.4/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/index.d.ts": "3a86e5c918bd174534d5224ae12f8540e56dc3a03e5ff12917530984589b110d",
@@ -257,6 +260,7 @@
     "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/lib/context.d.ts": "bbdb5bf8bf45d1f472e8e0c322a6f88679c0749d4b55665392c50db323958056",
     "https://esm.sh/v104/react-router@6.6.1/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/dist/lib/hooks.d.ts": "221f0cde2b44da811708e5258737b1af15afb569d3a0325c993b6d87ae241dc3",
     "https://esm.sh/v104/safe-buffer@5.2.1/deno/safe-buffer.js": "28ebe15c5c90ce013456a830990e4ac660a5deec222c47a43024b9110b5f3a39",
+    "https://esm.sh/v104/scheduler@0.23.0/deno/scheduler.js": "e4355fcf0c67d9e5010459286284b321a9b8c2cfe6042ff136247a8698d40cf4",
     "https://esm.sh/v104/serialize-javascript@6.0.0/deno/serialize-javascript.js": "d5c1a22c953ccae39898f6277fd2e67ee175f545710c792042f4618bfba34e9b",
     "https://esm.sh/v104/shallowequal@1.1.0/X-ZC9yZWFjdC1kb21AMTguMi4wLHJlYWN0QDE4LjIuMA/deno/shallowequal.js": "2fd497113da197317a531ea13e9f13aa64477462815a7c7399629111dbf9b244"
   }
