@@ -1,5 +1,4 @@
 const devPort = window.app.devPort ?? 9002;
-console.log(`http://localhost:${devPort}/live-reload`);
 const source = new EventSource(`http://localhost:${devPort}/live-reload`);
 source.addEventListener("open", () => {
   console.log("Live reload: Waiting for change");
