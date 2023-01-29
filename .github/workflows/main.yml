@@ -1,6 +1,5 @@
 name: CI/CD
 on:
-  create:
   pull_request:
   push:
     branches:
@@ -21,8 +20,3 @@ jobs:
     with:
       project: udibo-react-app
       app-directory: ./example
-  release:
-    name: Release
-    needs: ci
-    uses: ./.github/workflows/release.yml
-    if: startsWith(github.ref, 'refs/tags/')
