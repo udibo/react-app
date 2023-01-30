@@ -1,8 +1,8 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.2.0-success)](https://github.com/udibo/react_app/releases/tag/0.2.0)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.2.0)
-[![CI](https://github.com/udibo/react_app/workflows/CI/badge.svg)](https://github.com/udibo/react_app/actions?query=workflow%3ACI)
+[![release](https://img.shields.io/badge/release-0.2.1-success)](https://github.com/udibo/react_app/releases/tag/0.2.1)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.2.1)
+[![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
 
@@ -31,13 +31,13 @@ Apps are created using [React Router](https://reactrouter.com),
 
 This module has 2 entry points.
 
-- [app.tsx](https://deno.land/x/udibo_react_app@0.2.0/app.tsx): For use in code
+- [app.tsx](https://deno.land/x/udibo_react_app@0.2.1/app.tsx): For use in code
   that will be used both in the browser and on the server.
-- [app_server.tsx](https://deno.land/x/udibo_react_app@0.2.0/app_server.tsx):
+- [app_server.tsx](https://deno.land/x/udibo_react_app@0.2.1/app_server.tsx):
   For use in code that will only be used on the server.
 
 You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.2.0) to learn more about
+[deno docs](https://deno.land/x/udibo_react_app@0.2.1) to learn more about
 usage.
 
 ### Deployment
@@ -66,10 +66,13 @@ how it was done.
 - [Twind Example](https://github.com/udibo/react_app_example_twind): A basic
   example of a [Udibo React App](https://deno.land/x/udibo_react_app) using
   [Twind](https://twind.style/) to add Tailwind v3 support.
+
+<!--
 - [React Query Example](https://github.com/udibo/react_app_example_react_query):
   A basic example of a [Udibo React App](https://deno.land/x/udibo_react_app)
   using [React Query](https://tanstack.com/query/latest) for asyncronous state
   management.
+-->
 
 ### Tasks
 
