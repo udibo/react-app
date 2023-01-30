@@ -66,10 +66,13 @@ how it was done.
 - [Twind Example](https://github.com/udibo/react_app_example_twind): A basic
   example of a [Udibo React App](https://deno.land/x/udibo_react_app) using
   [Twind](https://twind.style/) to add Tailwind v3 support.
+
+<!--
 - [React Query Example](https://github.com/udibo/react_app_example_react_query):
   A basic example of a [Udibo React App](https://deno.land/x/udibo_react_app)
   using [React Query](https://tanstack.com/query/latest) for asyncronous state
   management.
+-->
 
 ### Tasks
 
