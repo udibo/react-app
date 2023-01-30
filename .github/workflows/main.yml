@@ -13,7 +13,7 @@ jobs:
       test-args: '-A'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  deploy:
+  cd:
     name: CD
     needs: ci
     uses: ./.github/workflows/deploy.yml

@@ -7,7 +7,12 @@ import {
   RouterMiddleware,
   Status,
 } from "x/oak/mod.ts";
-import { ComponentType, ReactNode, StrictMode } from "npm/react";
+import {
+  ComponentType,
+  Context as ReactContext,
+  ReactNode,
+  StrictMode,
+} from "npm/react";
 import { HelmetContext, HelmetProvider } from "npm/react-helmet-async";
 import { renderToReadableStream as renderReactToReadableStream } from "npm/react-dom/server";
 import {
@@ -21,15 +26,15 @@ import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
 export { HttpError, isHttpError } from "x/http_error/mod.ts";
 export type { HttpErrorOptions } from "x/http_error/mod.ts";
 import {
-  AppContext,
   AppEnvironment,
+  createAppContext,
   getEnv,
   isBrowser,
   isDevelopment,
   isTest,
 } from "./env.ts";
 export {
-  AppContext,
+  createAppContext,
   getEnv,
   isBrowser,
   isDevelopment,
@@ -112,7 +117,7 @@ export async function renderToReadableStream<
   context: Context<AppState<AppContext>>,
 ) {
   const { request, state } = context;
-  const { route, Provider } = state._app;
+  const { route, Provider, Context } = state._app;
   const { env, context: appContext, error, devPort } = state.app;
   const { pathname, search } = request.url;
   const location = `${pathname}${search}`;
@@ -126,11 +131,11 @@ export async function renderToReadableStream<
     <StrictMode>
       <HelmetProvider context={helmetContext}>
         <AppErrorContext.Provider value={{ error }}>
-          <AppContext.Provider value={appContext}>
+          <Context.Provider value={appContext}>
             <Provider>
               <RouterProvider router={router} />
             </Provider>
-          </AppContext.Provider>
+          </Context.Provider>
         </AppErrorContext.Provider>
       </HelmetProvider>
     </StrictMode>,
@@ -168,6 +173,7 @@ export interface AppState<AppContext = Record<string, unknown>> {
   _app: {
     route: RouteObject;
     Provider: ComponentType<{ children: ReactNode }>;
+    Context: ReactContext<AppContext>;
   };
   /** A container for application data and functions. */
   app: {
@@ -209,6 +215,8 @@ export interface AppRouterOptions<
   env?: AppEnvironment;
   /** Adds your own providers around the application. */
   Provider?: ComponentType<{ children: ReactNode }>;
+  /** A context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
+  Context?: ReactContext<AppContext>;
   /**
    * Used to render the application.
    * If you'd like to transform the stream before it is returned to the client,
@@ -242,6 +250,7 @@ export function createAppRouter<
     route,
     env,
     Provider,
+    Context,
     renderToReadableStream: renderAppToReadableStream,
     router,
     workingDirectory,
@@ -251,6 +260,8 @@ export function createAppRouter<
   renderAppToReadableStream ??= renderToReadableStream;
   router ??= new Router();
   workingDirectory ??= Deno.cwd();
+  Provider ??= ({ children }) => <>{children}</>;
+  Context ??= createAppContext<AppContext>();
 
   const appRouter = new Router()
     .use(async (context, next) => {
@@ -269,8 +280,8 @@ export function createAppRouter<
         if (!state.app) {
           state._app = {
             route,
-            Provider: Provider ??
-              (({ children }) => <>{children}</>),
+            Provider: Provider!,
+            Context: Context!,
           };
           state.app = {
             env: {
