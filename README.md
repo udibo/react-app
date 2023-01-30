@@ -2,7 +2,7 @@
 
 [![release](https://img.shields.io/badge/release-0.2.0-success)](https://github.com/udibo/react_app/releases/tag/0.2.0)
 [![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.2.0)
-[![CI](https://github.com/udibo/react_app/workflows/CI/badge.svg)](https://github.com/udibo/react_app/actions?query=workflow%3ACI)
+[![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
 
