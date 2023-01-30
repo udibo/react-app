@@ -1,16 +1,12 @@
-import { Context, useContext, useEffect, useState } from "npm/react";
+import { useContext, useEffect, useState } from "npm/react";
 import {
-  AppContext,
   HttpError,
   HttpErrorOptions,
   isBrowser,
 } from "x/udibo_react_app/app.tsx";
 
+import { AppContext } from "../context.ts";
 import { Post } from "../models/posts.ts";
-
-interface PostsContext {
-  posts?: Post[];
-}
 
 const parseResponse = async (response: Response) => {
   let data;
@@ -27,7 +23,7 @@ export function getPosts() {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const context = useContext<PostsContext>(AppContext);
+  const context = useContext(AppContext);
   const [posts, setPosts] = useState<Post[] | null>(
     Array.isArray(context.posts) ? context.posts : null,
   );
@@ -58,7 +54,7 @@ export function getPost(id: number) {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const context = useContext(AppContext as Context<PostsContext>);
+  const context = useContext(AppContext);
   const [post, setPost] = useState<Post | null>(context.posts?.[id] ?? null);
   if (isBrowser()) delete context.posts;
 

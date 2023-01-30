@@ -39,4 +39,9 @@ export const isDevelopment = () => {
 /** Used to determine if the code is running in the production environment. */
 export const isProduction = () => getEnv("APP_ENV") === "production";
 
-export const AppContext = createContext({});
+/** Creates a context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
+export function createAppContext<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+>(defaultValue?: AppContext) {
+  return createContext<AppContext>(defaultValue ?? {} as AppContext);
+}

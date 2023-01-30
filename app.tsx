@@ -1,5 +1,6 @@
 import {
   ComponentType,
+  Context,
   lazy as reactLazy,
   LazyExoticComponent,
   ReactNode,
@@ -14,9 +15,9 @@ import {
   RouterProvider,
 } from "npm/react-router-dom";
 
-import { AppContext, AppEnvironment, AppWindow } from "./env.ts";
+import { AppEnvironment, AppWindow, createAppContext } from "./env.ts";
 export {
-  AppContext,
+  createAppContext,
   getEnv,
   isBrowser,
   isDevelopment,
@@ -64,7 +65,9 @@ export interface AppState<AppContext = Record<string, unknown>> {
   };
 }
 
-export interface HydrateOptions {
+export interface HydrateOptions<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+> {
   /**
    * A react router route object.
    * The build script will automatically generate these for your application's routes.
@@ -73,25 +76,31 @@ export interface HydrateOptions {
   route: RouteObject;
   /** Adds your own providers around the application. */
   Provider?: ComponentType<{ children: ReactNode }>;
+  /** A context object for the App. */
+  Context: Context<AppContext>;
 }
 
-interface AppOptions extends HydrateOptions {
+interface AppOptions<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+> extends HydrateOptions<AppContext> {
   Provider: ComponentType<{ children: ReactNode }>;
+  Context: Context<AppContext>;
 }
 
-function App({ route, Provider }: AppOptions) {
+function App({ route, Provider, Context }: AppOptions) {
   const router = createBrowserRouter([route]);
   const errorJSON = (window as AppWindow).app.error;
+  const context = (window as AppWindow).app.context ?? {};
   const appErrorContext = { error: errorJSON && new HttpError(errorJSON) };
   return (
     <StrictMode>
       <HelmetProvider>
         <AppErrorContext.Provider value={appErrorContext}>
-          <AppContext.Provider value={(window as AppWindow).app.context ?? {}}>
+          <Context.Provider value={context}>
             <Provider>
               <RouterProvider router={router} />
             </Provider>
-          </AppContext.Provider>
+          </Context.Provider>
         </AppErrorContext.Provider>
       </HelmetProvider>
     </StrictMode>
@@ -115,7 +124,9 @@ function App({ route, Provider }: AppOptions) {
  *
  * You can optionally add a Provider argument to add your own providers around the application.
  */
-export function hydrate({ route, Provider }: HydrateOptions) {
+export function hydrate<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+>({ route, Provider, Context }: HydrateOptions) {
   const hydrate = () =>
     startTransition(() => {
       hydrateRoot(
@@ -123,6 +134,7 @@ export function hydrate({ route, Provider }: HydrateOptions) {
         <App
           route={route}
           Provider={Provider ?? (({ children }) => <>{children}</>)}
+          Context={Context ?? createAppContext<AppContext>()}
         />,
       );
     });

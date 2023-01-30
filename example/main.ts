@@ -4,6 +4,7 @@ import { serve } from "x/udibo_react_app/app_server.tsx";
 
 import route from "./routes/_main.tsx";
 import mainRouter from "./routes/_main.ts";
+import { AppContext } from "./context.ts";
 
 const router = new Router()
   .use(async (context, next) => {
@@ -29,4 +30,5 @@ await serve({
   router,
   route,
   workingDirectory: path.dirname(path.fromFileUrl(import.meta.url)),
+  Context: AppContext,
 });
