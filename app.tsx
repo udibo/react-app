@@ -43,28 +43,6 @@ export {
 } from "./error.tsx";
 export type { AppErrorBoundaryProps, ErrorBoundaryProps } from "./error.tsx";
 
-export interface AppState<AppContext = Record<string, unknown>> {
-  /** A container for application data and functions. */
-  app: {
-    /**
-     * Environment variables that will be shared with the browser.
-     */
-    env: AppEnvironment;
-    /**
-     * A container for your application's own data that is serialized and sent to the browser.
-     * It can be accessed via AppContext.
-     */
-    context: AppContext;
-    /**
-     * If an error occurs when handling the request, this will be set to that error.
-     * The error will be serialized and sent to the browser.
-     * The browser will recreate the error for an AppErrorBoundary to catch.
-     * If the server error is not getting caught, the boundary doesn't match the AppErrorBoundary you expect to catch it.
-     */
-    error?: HttpError<{ boundary?: string }>;
-  };
-}
-
 export interface HydrateOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
