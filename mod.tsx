@@ -55,7 +55,7 @@ export interface HydrateOptions<
   /** Adds your own providers around the application. */
   Provider?: ComponentType<{ children: ReactNode }>;
   /** A context object for the App. */
-  Context: Context<AppContext>;
+  Context?: Context<AppContext>;
 }
 
 interface AppOptions<
@@ -65,10 +65,12 @@ interface AppOptions<
   Context: Context<AppContext>;
 }
 
-function App({ route, Provider, Context }: AppOptions) {
+function App<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+>({ route, Provider, Context }: AppOptions<AppContext>) {
   const router = createBrowserRouter([route]);
   const errorJSON = (window as AppWindow).app.error;
-  const context = (window as AppWindow).app.context ?? {};
+  const context = (window as AppWindow<AppContext>).app.context ?? {};
   const appErrorContext = { error: errorJSON && new HttpError(errorJSON) };
   return (
     <StrictMode>
@@ -104,7 +106,7 @@ function App({ route, Provider, Context }: AppOptions) {
  */
 export function hydrate<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
->({ route, Provider, Context }: HydrateOptions) {
+>({ route, Provider, Context }: HydrateOptions<AppContext>) {
   const hydrate = () =>
     startTransition(() => {
       hydrateRoot(
