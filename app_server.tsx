@@ -117,7 +117,8 @@ export async function renderToReadableStream<
   context: Context<AppState<AppContext>>,
 ) {
   const { request, state } = context;
-  const { route, Provider, Context } = state._app;
+  const { route, providerFactory, Context } = state._app;
+  const Provider = providerFactory(context);
   const { env, context: appContext, error, devPort } = state.app;
   const { pathname, search } = request.url;
   const location = `${pathname}${search}`;
@@ -172,7 +173,9 @@ export interface AppState<AppContext = Record<string, unknown>> {
   /** For internal use only. */
   _app: {
     route: RouteObject;
-    Provider: ComponentType<{ children: ReactNode }>;
+    providerFactory: (
+      context: Context<AppState<AppContext>>,
+    ) => ComponentType<{ children: ReactNode }>;
     Context: ReactContext<AppContext>;
   };
   /** A container for application data and functions. */
@@ -200,6 +203,14 @@ export interface AppState<AppContext = Record<string, unknown>> {
   };
 }
 
+function defaultProviderFactory<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+>(
+  context: Context<AppState<AppContext>>,
+): ComponentType<{ children: ReactNode }> {
+  return (({ children }) => <>{children}</>);
+}
+
 export interface AppRouterOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
@@ -213,8 +224,10 @@ export interface AppRouterOptions<
    * Default environment variables that you would like to share with the browser for all requests.
    */
   env?: AppEnvironment;
-  /** Adds your own providers around the application. */
-  Provider?: ComponentType<{ children: ReactNode }>;
+  /** Creates a provider around the application. */
+  providerFactory?: (
+    context: Context<AppState<AppContext>>,
+  ) => ComponentType<{ children: ReactNode }>;
   /** A context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
   Context?: ReactContext<AppContext>;
   /**
@@ -249,7 +262,7 @@ export function createAppRouter<
   {
     route,
     env,
-    Provider,
+    providerFactory,
     Context,
     renderToReadableStream: renderAppToReadableStream,
     router,
@@ -260,7 +273,7 @@ export function createAppRouter<
   renderAppToReadableStream ??= renderToReadableStream;
   router ??= new Router();
   workingDirectory ??= Deno.cwd();
-  Provider ??= ({ children }) => <>{children}</>;
+  providerFactory ??= defaultProviderFactory;
   Context ??= createAppContext<AppContext>();
 
   const appRouter = new Router()
@@ -280,7 +293,7 @@ export function createAppRouter<
         if (!state.app) {
           state._app = {
             route,
-            Provider: Provider!,
+            providerFactory: providerFactory!,
             Context: Context!,
           };
           state.app = {
