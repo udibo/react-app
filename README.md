@@ -1,14 +1,14 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.2.1-success)](https://github.com/udibo/react_app/releases/tag/0.2.1)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.2.1)
+[![release](https://img.shields.io/badge/release-0.3.0-success)](https://github.com/udibo/react_app/releases/tag/0.3.0)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.3.0)
 [![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
 
-A React Framework for [Deno](https://deno.land) that makes it easy to create
-highly interactive apps that have server side rendering with file based routing
-for both your UI and API.
+A [React](https://reactjs.org/) Framework for [Deno](https://deno.land) that
+makes it easy to create highly interactive apps that have server side rendering
+with file based routing for both your UI and API.
 
 Apps are created using [React Router](https://reactrouter.com),
 [React Helmet Async](https://www.npmjs.com/package/react-helmet-async), and
@@ -18,8 +18,8 @@ Apps are created using [React Router](https://reactrouter.com),
 
 - TypeScript out of the box
 - File-system routing like [Next.js](https://nextjs.org),
-  [Remix](https://remix.run/) and [Fresh](https://fresh.deno.dev) for both the
-  UI and API
+  [Remix](https://remix.run/) and [Fresh](https://fresh.deno.dev) for both your
+  application's UI and API
 - Nested routes
 - Server side rendering
 - Easy to extend
@@ -31,22 +31,14 @@ Apps are created using [React Router](https://reactrouter.com),
 
 This module has 2 entry points.
 
-- [app.tsx](https://deno.land/x/udibo_react_app@0.2.1/app.tsx): For use in code
+- [mod.tsx](https://deno.land/x/udibo_react_app@0.3.0/mod.tsx): For use in code
   that will be used both in the browser and on the server.
-- [app_server.tsx](https://deno.land/x/udibo_react_app@0.2.1/app_server.tsx):
-  For use in code that will only be used on the server.
+- [server.tsx](https://deno.land/x/udibo_react_app@0.3.0/server.tsx): For use in
+  code that will only be used on the server.
 
 You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.2.1) to learn more about
+[deno docs](https://deno.land/x/udibo_react_app@0.3.0) to learn more about
 usage.
-
-### Deployment
-
-The GitHub workflows in this project can be used to run the tests and deploy
-your project. You can look at the [examples](#examples) to see how it is done.
-
-If you don't plan on using Deno Deploy to host your App, you can base your own
-deployment workflow on the deploy workflow in this repository.
 
 ### Examples
 
@@ -80,11 +72,54 @@ To run the tests, use `deno task test` or `deno task test-watch`.
 
 To check formatting and run lint, use `deno task check`.
 
-To create a production build and to run the production build, use
-`deno task build` and `deno task run`.
+To create a build and to run the build, use `deno task build` and
+`deno task run`. By default, the application builds and runs in development
+mode. To build and run a production build, set the `APP_ENV` environment
+variable to `production`.
 
 To run the application in development mode with live reloading, use
 `deno task dev`.
+
+When in development, identifiers are not minified and sourcemaps are generated
+and linked.
+
+### Deployment
+
+The GitHub workflows in this project can be used to run the tests and deploy
+your project. You can look at the [examples](#examples) to see how it is done.
+
+If you don't plan on using Deno Deploy to host your App, you can base your own
+deployment workflow on the deploy workflow in this repository.
+
+### Helmet
+
+[React Helmet Async](https://www.npmjs.com/package/react-helmet-async) is used
+to manage all of your changes to the document head. You can add a Helmet tag to
+any page that you would like to update the document head.
+
+- Supports all valid head tags: title, base, meta, link, script, noscript, and
+  style tags.
+- Supports attributes for body, html and title tags.
+
+The following example can be found in the [main route](example/routes/main.tsx)
+of the example in this repository. The Helmet in the main route of a directory
+will apply to all routes within the directory.
+
+```tsx
+import { Helmet } from "npm/react-helmet-async";
+// ...
+<Helmet
+  defaultTitle="Example"
+  titleTemplate="Example | %s"
+  htmlAttributes={{ lang: "en" }}
+>
+  <meta charSet="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</Helmet>;
+```
+
+More examples of Helmet tag usage can be found in the
+[React Helmet Reference Guide](https://github.com/nfl/react-helmet#reference-guide).
 
 ### Routing
 
@@ -111,7 +146,7 @@ For the API routes:
   directory. This can be useful for adding middleware to all routes in the
   directory.
 
-#### UI Routes
+#### UI routes
 
 All tsx/jsx files in your routes directory will be treated as UI routes. They
 should have a React component as their default export.
@@ -129,7 +164,7 @@ A wildcard route that will catch all requests that didn't have any other matches
 can be created by naming a React file `[...].tsx`. The key for the parameter
 will be "*" and can be accessed the same way as named parameters.
 
-#### API Routes
+#### API routes
 
 All ts/js files in your routes directory will be treated as API routes. They
 should have an Oak router as their default export.
@@ -208,13 +243,57 @@ routes directory. Those files are generated during the build process.
 - `_main.tsx`: Exports a React Router route object that connects all your React
   component files together.
 
-#### Import map
+### Import map
 
 Deno has support for npm modules, however deno deploy doesn't yet. Because of
 that, the import map currently imports all npm modules from esm.sh. To ensure
 all npm dependencies are using the same version of react, they need to have
 their version pinned. Once Deno Deploy has npm support, I'll switch from using
 esm.sh to npm specifier imports.
+
+### Disabling server side rendering
+
+All pages will be rendered server side by default. If you have a component you
+don't want to render on the server, you can disable it by having it return the
+fallback on the server. You can use `isServer()` to determine if the code is
+running on the server or in the browser. For example, in
+[example/routes/blog](example/routes/blog), you could have it only get the post
+when rendering in the browser by setting post to undefined when on the server
+like shown below.
+
+```tsx
+const post = isServer() ? undefined : getPost(id);
+return post
+  ? (
+    <>
+      <Helmet>
+        <title>{post.title}</title>
+        <meta name="description" content={post.content} />
+      </Helmet>
+      <h2>{post.title}</h2>
+      <p>{post.content}</p>
+    </>
+  )
+  : (
+    <>
+      <Helmet>
+        <title>Loading...</title>
+      </Helmet>
+      <h2>Loading...</h2>
+    </>
+  );
+```
+
+The actual example currently does render the post on the server.
+
+### Server side rendering with data fetching
+
+To render a route that loads data on the server, you can add a matching Oak
+router that will cache the information being fetched before rendering the
+application. The example in this repository uses the AppContext to store the
+cached responses but that's not the only way to do it. It's recommended that you
+use a library like [React Query](https://tanstack.com/query/latest) to get your
+data.
 
 ## Contributing
 

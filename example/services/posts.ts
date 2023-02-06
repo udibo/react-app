@@ -1,4 +1,4 @@
-import { HttpError } from "x/udibo_react_app/app_server.tsx";
+import { HttpError } from "x/udibo_react_app/mod.tsx";
 
 import { posts } from "../data/posts.ts";
 

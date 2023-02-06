@@ -4,7 +4,7 @@ import { Helmet } from "npm/react-helmet-async";
 import {
   AppErrorBoundary,
   DefaultErrorFallback,
-} from "x/udibo_react_app/app.tsx";
+} from "x/udibo_react_app/mod.tsx";
 
 import { Loading } from "../components/loading.tsx";
 

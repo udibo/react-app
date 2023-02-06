@@ -1,4 +1,4 @@
-import { AppState } from "x/udibo_react_app/app_server.tsx";
+import { AppState } from "x/udibo_react_app/server.tsx";
 import { Router } from "x/oak/mod.ts";
 
 import { getPosts } from "../../services/posts.ts";

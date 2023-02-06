@@ -1,7 +1,7 @@
 import { useParams } from "npm/react-router-dom";
 import { HttpError } from "x/http_error/mod.ts";
 import { Helmet } from "npm/react-helmet-async";
-import { DefaultErrorFallback } from "x/udibo_react_app/app.tsx";
+import { DefaultErrorFallback, isServer } from "x/udibo_react_app/mod.tsx";
 
 import { getPost } from "../../services/posts.tsx";
 
@@ -11,7 +11,7 @@ export default function BlogPost() {
   if (isNaN(id) || Math.floor(id) !== id || id < 0) {
     throw new HttpError(400, "Invalid id");
   }
-  const post = getPost(id);
+  const post = isServer() ? undefined : getPost(id);
   return post
     ? (
       <>

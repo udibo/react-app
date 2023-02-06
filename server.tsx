@@ -23,8 +23,6 @@ import {
 import serialize from "npm/serialize-javascript";
 
 import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
-export { HttpError, isHttpError } from "x/http_error/mod.ts";
-export type { HttpErrorOptions } from "x/http_error/mod.ts";
 import {
   AppEnvironment,
   createAppContext,
@@ -33,18 +31,9 @@ import {
   isDevelopment,
   isTest,
 } from "./env.ts";
-export {
-  createAppContext,
-  getEnv,
-  isBrowser,
-  isDevelopment,
-  isProduction,
-  isServer,
-  isTest,
-} from "./env.ts";
 
 if (isBrowser()) {
-  throw new Error("Cannot import app_server.tsx in the browser.");
+  throw new Error("Cannot import server.tsx in the browser.");
 }
 
 const encoder = new TextEncoder();

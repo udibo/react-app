@@ -1,10 +1,14 @@
 import { createContext } from "npm/react";
 
 import { HttpErrorOptions } from "./error.tsx";
-import { _internals } from "./_internals.ts";
+
+/** For internal use only. */
+export const _env = {
+  isServer: "Deno" in globalThis,
+};
 
 /** Used to determine if the code is running on the server. */
-export const isServer = () => _internals.isServer;
+export const isServer = () => _env.isServer;
 
 /** Used to determine if the code is running in the browser. */
 export const isBrowser = () => !isServer();
