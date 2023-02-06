@@ -63,9 +63,9 @@ function createDevApp(appPort = 9000) {
 }
 
 let runProcess: Deno.Process | null = null;
-function runDev() {
+function runDev(entryPoint: string) {
   runProcess = Deno.run({
-    cmd: ["deno", "task", "run"],
+    cmd: ["deno", "run", "-A", entryPoint],
     env: {
       APP_ENV: "development",
     },
@@ -78,7 +78,7 @@ let restarting = false;
 let restartAgain = false;
 let reload = false;
 
-async function buildDev() {
+async function buildDev(entryPoint: string) {
   if (building) {
     buildAgain = true;
   } else {
@@ -106,15 +106,15 @@ async function buildDev() {
     } finally {
       building = false;
       if (buildAgain) {
-        await buildDev();
+        await buildDev(entryPoint);
       } else if (status?.success && runProcess) {
-        await restartApp();
+        await restartApp(entryPoint);
       }
     }
   }
 }
 
-async function restartApp() {
+async function restartApp(entryPoint: string) {
   if (restarting) {
     restartAgain = true;
   } else if (runProcess) {
@@ -136,10 +136,10 @@ async function restartApp() {
       // Ignore error
     }
     queueMicrotask(async () => {
-      runDev();
+      runDev(entryPoint);
       restarting = false;
       if (restartAgain) {
-        await restartApp();
+        await restartApp(entryPoint);
       } else if (!building) {
         reload = true;
       }
@@ -169,6 +169,8 @@ export interface DevOptions {
   appPort?: number;
   /** The port for the dev script's live reload server. Defaults to DEV_PORT environment variable or 9001. */
   devPort?: number;
+  /** The entry point for the application server. Defaults to getEnv("APP_ENTRY_POINT") or "./main.ts". */
+  entryPoint?: string;
 }
 
 /**
@@ -180,6 +182,7 @@ export function startDev({
   isCustomBuildArtifact,
   appPort,
   devPort,
+  entryPoint,
 }: DevOptions = {}) {
   if (!appPort) {
     const APP_PORT = +(getEnv("APP_PORT") ?? "");
@@ -193,6 +196,7 @@ export function startDev({
       devPort = DEV_PORT;
     }
   }
+  entryPoint ??= getEnv("APP_ENTRY_POINT") ?? "./main.ts";
 
   const shouldBuild = isCustomBuildArtifact
     ? ((pathname: string) =>
@@ -200,15 +204,15 @@ export function startDev({
     : ((pathname: string) => !isBuildArtifact(pathname));
 
   queueMicrotask(async () => {
-    await buildDev();
+    await buildDev(entryPoint!);
     console.log("Starting app");
-    queueMicrotask(() => runDev());
+    queueMicrotask(() => runDev(entryPoint!));
   });
 
   async function watcher() {
     console.log(`Watching ${cwd}`);
     const build = debounce(
-      () => queueMicrotask(() => buildDev()),
+      () => queueMicrotask(() => buildDev(entryPoint!)),
       20,
     );
     for await (const event of Deno.watchFs(Deno.cwd())) {
