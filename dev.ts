@@ -65,7 +65,7 @@ function createDevApp(appPort = 9000) {
 let runProcess: Deno.Process | null = null;
 function runDev() {
   runProcess = Deno.run({
-    cmd: ["deno", "run", "-A", "./main.ts"],
+    cmd: ["deno", "task", "run"],
     env: {
       APP_ENV: "development",
     },
@@ -165,9 +165,9 @@ export interface DevOptions {
    * Used to identify and ignore additional build artifacts created in your preBuild and postBuild functions.
    */
   isCustomBuildArtifact?: (pathname: string) => boolean;
-  /** The port that the application uses. */
+  /** The port that the application uses. Defaults to APP_PORT environment variable or 9000. */
   appPort?: number;
-  /** The port for the dev script's live reload server. */
+  /** The port for the dev script's live reload server. Defaults to DEV_PORT environment variable or 9001. */
   devPort?: number;
 }
 
@@ -181,6 +181,19 @@ export function startDev({
   appPort,
   devPort,
 }: DevOptions = {}) {
+  if (!appPort) {
+    const APP_PORT = +(getEnv("APP_PORT") ?? "");
+    if (APP_PORT && !isNaN(APP_PORT)) {
+      appPort = APP_PORT;
+    }
+  }
+  if (!devPort) {
+    const DEV_PORT = +(getEnv("DEV_PORT") ?? "");
+    if (DEV_PORT && !isNaN(DEV_PORT)) {
+      devPort = DEV_PORT;
+    }
+  }
+
   const shouldBuild = isCustomBuildArtifact
     ? ((pathname: string) =>
       !isBuildArtifact(pathname) && !isCustomBuildArtifact(pathname))
@@ -189,7 +202,7 @@ export function startDev({
   queueMicrotask(async () => {
     await buildDev();
     console.log("Starting app");
-    queueMicrotask(runDev);
+    queueMicrotask(() => runDev());
   });
 
   async function watcher() {
@@ -213,14 +226,5 @@ export function startDev({
 }
 
 if (import.meta.main) {
-  const options: DevOptions = {};
-  const appPort = +(getEnv("APP_PORT") ?? "");
-  if (appPort && !isNaN(appPort)) {
-    options.appPort = appPort;
-  }
-  const devPort = +(getEnv("DEV_PORT") ?? "");
-  if (devPort && !isNaN(devPort)) {
-    options.devPort = devPort;
-  }
-  startDev(options);
+  startDev();
 }
