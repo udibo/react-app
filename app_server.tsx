@@ -173,7 +173,9 @@ export interface AppState<AppContext = Record<string, unknown>> {
   /** For internal use only. */
   _app: {
     route: RouteObject;
-    providerFactory: (context: Context<AppState<AppContext>>) => ComponentType<{ children: ReactNode }>;
+    providerFactory: (
+      context: Context<AppState<AppContext>>,
+    ) => ComponentType<{ children: ReactNode }>;
     Context: ReactContext<AppContext>;
   };
   /** A container for application data and functions. */
@@ -203,7 +205,9 @@ export interface AppState<AppContext = Record<string, unknown>> {
 
 function defaultProviderFactory<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
->(context: Context<AppState<AppContext>>): ComponentType<{ children: ReactNode }> {
+>(
+  context: Context<AppState<AppContext>>,
+): ComponentType<{ children: ReactNode }> {
   return (({ children }) => <>{children}</>);
 }
 
@@ -221,7 +225,9 @@ export interface AppRouterOptions<
    */
   env?: AppEnvironment;
   /** Creates a provider around the application. */
-  providerFactory?: (context: Context<AppState<AppContext>>) => ComponentType<{ children: ReactNode }>;
+  providerFactory?: (
+    context: Context<AppState<AppContext>>,
+  ) => ComponentType<{ children: ReactNode }>;
   /** A context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
   Context?: ReactContext<AppContext>;
   /**
