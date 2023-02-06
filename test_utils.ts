@@ -1,5 +1,4 @@
-import { AppWindow, getEnv } from "./env.ts";
-import { _internals } from "./_internals.ts";
+import { _env, AppWindow, getEnv } from "./env.ts";
 
 export async function inBrowser(fn: () => Promise<void>) {
   try {
@@ -9,11 +8,11 @@ export async function inBrowser(fn: () => Promise<void>) {
       },
       context: {},
     };
-    _internals.isServer = false;
+    _env.isServer = false;
     await fn();
   } finally {
     delete (window as Partial<AppWindow>).app;
-    _internals.isServer = true;
+    _env.isServer = true;
   }
 }
 
@@ -25,11 +24,11 @@ export function inBrowserSync(fn: () => void) {
       },
       context: {},
     };
-    _internals.isServer = false;
+    _env.isServer = false;
     fn();
   } finally {
     delete (window as Partial<AppWindow>).app;
-    _internals.isServer = true;
+    _env.isServer = true;
   }
 }
 

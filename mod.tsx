@@ -15,7 +15,7 @@ import {
   RouterProvider,
 } from "npm/react-router-dom";
 
-import { AppEnvironment, AppWindow, createAppContext } from "./env.ts";
+import { AppWindow, createAppContext } from "./env.ts";
 export {
   createAppContext,
   getEnv,

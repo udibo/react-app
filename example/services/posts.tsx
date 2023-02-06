@@ -3,7 +3,7 @@ import {
   HttpError,
   HttpErrorOptions,
   isBrowser,
-} from "x/udibo_react_app/app.tsx";
+} from "x/udibo_react_app/mod.tsx";
 
 import { AppContext } from "../context.ts";
 import { Post } from "../models/posts.ts";
