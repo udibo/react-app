@@ -7,6 +7,7 @@ import {
   ReactElement,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "npm/react";
 import { useLocation } from "npm/react-router-dom";
@@ -114,25 +115,44 @@ export function withAppErrorBoundary<P>(
 }
 
 /**
+ * Automatically resets the error boundary if the location changes.
+ * Returns a reset function that will prevent the reset callback from being called more than once.
+ */
+export function useAutoReset(reset: () => void) {
+  const location = useLocation();
+  const [initialLocation] = useState(location);
+
+  const resetOnce = useMemo(() => {
+    let resetCalled = false;
+    return () => {
+      if (!resetCalled) {
+        resetCalled = true;
+        reset();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (location !== initialLocation) resetOnce();
+  }, [location]);
+
+  return reset;
+}
+
+/**
  * A simple error fallback that will show the error and provide a button for trying again.
  * The error will clear when clicking the try again button or navigating to a different route.
  */
 export function DefaultErrorFallback(
   { error, resetErrorBoundary }: FallbackProps,
 ) {
-  const location = useLocation();
-  const [initialLocation] = useState(location);
-  useEffect(() => {
-    if (location !== initialLocation) resetErrorBoundary();
-  }, [location]);
+  const reset = useAutoReset(resetErrorBoundary);
 
   return (
     <div role="alert">
       <p>Something went wrong:</p>
       <pre>{error.message}</pre>
-      {isHttpError(error) && error.status !== 404
-        ? <button onClick={resetErrorBoundary}>Try again</button>
-        : null}
+      <button onClick={reset}>Try again</button>
     </div>
   );
 }
