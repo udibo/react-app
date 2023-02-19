@@ -6,6 +6,10 @@ on:
         required: false
         type: string
         default: './'
+      entrypoint:
+        required: false
+        type: string
+        default: 'main.ts'
       app-directory:
         required: false
         type: string
@@ -54,5 +58,5 @@ jobs:
         with:
           project: ${{ inputs.project }}
           root: ${{ inputs.working-directory }}
-          entrypoint: '${{ inputs.app-directory || inputs.working-directory }}/main.ts'
+          entrypoint: '${{ inputs.app-directory || inputs.working-directory }}/${{ inputs.entrypoint }}'
           import-map: '${{ inputs.app-directory || inputs.working-directory }}/import_map.json'
