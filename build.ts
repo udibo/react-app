@@ -136,19 +136,31 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     routeId++;
   } else {
     if (main?.react) {
-      importLines.push(
-        lazyImportLine(
-          routeId,
-          relativePath,
-          path.posix.join(relativePath, main.react),
-        ),
-      );
+      if (relativePath) {
+        importLines.push(
+          lazyImportLine(
+            routeId,
+            relativePath,
+            path.posix.join(relativePath, main.react),
+          ),
+        );
+      } else {
+        importLines.push(
+          `import * as $${routeId++} from "./${
+            path.posix.join(relativePath, main.react)
+          }";`,
+          `const $${routeId} = withAppErrorBoundary($${
+            routeId - 1
+          }.default, { FallbackComponent: ($${
+            routeId - 1
+          } as RouteFile).ErrorFallback ?? DefaultErrorFallback });`,
+        );
+      }
       routeText += `, element: <$${routeId} />`;
       routeId++;
     } else if (!relativePath) {
       importLines.push(
         `import { Outlet } from "npm/react-router-dom";`,
-        `import { withAppErrorBoundary, DefaultErrorFallback } from "x/udibo_react_app/mod.tsx";`,
         `const $${routeId} = withAppErrorBoundary(() => <Outlet />, { FallbackComponent: DefaultErrorFallback });`,
       );
       routeText += `, element: <$${routeId} />`;
@@ -203,9 +215,6 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       childRouteTexts.push(childRouteText);
       routeId = nextRouteId;
     } else if (relativePath === "") {
-      importLines.push(
-        `import { NotFound } from "x/udibo_react_app/mod.tsx";`,
-      );
       childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
     }
 
@@ -440,7 +449,7 @@ async function writeRoutes(path: string, text: string) {
 async function updateRoutes(routesUrl: string, rootRoute: Route) {
   if (rootRoute.react) {
     const lines = [
-      `import { lazy } from "x/udibo_react_app/mod.tsx";`,
+      `import { lazy, withAppErrorBoundary, DefaultErrorFallback, NotFound, RouteFile } from "x/udibo_react_app/mod.tsx";`,
       `import { RouteObject } from "npm/react-router-dom";`,
       "",
     ];

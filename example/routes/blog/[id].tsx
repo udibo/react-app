@@ -11,7 +11,7 @@ export default function BlogPost() {
   if (isNaN(id) || Math.floor(id) !== id || id < 0) {
     throw new HttpError(400, "Invalid id");
   }
-  const post = isServer() ? undefined : getPost(id);
+  const post = getPost(id);
   return post
     ? (
       <>
