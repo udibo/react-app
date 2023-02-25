@@ -1,7 +1,7 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.5.0-success)](https://github.com/udibo/react_app/releases/tag/0.5.0)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.5.0)
+[![release](https://img.shields.io/badge/release-0.5.1-success)](https://github.com/udibo/react_app/releases/tag/0.5.1)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.5.1)
 [![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
@@ -31,13 +31,13 @@ Apps are created using [React Router](https://reactrouter.com),
 
 This module has 2 entry points.
 
-- [mod.tsx](https://deno.land/x/udibo_react_app@0.5.0/mod.tsx): For use in code
+- [mod.tsx](https://deno.land/x/udibo_react_app@0.5.1/mod.tsx): For use in code
   that will be used both on the server and in the browser.
-- [server.tsx](https://deno.land/x/udibo_react_app@0.5.0/server.tsx): For use in
+- [server.tsx](https://deno.land/x/udibo_react_app@0.5.1/server.tsx): For use in
   code that will only be used on the server.
 
 You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.5.0) to learn more about
+[deno docs](https://deno.land/x/udibo_react_app@0.5.1) to learn more about
 usage.
 
 ### Examples
