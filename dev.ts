@@ -219,7 +219,8 @@ export function startDev({
   async function watcher() {
     console.log(`Watching ${cwd}`);
     const build = debounce(
-      (changedPath: string) => queueMicrotask(() => buildDev(entryPoint!, changedPath)),
+      (changedPath: string) =>
+        queueMicrotask(() => buildDev(entryPoint!, changedPath)),
       20,
     );
     for await (const event of Deno.watchFs(Deno.cwd())) {
