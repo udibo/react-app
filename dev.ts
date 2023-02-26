@@ -74,18 +74,25 @@ function runDev(entryPoint: string) {
 
 let building = false;
 let buildAgain = false;
+let buildAgainFor = "";
 let restarting = false;
 let restartAgain = false;
 let reload = false;
 
-async function buildDev(entryPoint: string) {
+async function buildDev(entryPoint: string, changedPath?: string) {
   if (building) {
     buildAgain = true;
+    buildAgainFor = changedPath ?? "";
   } else {
     buildAgain = false;
+    buildAgainFor = "";
     restartAgain = false;
     reload = false;
     building = true;
+
+    if (changedPath) {
+      console.log(`Detected change: ${changedPath}`);
+    }
 
     try {
       await Deno.remove(buildDir, { recursive: true });
@@ -106,7 +113,7 @@ async function buildDev(entryPoint: string) {
     } finally {
       building = false;
       if (buildAgain) {
-        await buildDev(entryPoint);
+        await buildDev(entryPoint, buildAgainFor);
       } else if (status?.success && runProcess) {
         await restartApp(entryPoint);
       }
@@ -212,12 +219,14 @@ export function startDev({
   async function watcher() {
     console.log(`Watching ${cwd}`);
     const build = debounce(
-      () => queueMicrotask(() => buildDev(entryPoint!)),
+      (changedPath: string) =>
+        queueMicrotask(() => buildDev(entryPoint!, changedPath)),
       20,
     );
     for await (const event of Deno.watchFs(Deno.cwd())) {
-      if (event.kind === "modify" && event.paths.find(shouldBuild)) {
-        build();
+      if (event.kind === "modify") {
+        const path = event.paths.find(shouldBuild);
+        if (path) build(path);
       }
     }
   }
