@@ -33,15 +33,21 @@ import {
   HttpError,
   withAppErrorBoundary,
 } from "./error.tsx";
-export { HttpError, isHttpError } from "x/http_error/mod.ts";
-export type { HttpErrorOptions } from "x/http_error/mod.ts";
 export {
   AppErrorBoundary,
   DefaultErrorFallback,
+  HttpError,
+  isHttpError,
   NotFound,
+  useAutoReset,
   withAppErrorBoundary,
 } from "./error.tsx";
-export type { AppErrorBoundaryProps, ErrorBoundaryProps } from "./error.tsx";
+export type {
+  AppErrorBoundaryProps,
+  ErrorBoundaryProps,
+  FallbackProps,
+  HttpErrorOptions,
+} from "./error.tsx";
 
 export interface HydrateOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
