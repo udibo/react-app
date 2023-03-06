@@ -6,6 +6,7 @@
     "test": "export APP_ENV=test && deno test -A .",
     "test-watch": "export APP_ENV=test && deno test -A --watch .",
     "check": "deno lint && deno fmt --check",
+    "cache-reload": "cd ./example && deno task cache-reload",
     "git-rebase": "git fetch origin main && git rebase --onto origin/main HEAD"
   },
   "compilerOptions": {
