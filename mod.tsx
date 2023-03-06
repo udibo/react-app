@@ -143,6 +143,8 @@ export type RouteFile = {
   default: ComponentType;
   /** An ErrorFallback for an AppErrorBoundary around the react component for the route. */
   ErrorFallback?: ComponentType<FallbackProps>;
+  /** The boundary used by the route. If there is an ErrorFallback exported, exporting a boundary will override the default boundary. */
+  boundary?: string;
 };
 
 /**
@@ -164,16 +166,18 @@ export function lazy<
   boundaryOrFactory?: string | (() => Promise<T>),
   factory?: () => Promise<T>,
 ): LazyExoticComponent<ComponentType> {
-  const boundary = typeof boundaryOrFactory === "string"
+  let boundary = typeof boundaryOrFactory === "string"
     ? boundaryOrFactory
     : undefined;
   if (typeof boundaryOrFactory !== "string") factory = boundaryOrFactory;
   return reactLazy(async () => {
-    const { default: Component, ErrorFallback } = await factory!();
+    const { default: Component, ErrorFallback, boundary: boundaryOverride } =
+      await factory!();
     const errorBoundaryProps = {
       FallbackComponent: ErrorFallback,
     } as AppErrorBoundaryProps;
-    if (boundary) errorBoundaryProps.boundary = boundary;
+    if (boundaryOverride) boundary = boundaryOverride;
+    if (boundary) errorBoundaryProps.boundary = boundaryOverride ?? boundary;
 
     return {
       default: errorBoundaryProps.FallbackComponent

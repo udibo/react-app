@@ -191,14 +191,16 @@ There are 2 ways to add error handling to your UI routes.
 
 The easiest way is to add an ErrorFallback export to your UI Route. The related
 API router will automatically have error boundary middleware added to it, that
-will match the route path. For example, the `/blog/[id]` route would have the
-error's boundary identifier set to `"/blog/[id]"`. Then the AppErrorBoundary
-added around your component will have a matching boundary identifier.
+will match the route path unless a different one is specified via a boundary
+export. For example, the `/blog/[id]` route would have the error's boundary
+identifier set to `"/blog/[id]"`. Then the AppErrorBoundary added around your
+component will have a matching boundary identifier.
 
 If you'd like to nest an error boundary within your UI route component, you can
 use AppErrorBoundary or withAppErrorBoundary. If you do it this way, you will
-need to add errorBoundary middleware to your router to ensure any errors in that
-route are associated with the AppErrorBoundary you added.
+need to either export a boundary string or manually add errorBoundary middleware
+to your router to ensure any errors in that route are associated with the
+AppErrorBoundary you added.
 
 ```ts
 const router = new Router()
