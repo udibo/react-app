@@ -149,11 +149,16 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
           `import * as $${routeId++} from "./${
             path.posix.join(relativePath, main.react)
           }";`,
-          `const $${routeId} = withAppErrorBoundary($${
+          `let $${routeId};`,
+          `if (($${routeId - 1} as RouteFile).ErrorFallback) {`,
+          `  $${routeId} = withAppErrorBoundary($${routeId - 1}.default, {`,
+          `    FallbackComponent: ($${
             routeId - 1
-          }.default, { FallbackComponent: ($${
-            routeId - 1
-          } as RouteFile).ErrorFallback ?? DefaultErrorFallback });`,
+          } as RouteFile).ErrorFallback!,`,
+          `  });`,
+          `} else {`,
+          `  $${routeId} = $${routeId - 1}.default;`,
+          `}`,
         );
       }
       routeText += `, element: <$${routeId} />`;
@@ -261,10 +266,12 @@ function routerFileData(
         ),
       );
       routerLines.push(
-        `if (($${routeId} as RouteFile).ErrorFallback) {`,
+        `if (`,
+        `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
+        `) {`,
         `  $${parentRouteId}.use("/${
           routerPathFromName(name)
-        }", errorBoundary("/${relativePath}"));`,
+        }", errorBoundary(($${routeId} as RouteFile).boundary ?? "/${relativePath}"));`,
         `}`,
       );
       routeId++;
@@ -314,10 +321,14 @@ function routerFileData(
           ),
         );
         routerLines.push(
-          `if (($${routeId} as RouteFile).ErrorFallback) {`,
-          `  $${mainRouteId}.use(errorBoundary(${
-            relativePath ? `"/${relativePath}"` : ""
-          }));`,
+          `if (`,
+          `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
+          `) {`,
+          `  $${mainRouteId}.use(errorBoundary(`,
+          `    ($${routeId} as RouteFile).boundary${
+            relativePath ? ` ?? "/${relativePath}"` : ""
+          }`,
+          `  ));`,
           `}`,
         );
         routeId++;
@@ -338,10 +349,14 @@ function routerFileData(
           ),
         );
         routerLines.push(
-          `if (($${routeId} as RouteFile).ErrorFallback) {`,
-          `  $${mainRouteId}.use("/", errorBoundary("/${
+          `if (`,
+          `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
+          `) {`,
+          `  $${mainRouteId}.use("/", errorBoundary(`,
+          `    ($${routeId} as RouteFile).boundary ?? "/${
             path.join(relativePath, "index")
-          }"));`,
+          }"`,
+          `  ));`,
           `}`,
         );
         routeId++;

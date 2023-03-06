@@ -450,10 +450,16 @@ export const defaultRouter = new Router()
  * If a boundary is specified, but no AppErrorBoundary exists with a matching boundary, the error will go unhandled.
  *
  * By default, any route that has an ErrorFallback will have an errorBoundary automatically added to it.
- * The automatic error boundaries name will match the route.
+ * The automatic error boundaries name will match the route by default.
+ * If a route exports a boundary string, that will be used as the errorBoundary's boundary.
  * You can add your own error boundaries anywhere.
  *
- * To ensure an error boundary catches the error, your router needs to use this middleware.
+ * To ensure an error boundary catches the error, you need to either export a boundary string from your route
+ * or your router needs to use the error boundary middleware.
+ *
+ * ```ts
+ * export const boundary = "MyComponentErrorBoundary"
+ * ```
  *
  * ```ts
  * const router = new Router()
