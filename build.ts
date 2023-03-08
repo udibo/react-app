@@ -101,7 +101,7 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
 }
 
 const ROUTE_PARAM = /^\[(.+)]$/;
-const ROUTE_WILDCARD = /^\[...\]$/;
+const ROUTE_WILDCARD = /^\[\.\.\.\]$/;
 function routePathFromName(name: string, forServer = false) {
   if (!name) return "/";
   return name
@@ -186,11 +186,15 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     }
 
     let notFoundRoute: Route | undefined = undefined;
+    let hasParameter = false;
     for (const childRoute of Object.values(children ?? {})) {
       if (!childRoute.react) continue;
       if (childRoute.name === "[...]") {
         notFoundRoute = childRoute;
         continue;
+      }
+      if (ROUTE_PARAM.test(childRoute.name)) {
+        hasParameter = true;
       }
       const {
         importLines: childImportLines,
@@ -219,12 +223,12 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       importLines.push(...childImportLines);
       childRouteTexts.push(childRouteText);
       routeId = nextRouteId;
-    } else if (relativePath === "") {
+    } else if (!hasParameter) {
       childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
     }
 
     if (childRouteTexts.length) {
-      routeText += `, children: [${childRouteTexts.join(", ")}]`;
+      routeText += `, children: [\n${childRouteTexts.join(",\n")}\n]`;
     }
     routeText += "}";
   }
@@ -401,7 +405,6 @@ function routerFileData(
       routerLines.push(...childRouterLines);
       routeId = nextRouteId;
     }
-    notFoundRoute;
 
     if (notFoundRoute) {
       const {
