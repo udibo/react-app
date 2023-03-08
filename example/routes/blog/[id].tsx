@@ -1,7 +1,6 @@
 import { useParams } from "npm/react-router-dom";
 import { HttpError } from "x/http_error/mod.ts";
 import { Helmet } from "npm/react-helmet-async";
-import { DefaultErrorFallback, isServer } from "x/udibo_react_app/mod.tsx";
 
 import { getPost } from "../../services/posts.tsx";
 
@@ -32,5 +31,3 @@ export default function BlogPost() {
       </>
     );
 }
-
-export const ErrorFallback = DefaultErrorFallback;
