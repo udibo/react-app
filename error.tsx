@@ -17,6 +17,8 @@ import type {
   FallbackProps,
 } from "npm/react-error-boundary";
 
+import { isDevelopment } from "./env.ts";
+
 export { HttpError, isHttpError };
 export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };
 
@@ -150,8 +152,8 @@ export function DefaultErrorFallback(
 
   return (
     <div role="alert">
-      <p>Something went wrong:</p>
-      <pre>{error.message}</pre>
+      <p>{error.message || "Something went wrong"}</p>
+      {isDevelopment() && error.stack ? <pre>{error.stack}</pre> : null}
       <button onClick={reset}>Try again</button>
     </div>
   );

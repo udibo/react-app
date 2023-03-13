@@ -53,6 +53,14 @@ function html<
 >(
   { helmet, env, context, devPort, error }: HTMLOptions<AppContext>,
 ) {
+  const errorJSON = HttpError.json(error);
+  if (isDevelopment()) {
+    if (error?.expose) errorJSON.expose = error.expose;
+    if (error instanceof Error) {
+      errorJSON.stack = error.stack;
+    }
+  }
+
   const headTags = [
     helmet.base.toString(),
     helmet.title.toString(),
@@ -68,7 +76,7 @@ function html<
       };
     </script>`,
     error &&
-    `<script>window.app.error = ${serialize(HttpError.json(error))};</script>`,
+    `<script>window.app.error = ${serialize(errorJSON)};</script>`,
     isDevelopment() && devPort &&
     `<script>window.app.devPort = ${
       serialize(devPort, { isJSON: true })
@@ -493,6 +501,7 @@ export function errorBoundary<
       await next();
     } catch (cause) {
       const error = HttpError.from<{ boundary?: string }>(cause);
+      if (isDevelopment()) error.expose = true;
       app.error = error;
       if (boundary) error.data.boundary = boundary;
       response.status = error.status;

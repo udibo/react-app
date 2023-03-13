@@ -5,7 +5,7 @@
     "x/oak/": "https://deno.land/x/oak@v12.0.0/",
     "x/esbuild/": "https://deno.land/x/esbuild@v0.15.10/",
     "x/esbuild_deno_loader/": "https://deno.land/x/esbuild_deno_loader@0.6.0/",
-    "x/http_error/": "https://deno.land/x/http_error@0.4.0/",
+    "x/http_error/": "https://deno.land/x/http_error@0.5.0/",
     "npm/react": "https://esm.sh/react@18.2.0?target=deno&pin=v110",
     "npm/react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?target=deno&pin=v110",
     "npm/react/jsx-dev-runtime": "https://esm.sh/react@18.2.0/jsx-dev-runtime?target=deno&pin=v110",

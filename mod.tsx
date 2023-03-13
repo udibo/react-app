@@ -75,9 +75,16 @@ function App<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >({ route, Provider, Context }: AppOptions<AppContext>) {
   const router = createBrowserRouter([route]);
-  const errorJSON = (window as AppWindow).app.error;
+  const rawError = (window as AppWindow).app.error;
+  const { stack, ...errorOptions } = rawError ?? {};
+  const error = rawError && new HttpError(errorOptions);
+  if (error && typeof stack === "string") {
+    error.stack = stack;
+  }
+  console.error(error);
+
   const context = (window as AppWindow<AppContext>).app.context ?? {};
-  const appErrorContext = { error: errorJSON && new HttpError(errorJSON) };
+  const appErrorContext = { error };
   return (
     <StrictMode>
       <HelmetProvider>
