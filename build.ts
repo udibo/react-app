@@ -186,16 +186,13 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
     }
 
     let notFoundRoute: Route | undefined = undefined;
-    let hasParameter = false;
     for (const childRoute of Object.values(children ?? {})) {
       if (!childRoute.react) continue;
       if (childRoute.name === "[...]") {
         notFoundRoute = childRoute;
         continue;
       }
-      if (ROUTE_PARAM.test(childRoute.name)) {
-        hasParameter = true;
-      }
+
       const {
         importLines: childImportLines,
         routeText: childRouteText,
@@ -223,7 +220,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       importLines.push(...childImportLines);
       childRouteTexts.push(childRouteText);
       routeId = nextRouteId;
-    } else if (!hasParameter) {
+    } else {
       childRouteTexts.push(`{ path: "*", element: <NotFound /> }`);
     }
 
@@ -328,11 +325,13 @@ function routerFileData(
           `if (`,
           `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
           `) {`,
-          `  $${mainRouteId}.use(errorBoundary(`,
-          `    ($${routeId} as RouteFile).boundary${
+          `  const boundary = ($${routeId} as RouteFile).boundary${
             relativePath ? ` ?? "/${relativePath}"` : ""
-          }`,
-          `  ));`,
+          };`,
+          `  boundaries.push(boundary ?? "");`,
+          `  $${mainRouteId}.use(errorBoundary(boundary));`,
+          `} else {`,
+          `  boundaries.push(boundaries[boundaries.length - 1] ?? "");`,
           `}`,
         );
         routeId++;
@@ -381,6 +380,12 @@ function routerFileData(
       } else if (react) {
         routerLines.push(
           `$${mainRouteId}.use("/", defaultRouter.routes(), defaultRouter.allowedMethods())`,
+        );
+      }
+
+      if (index.react || index.oak) {
+        routerLines.push(
+          `$${mainRouteId}.use("/", errorBoundary(boundaries[boundaries.length - 1]));`,
         );
       }
     }
@@ -483,6 +488,7 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
     `import { defaultRouter, createApiRouter, errorBoundary } from "x/udibo_react_app/server.tsx";`,
     `import { RouteFile } from "x/udibo_react_app/mod.tsx";`,
     "",
+    "const boundaries: string[] = [];",
   ];
   const { importLines, routerLines } = routerFileData(-1, 0, "", rootRoute);
   lines.push(...importLines, "", ...routerLines);
