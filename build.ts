@@ -273,6 +273,7 @@ function routerFileData(
         `  $${parentRouteId}.use("/${
           routerPathFromName(name)
         }", errorBoundary(($${routeId} as RouteFile).boundary ?? "/${relativePath}"));`,
+        `  $${parentRouteId}.use(errorBoundary(boundaries[boundaries.length - 1]));`,
         `}`,
       );
       routeId++;
@@ -328,10 +329,10 @@ function routerFileData(
           `  const boundary = ($${routeId} as RouteFile).boundary${
             relativePath ? ` ?? "/${relativePath}"` : ""
           };`,
-          `  boundaries.push(boundary ?? "");`,
+          `  boundaries.push(boundary);`,
           `  $${mainRouteId}.use(errorBoundary(boundary));`,
           `} else {`,
-          `  boundaries.push(boundaries[boundaries.length - 1] ?? "");`,
+          `  boundaries.push(boundaries[boundaries.length - 1]);`,
           `}`,
         );
         routeId++;
@@ -488,7 +489,7 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
     `import { defaultRouter, createApiRouter, errorBoundary } from "x/udibo_react_app/server.tsx";`,
     `import { RouteFile } from "x/udibo_react_app/mod.tsx";`,
     "",
-    "const boundaries: string[] = [];",
+    "const boundaries: (string | undefined)[] = [];",
   ];
   const { importLines, routerLines } = routerFileData(-1, 0, "", rootRoute);
   lines.push(...importLines, "", ...routerLines);
