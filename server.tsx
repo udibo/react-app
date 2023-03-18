@@ -38,6 +38,9 @@ if (isBrowser()) {
 
 const encoder = new TextEncoder();
 
+/**
+ * An interface that defines the configuration for generating the HTML that wraps the server-side rendered react application.
+ */
 interface HTMLOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
@@ -48,6 +51,7 @@ interface HTMLOptions<
   error?: HttpError<{ boundary?: string }>;
 }
 
+/** Generates the HTML that wraps the server-side rendered react application. */
 function html<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
@@ -104,9 +108,8 @@ function html<
 }
 
 /**
- * The default renderToReadableStream function.
- * If you'd like to transform the stream before it is returned to the client,
- * you can wrap this function with a custom renderToReadableStream function.
+ * Renders a React app to a readable stream that can be returned to the client.
+ * This is the default `renderToReadableStream` used for rendering React apps.
  */
 export async function renderToReadableStream<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
@@ -166,8 +169,11 @@ export async function renderToReadableStream<
     );
 }
 
+/**
+ * A record of application state when handling a request.
+ */
 export interface AppState<AppContext = Record<string, unknown>> {
-  /** For internal use only. */
+  /** Application state that is meant for internal use only. */
   _app: {
     route: RouteObject;
     providerFactory: (
@@ -175,31 +181,34 @@ export interface AppState<AppContext = Record<string, unknown>> {
     ) => ComponentType<{ children: ReactNode }>;
     Context: ReactContext<AppContext>;
   };
-  /** A container for application data and functions. */
+  /** A container for the application's data and functions. */
   app: {
     /**
-     * Environment variables that will be shared with the browser.
+     * An object containing environment variables that will be shared with the browser.
      */
     env: AppEnvironment;
     /**
-     * A container for your application's own data that is serialized and sent to the browser.
-     * It can be accessed via AppContext.
+     * A container for the application's data that will be serialized and sent to the browser.
+     * This data can be accessed via the `AppContext`.
      */
     context: AppContext;
-    /** Renders the application to a readable stream and responds to the request with it. */
+    /** A function that renders the application to a readable stream and responds to the request with it. */
     render: () => Promise<void>;
     /** The port for the dev script's live reload server. */
     devPort?: number;
     /**
-     * If an error occurs when handling the request, this will be set to that error.
+     * If an error occurs when handling the request, this property will be set to that error.
      * The error will be serialized and sent to the browser.
-     * The browser will recreate the error for an AppErrorBoundary to catch.
-     * If the server error is not getting caught, the boundary doesn't match the AppErrorBoundary you expect to catch it.
+     * The browser will recreate the error for an `AppErrorBoundary` to catch.
+     * If the server error is not getting caught, the boundary doesn't match the `AppErrorBoundary` you expect to catch it.
      */
     error?: HttpError<{ boundary?: string }>;
   };
 }
 
+/**
+ * The default function for creating a provider for the application.
+ */
 function defaultProviderFactory<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >(
@@ -208,40 +217,51 @@ function defaultProviderFactory<
   return (({ children }) => <>{children}</>);
 }
 
+/** An interface that represents the options for creating an App Router. */
 export interface AppRouterOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
   /**
    * A react router route object.
-   * The build script will automatically generate these for your application's routes.
-   * The route object is a default export from the `_main.tsx` in your routes directory.
+   * The build script will automatically generate this for your application's routes.
+   * The route object is a default export from `_main.tsx` in your routes directory.
    */
   route: RouteObject;
   /**
    * Default environment variables that you would like to share with the browser for all requests.
    */
   env?: AppEnvironment;
-  /** Creates a provider around the application. */
+  /** Creates a provider that wraps the entire application. */
   providerFactory?: (
     context: Context<AppState<AppContext>>,
   ) => ComponentType<{ children: ReactNode }>;
   /** A context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
   Context?: ReactContext<AppContext>;
   /**
-   * Used to render the application.
+   * A function used to render the application to a readable stream.
    * If you'd like to transform the stream before it is returned to the client,
-   * you can wrap the default renderToReadableStream function with a custom renderToReadableStream function.
+   * you can wrap the default `renderToReadableStream` to pipe it through a transform stream.
+   *
+   * For example, the following `renderToReadableStream` function uses the default function
+   * then pipe's it through a transform stream that adds a tailwindcss style sheet to the head of the HTML page using twind.
+   *
+   * ```ts
+   * async renderToReadableStream(context: Context<AppState>) {
+   *   return (await renderToReadableStream(context))
+   *     .pipeThrough(new TwindStream(tw));
+   * }
+   * ```
    */
   renderToReadableStream?: typeof renderToReadableStream<AppContext>;
   /**
-   * The oak router for your application.
-   * The build script will automatically generate these for your application's routes.
-   * The router object is a default export from the `_main.ts` in your routes directory.
+   * The Oak router for the application.
+   * The router object will be generated automatically for the application's routes.
+   * The object is the default export from the `_main.ts` file in the routes directory.
    */
   router?: Router;
   /**
-   * The working directory of your application.
-   * Defaults to the current working directory that your application is running from.
+   * The working directory of the application.
+   * Defaults to the current working directory that the application is running from.
    */
   workingDirectory?: string;
   /** The port for the dev script's live reload server. */
@@ -251,7 +271,7 @@ export interface AppRouterOptions<
 const TRAILING_SLASHES = /\/+$/;
 
 /**
- * Creates an oak router for your application.
+ * Creates an Oak router for your application.
  */
 export function createAppRouter<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
@@ -440,9 +460,9 @@ export function createApiRouter(router: Router) {
 }
 
 /**
- * For internal use only.
- * This router renders the application on get requests.
- * It is used for all route components that do not have route middleware.
+ * An Oak router that is used to render the application for get requests.
+ * It is used for all route components that do not have their own route middleware.
+ * The defaultRouter is not meant to be used directly by the user and is for internal use only.
  */
 export const defaultRouter = new Router()
   .get("/", async (context: Context<AppState>) => {

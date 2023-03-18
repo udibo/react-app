@@ -23,8 +23,9 @@ export { HttpError, isHttpError };
 export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };
 
 /**
- * For internal use only.
- * Used to provider errors on the server to the browser.
+ * A context object that is used to provide errors on the server to the browser.
+ * It takes an object with an optional `error` property, which represents the HttpError that occurred.
+ * This context is intended for internal use only.
  */
 export const AppErrorContext = createContext<{ error?: HttpError }>({});
 
@@ -34,9 +35,9 @@ export type AppErrorBoundaryProps = ErrorBoundaryProps & {
 };
 
 /**
- * Any errors within the boundary will be captured by it.
- * Unlike ErrorBoundary, the AppErrorBoundary can be used to render errors on the server.
- * For the error on the server to be caught by it, it must have the same boundary.
+ * A component that captures any errors within the boundary.
+ * Unlike `ErrorBoundary`, the `AppErrorBoundary` can be used to render errors on the server.
+ * For the error on the server to be caught by it, it must have the same `boundary`.
  */
 export function AppErrorBoundary(
   props: PropsWithChildren<AppErrorBoundaryProps>,
@@ -87,10 +88,9 @@ export function AppErrorBoundary(
 }
 
 /**
- * Wraps a component with an AppErrorBoundary.
- * Any errors within the boundary will be captured by it.
- * Unlike withErrorBoundary, withAppErrorBoundary can be used to render errors on the server.
- * For the error on the server to be caught by it, it must have the same boundary.
+ * A higher-order component that wraps a component with an `AppErrorBoundary`. Any errors within the boundary will be captured by it.
+ * Unlike `withErrorBoundary`, `withAppErrorBoundary` can be used to render errors on the server.
+ * For the error on the server to be caught by it, it must have the same `boundary`.
  */
 export function withAppErrorBoundary<P>(
   Component: ComponentType<P>,
@@ -117,8 +117,8 @@ export function withAppErrorBoundary<P>(
 }
 
 /**
- * Automatically resets the error boundary if the location changes.
- * Returns a reset function that will prevent the reset callback from being called more than once.
+ * A hook that automatically resets the error boundary if the location changes.
+ * It takes a `reset` function and generates a new reset function that prevents multiple calls to the reset callback.
  */
 export function useAutoReset(reset: () => void) {
   const location = useLocation();
@@ -142,8 +142,10 @@ export function useAutoReset(reset: () => void) {
 }
 
 /**
- * A simple error fallback that will show the error and provide a button for trying again.
- * The error will clear when clicking the try again button or navigating to a different route.
+ * A simple error fallback component that can be used to show the error and provide a button for trying again.
+ * It takes a `FallbackProps` object with an `error` property, which represents the error that occurred, and
+ * a `resetErrorBoundary` function which is used to reset the error boundary.
+ * The error boundary automatically resets if the location changes.
  */
 export function DefaultErrorFallback(
   { error, resetErrorBoundary }: FallbackProps,
@@ -160,8 +162,7 @@ export function DefaultErrorFallback(
 }
 
 /**
- * This component can be used to throw a 404 not found error.
- * It's used as the default wildcard route at the top level of your app.
+ * A component that can be used to throw a 404 not found error. It is used as the default wildcard route at the top level of the app.
  */
 export function NotFound(): ReactElement {
   throw new HttpError(404, "Not found");
