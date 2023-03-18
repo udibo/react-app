@@ -49,21 +49,25 @@ export type {
   HttpErrorOptions,
 } from "./error.tsx";
 
+/**
+ * An interface that defines the configuration for the application's hydration.
+ */
 export interface HydrateOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
   /**
    * A react router route object.
-   * The build script will automatically generate these for your application's routes.
+   * The build script will automatically generate this for your application's routes.
    * The route object is a default export from `_main.tsx` in your routes directory.
    */
   route: RouteObject;
-  /** Adds your own providers around the application. */
+  /** A React Component that wraps the entire application. */
   Provider?: ComponentType<{ children: ReactNode }>;
   /** A context object for the App. */
   Context?: Context<AppContext>;
 }
 
+/** An interface that extends `HydrateOptions` and is used to configure the App Component. */
 interface AppOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > extends HydrateOptions<AppContext> {
@@ -71,6 +75,9 @@ interface AppOptions<
   Context: Context<AppContext>;
 }
 
+/**
+ * A React component used to render the application.
+ */
 function App<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 >({ route, Provider, Context }: AppOptions<AppContext>) {
@@ -101,11 +108,11 @@ function App<
 }
 
 /**
- * Used to hydrate the app in the browser.
- * Hydration isn't required if you want to do server side rendering only.
- * This function will turn the application into an SPA.
+ * This function is used to hydrate the application in the browser.
+ * It turns the server rendered application into a single-page application (SPA).
+ * Hydration is not required if only server-side rendering is desired.
  *
- * If you are using the default configuration, this will load the route generated from your application's routes.
+ * If the default configuration is used, this function will load the route generated from the application's routes.
  *
  * ```tsx
  * import { hydrate } from "x/udibo_react_app/app.tsx";
@@ -115,7 +122,7 @@ function App<
  * hydrate({ route });
  * ```
  *
- * You can optionally add a Provider argument to add your own providers around the application.
+ * An optional Provider argument can be used to include customer providers around the application.
  */
 export function hydrate<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
@@ -142,8 +149,9 @@ export function hydrate<
 }
 
 /**
- * A file containing the react component for a route.
- * Optionally, it can export an ErrorFallback that will be used for an AppErrorBoundary on the component.
+ * An interface that defines a route file.
+ * A route file exports a react component by default.
+ * It can optionally export an `ErrorFallback` or `boundary` that will be used for an `AppErrorBoundary` around the react component that it exports by default.
  */
 export type RouteFile = {
   /** The react component for the route. */
@@ -155,8 +163,9 @@ export type RouteFile = {
 };
 
 /**
- * For internal use only.
- * This is used in the generated _main.tsx file for routes to automatically add error boundaries to routes that have a FallbackComponent.
+ * A function used to lazily load a component. This function takes in a factory that returns Promise that resolves to a React component.
+ * The purpose of this function is to automatically add error boundaries to routes with an `ErrorFallback` or `boundary` export.
+ * This function is intended for internal use only, and is typically used in the generated `_main.tsx` file for a routes directory.
  */
 export function lazy<
   T extends RouteFile,
