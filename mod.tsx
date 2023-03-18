@@ -85,10 +85,12 @@ function App<
   const rawError = (window as AppWindow).app.error;
   const { stack, ...errorOptions } = rawError ?? {};
   const error = rawError && new HttpError(errorOptions);
-  if (error && typeof stack === "string") {
-    error.stack = stack;
+  if (error) {
+    if (typeof stack === "string") {
+      error.stack = stack;
+    }
+    console.error(error);
   }
-  console.error(error);
 
   const context = (window as AppWindow<AppContext>).app.context ?? {};
   const appErrorContext = { error };
