@@ -535,8 +535,8 @@ export interface RouterDefinition {
   children?: Record<string, RouterDefinition>;
 }
 
-const ROUTE_PARAM = /^\[(.+)]$/;
-const ROUTE_WILDCARD = /^\[\.\.\.\]$/;
+export const ROUTE_PARAM = /^\[(.+)]$/;
+export const ROUTE_WILDCARD = /^\[\.\.\.\]$/;
 export function routePathFromName(name: string, forServer = false) {
   if (!name) return "";
   return name
