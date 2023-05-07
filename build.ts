@@ -5,6 +5,7 @@ import * as esbuild from "x/esbuild/mod.js";
 import { denoPlugin } from "x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
+import { routePathFromName } from "./server.tsx";
 
 interface Route {
   name: string;
@@ -100,18 +101,6 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
   return rootRoute;
 }
 
-const ROUTE_PARAM = /^\[(.+)]$/;
-const ROUTE_WILDCARD = /^\[\.\.\.\]$/;
-function routePathFromName(name: string, forServer = false) {
-  if (!name) return "/";
-  return name
-    .replace(ROUTE_WILDCARD, forServer ? "(.*)" : "*")
-    .replace(ROUTE_PARAM, ":$1");
-}
-function routerPathFromName(name: string) {
-  return routePathFromName(name, true);
-}
-
 function lazyImportLine(routeId: number, routePath: string, filePath: string) {
   return `const $${routeId} = lazy(${
     routePath ? `"/${routePath}", ` : ""
@@ -121,7 +110,7 @@ function lazyImportLine(routeId: number, routePath: string, filePath: string) {
 function routeFileData(routeId: number, relativePath: string, route: Route) {
   const importLines: string[] = [];
   const name = routePathFromName(route.name);
-  let routeText = `{ path: "${name}"`;
+  let routeText = `{ path: ${JSON.stringify(name)}`;
 
   const { file, main, index, children } = route;
   if (file?.react) {
@@ -249,16 +238,20 @@ function routerImportLine(routeId: number, relativePath: string) {
 }
 
 function routerFileData(
-  parentRouteId: number,
   routeId: number,
   relativePath: string,
   route: Route,
 ) {
+  const { name, file, main, index, react, children } = route;
   const importLines: string[] = [];
-  const routerLines: string[] = [];
 
-  const { name, file, main, index, react, children, parent } = route;
+  let routerText = `{ name: ${JSON.stringify(name)}`;
+  if (react) routerText += `, react: true`;
+
   if (file) {
+    routerText += ", file: {";
+    const fileText: string[] = [];
+
     if (file.react) {
       importLines.push(
         ...routeImportLines(
@@ -266,16 +259,7 @@ function routerFileData(
           path.posix.join(relativePath, routeId > 0 ? "../" : "", file.react),
         ),
       );
-      routerLines.push(
-        `if (`,
-        `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
-        `) {`,
-        `  $${parentRouteId}.use("/${
-          routerPathFromName(name)
-        }", errorBoundary(($${routeId} as RouteFile).boundary ?? "/${relativePath}"));`,
-        `  $${parentRouteId}.use(errorBoundary(boundaries[boundaries.length - 1]));`,
-        `}`,
-      );
+      fileText.push(`react:$${routeId}`);
       routeId++;
     }
 
@@ -286,34 +270,15 @@ function routerFileData(
           path.posix.join(relativePath, routeId > 0 ? "../" : "", file.oak),
         ),
       );
-      if (relativePath !== "") {
-        routerLines.push(
-          `$${parentRouteId}.use("/${
-            routerPathFromName(name)
-          }", $${routeId}.routes(), $${routeId}.allowedMethods());`,
-        );
-      }
+      fileText.push(`oak:$${routeId}`);
       routeId++;
-    } else if (file.react) {
-      routerLines.push(
-        `$${parentRouteId}.use("/${
-          routerPathFromName(name)
-        }", defaultRouter.routes(), defaultRouter.allowedMethods())`,
-      );
     }
+
+    routerText += fileText.join(", ") + `}`;
   } else {
-    const mainRouteId = routeId++;
     if (main) {
-      if (main.oak) {
-        importLines.push(
-          routerImportLine(
-            mainRouteId,
-            path.posix.join(relativePath, main.oak),
-          ),
-        );
-      } else {
-        routerLines.push(`const $${mainRouteId} = new Router();`);
-      }
+      routerText += ", main: {";
+      const fileText: string[] = [];
 
       if (main.react) {
         importLines.push(
@@ -322,29 +287,28 @@ function routerFileData(
             path.posix.join(relativePath, main.react),
           ),
         );
-        routerLines.push(
-          `if (`,
-          `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
-          `) {`,
-          `  const boundary = ($${routeId} as RouteFile).boundary${
-            relativePath ? ` ?? "/${relativePath}"` : ""
-          };`,
-          `  boundaries.push(boundary);`,
-          `  $${mainRouteId}.use(errorBoundary(boundary));`,
-          `} else {`,
-          `  boundaries.push(boundaries[boundaries.length - 1]);`,
-          `}`,
-        );
+        fileText.push(`react:$${routeId}`);
         routeId++;
       }
-    } else {
-      routerLines.push(`const $${mainRouteId} = new Router();`);
-      if (!relativePath && react) {
-        routerLines.push(`$${mainRouteId}.use(errorBoundary());`);
+
+      if (main.oak) {
+        importLines.push(
+          routerImportLine(
+            routeId,
+            path.posix.join(relativePath, main.oak),
+          ),
+        );
+        fileText.push(`oak:$${routeId}`);
+        routeId++;
       }
+
+      routerText += fileText.join(", ") + `}`;
     }
 
     if (index) {
+      routerText += ", index: {";
+      const fileText: string[] = [];
+
       if (index.react) {
         importLines.push(
           ...routeImportLines(
@@ -352,17 +316,7 @@ function routerFileData(
             path.posix.join(relativePath, index.react),
           ),
         );
-        routerLines.push(
-          `if (`,
-          `  ($${routeId} as RouteFile).ErrorFallback || ($${routeId} as RouteFile).boundary`,
-          `) {`,
-          `  $${mainRouteId}.use("/", errorBoundary(`,
-          `    ($${routeId} as RouteFile).boundary ?? "/${
-            path.join(relativePath, "index")
-          }"`,
-          `  ));`,
-          `}`,
-        );
+        fileText.push(`react:$${routeId}`);
         routeId++;
       }
 
@@ -373,100 +327,58 @@ function routerFileData(
             path.posix.join(relativePath, index.oak),
           ),
         );
-
-        routerLines.push(
-          `$${mainRouteId}.use("/", $${routeId}.routes(), $${routeId}.allowedMethods());`,
-        );
+        fileText.push(`oak:$${routeId}`);
         routeId++;
-      } else if (react) {
-        routerLines.push(
-          `$${mainRouteId}.use("/", defaultRouter.routes(), defaultRouter.allowedMethods())`,
+      }
+
+      routerText += fileText.join(", ") + `}`;
+    }
+
+    if (children) {
+      routerText += ", children: {";
+      const childText: string[] = [];
+      for (const [name, childRoute] of Object.entries(children)) {
+        const {
+          importLines: childImportLines,
+          routerText: childRouterText,
+          nextRouteId,
+        } = routerFileData(
+          routeId,
+          path.posix.join(relativePath, name),
+          childRoute,
         );
+        importLines.push(...childImportLines);
+        childText.push(`${JSON.stringify(name)}: ${childRouterText}`);
+        routeId = nextRouteId;
       }
-
-      if (index.react || index.oak) {
-        routerLines.push(
-          `$${mainRouteId}.use("/", errorBoundary(boundaries[boundaries.length - 1]));`,
-        );
-      }
-    }
-
-    let notFoundRoute: Route | undefined = undefined;
-    for (const childRoute of Object.values(children ?? {})) {
-      if (childRoute.name === "[...]") {
-        notFoundRoute = childRoute;
-        continue;
-      }
-      const {
-        importLines: childImportLines,
-        routerLines: childRouterLines,
-        nextRouteId,
-      } = routerFileData(
-        mainRouteId,
-        routeId,
-        path.posix.join(relativePath, childRoute.name),
-        childRoute,
-      );
-      importLines.push(...childImportLines);
-      routerLines.push(...childRouterLines);
-      routeId = nextRouteId;
-    }
-
-    if (notFoundRoute) {
-      const {
-        importLines: childImportLines,
-        routerLines: childRouterLines,
-        nextRouteId,
-      } = routerFileData(
-        mainRouteId,
-        routeId,
-        path.posix.join(relativePath, notFoundRoute.name),
-        notFoundRoute,
-      );
-      importLines.push(...childImportLines);
-      routerLines.push(...childRouterLines);
-      routeId = nextRouteId;
-    }
-
-    if (relativePath === "") {
-      routerLines.push("", `export default $0;`);
-    } else {
-      routerLines.push(
-        `const $${mainRouteId}Main = ${
-          parent?.react && !react
-            ? `createApiRouter($${mainRouteId})`
-            : `$${mainRouteId}`
-        };`,
-      );
-      routerLines.push(
-        `$${parentRouteId}.use("/${
-          routerPathFromName(name)
-        }", $${mainRouteId}Main.routes(), $${mainRouteId}Main.allowedMethods());`,
-      );
+      routerText += childText.join(", ") + "}";
     }
   }
+  routerText += "}";
 
   return {
     importLines,
-    routerLines,
+    routerText,
     nextRouteId: routeId,
   };
 }
 
+const fmtCommand = new Deno.Command(Deno.execPath(), {
+  args: ["fmt", "-"],
+  stdin: "piped",
+  stdout: "piped",
+});
 async function writeRoutes(path: string, text: string) {
-  const fmt = Deno.run({
-    cmd: ["deno", "fmt", "-"],
-    stdin: "piped",
-    stdout: "piped",
-  });
+  const fmt = fmtCommand.spawn();
+  const fmtWriter = fmt.stdin.getWriter();
   const encoder = new TextEncoder();
-  await fmt.stdin.write(encoder.encode(text));
-  fmt.stdin.close();
-  const [status, rawOutput] = await Promise.all([fmt.status(), fmt.output()]);
-  if (status.success) {
-    Deno.writeFile(path, rawOutput);
+  await fmtWriter.write(encoder.encode(text));
+  await fmtWriter.close();
+  const { success, code } = await fmt.status;
+  if (success) {
+    Deno.writeFile(path, fmt.stdout);
   } else {
-    console.log("fmt routes failed", { path, ...status });
+    console.log("fmt routes failed", { path, code });
   }
 }
 
@@ -485,14 +397,15 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
   }
 
   const lines = [
-    `import { Router } from "x/oak/mod.ts";`,
-    `import { defaultRouter, createApiRouter, errorBoundary } from "x/udibo_react_app/server.tsx";`,
-    `import { RouteFile } from "x/udibo_react_app/mod.tsx";`,
+    `import { generateRouter } from "x/udibo_react_app/server.tsx";`,
     "",
-    "const boundaries: (string | undefined)[] = [];",
   ];
-  const { importLines, routerLines } = routerFileData(-1, 0, "", rootRoute);
-  lines.push(...importLines, "", ...routerLines);
+  const { importLines, routerText } = routerFileData(0, "", rootRoute);
+  lines.push(
+    ...importLines,
+    "",
+    `export default generateRouter(${routerText});`,
+  );
 
   await writeRoutes(path.join(routesUrl, "_main.ts"), lines.join("\n"));
 }

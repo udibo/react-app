@@ -15,14 +15,10 @@
     "jsxImportSource": "npm/react"
   },
   "lint": {
-    "files": {
-      "exclude": ["public/build"]
-    }
+    "exclude": ["public/build"]
   },
   "fmt": {
-    "files": {
-      "exclude": ["public/build"]
-    }
+    "exclude": ["public/build"]
   },
   "importMap": "./import_map.json"
 }

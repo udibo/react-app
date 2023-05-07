@@ -31,6 +31,7 @@ import {
   isDevelopment,
   isTest,
 } from "./env.ts";
+import { RouteFile } from "./mod.tsx";
 
 if (isBrowser()) {
   throw new Error("Cannot import server.tsx in the browser.");
@@ -331,7 +332,7 @@ export function createAppRouter<
         await next();
       } catch (cause) {
         const error = HttpError.from(cause);
-        console.error("app error", error);
+        console.error("App error", error);
 
         response.status = error.status;
         state.app.error = error;
@@ -441,35 +442,6 @@ export async function serve<
 }
 
 /**
- * Wraps an API router with an error handler that responds with the error in json format.
- */
-export function createApiRouter(router: Router) {
-  return new Router()
-    .use(async ({ response }, next) => {
-      try {
-        await next();
-      } catch (cause) {
-        const error = HttpError.from(cause);
-        console.error("api error", error);
-
-        response.status = error.status;
-        response.body = HttpError.json(error);
-      }
-    })
-    .use(router.routes(), router.allowedMethods());
-}
-
-/**
- * An Oak router that is used to render the application for get requests.
- * It is used for all route components that do not have their own route middleware.
- * The defaultRouter is not meant to be used directly by the user and is for internal use only.
- */
-export const defaultRouter = new Router()
-  .get("/", async (context: Context<AppState>) => {
-    await context.state.app.render();
-  });
-
-/**
  * This middleware ensures all errors in the route are HttpErrors.
  * If an error isn't an HttpError, a new HttpError is created with it as the cause.
  * If a boundary is specified, it will add the boundary to the HttpError.
@@ -528,4 +500,159 @@ export function errorBoundary<
       await state.app.render();
     }
   };
+}
+
+/**
+ * An Oak router that is used to render the application for get requests.
+ * It is used for all route components that do not have their own route middleware.
+ * The defaultRouter is not meant to be used directly by the user and is for internal use only.
+ */
+const defaultRouter = new Router()
+  .get("/", async (context: Context<AppState>) => {
+    await context.state.app.render();
+  });
+
+/**
+ * A representation of the routers for a routes directory that is used to generate an Oak router.
+ * This interface is meant for internal use only.
+ */
+export interface RouterDefinition {
+  name: string;
+  parent?: RouterDefinition;
+  react?: boolean;
+  file?: {
+    react?: RouteFile;
+    oak?: Router;
+  };
+  main?: {
+    react?: RouteFile;
+    oak?: Router;
+  };
+  index?: {
+    react?: RouteFile;
+    oak?: Router;
+  };
+  children?: Record<string, RouterDefinition>;
+}
+
+const ROUTE_PARAM = /^\[(.+)]$/;
+const ROUTE_WILDCARD = /^\[\.\.\.\]$/;
+export function routePathFromName(name: string, forServer = false) {
+  if (!name) return "";
+  return name
+    .replace(ROUTE_WILDCARD, forServer ? "(.*)" : "*")
+    .replace(ROUTE_PARAM, ":$1");
+}
+export function routerPathFromName(name: string) {
+  return routePathFromName(name, true);
+}
+
+/**
+ * Generates an Oak router for a routes directory.
+ * The router returned by this function is the default export from the `_main.ts` file in the routes directory.
+ * This function is meant for internal use only.
+ */
+export function generateRouter(
+  options: RouterDefinition,
+  relativePath?: string,
+  parentBoundary?: string,
+): Router {
+  const { name, react, file, main, index, children, parent } = options;
+
+  const router = new Router();
+  if (parent?.react && !react) {
+    router.use(async ({ response }, next) => {
+      try {
+        await next();
+      } catch (cause) {
+        const error = HttpError.from(cause);
+        console.error("API error", error);
+
+        response.status = error.status;
+        response.body = HttpError.json(error);
+      }
+    });
+  }
+
+  const currentPath = `${
+    relativePath && relativePath !== "/" ? relativePath : ""
+  }/${name}`;
+
+  let boundary = parentBoundary;
+  if (file) {
+    if (file.react && (file.react.ErrorFallback || file.react.boundary)) {
+      boundary = file.react.boundary ?? currentPath;
+    }
+
+    const boundaryMiddleware = react && errorBoundary(boundary);
+
+    if (file.oak) {
+      if (boundaryMiddleware) router.use(boundaryMiddleware);
+      router.use(file.oak.routes(), file.oak.allowedMethods());
+    } else if (file.react) {
+      if (boundaryMiddleware) router.use(boundaryMiddleware);
+      router.use(defaultRouter.routes(), defaultRouter.allowedMethods());
+    }
+  } else {
+    if (main?.react && (main.react.ErrorFallback || main.react.boundary)) {
+      boundary = main.react.boundary ?? currentPath;
+    }
+    const boundaryMiddleware = react && errorBoundary(boundary);
+    if (boundaryMiddleware) router.use(boundaryMiddleware);
+
+    const mainRouter = main?.oak ?? router;
+
+    if (index) {
+      if (index.react && (index.react.ErrorFallback || index.react.boundary)) {
+        mainRouter.use(
+          errorBoundary(index.react.boundary ?? `${currentPath}/index`),
+        );
+      } else if (main?.oak && boundaryMiddleware) {
+        mainRouter.use(boundaryMiddleware);
+      }
+
+      if (index.oak) {
+        mainRouter.use("/", index.oak.routes(), index.oak.allowedMethods());
+      } else if (react) {
+        mainRouter.use(
+          "/",
+          defaultRouter.routes(),
+          defaultRouter.allowedMethods(),
+        );
+      }
+
+      if (boundaryMiddleware) mainRouter.use(boundaryMiddleware);
+    }
+
+    if (children) {
+      let notFoundRouter: Router | undefined = undefined;
+      for (const [name, child] of Object.entries(children)) {
+        child.parent = options;
+        const childRouter = generateRouter(child, currentPath, boundary);
+        if (name === "[...]") {
+          notFoundRouter = childRouter;
+        } else {
+          mainRouter.use(
+            `/${routerPathFromName(name)}`,
+            childRouter.routes(),
+            childRouter.allowedMethods(),
+          );
+        }
+      }
+
+      if (notFoundRouter) {
+        mainRouter.use(
+          `/${routerPathFromName("[...]")}`,
+          notFoundRouter.routes(),
+          notFoundRouter.allowedMethods(),
+        );
+      }
+    }
+
+    if (main?.oak) {
+      router.use(mainRouter.routes(), mainRouter.allowedMethods());
+    }
+  }
+
+  return router;
 }

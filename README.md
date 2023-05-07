@@ -1,7 +1,7 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.9.1-success)](https://github.com/udibo/react_app/releases/tag/0.9.1)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.9.1)
+[![release](https://img.shields.io/badge/release-0.10.0-success)](https://github.com/udibo/react_app/releases/tag/0.10.0)
+[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.10.0)
 [![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
 [![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
@@ -31,13 +31,13 @@ Apps are created using [React Router](https://reactrouter.com),
 
 This module has 2 entry points.
 
-- [mod.tsx](https://deno.land/x/udibo_react_app@0.9.1/mod.tsx): For use in code
+- [mod.tsx](https://deno.land/x/udibo_react_app@0.10.0/mod.tsx): For use in code
   that will be used both on the server and in the browser.
-- [server.tsx](https://deno.land/x/udibo_react_app@0.9.1/server.tsx): For use in
-  code that will only be used on the server.
+- [server.tsx](https://deno.land/x/udibo_react_app@0.10.0/server.tsx): For use
+  in code that will only be used on the server.
 
 You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.9.1) to learn more about
+[deno docs](https://deno.land/x/udibo_react_app@0.10.0) to learn more about
 usage.
 
 ### Examples
@@ -196,11 +196,38 @@ export. For example, the `/blog/[id]` route would have the error's boundary
 identifier set to `"/blog/[id]"`. Then the AppErrorBoundary added around your
 component will have a matching boundary identifier.
 
+Here is an example of an simple ErrorFallback. If you'd like to use it as is,
+it's exported as DefaultErrorFallback.
+
+```ts
+import { FallbackProps } from "x/udibo_react_app/mod.tsx";
+
+// ...
+
+export function ErrorFallback(
+  { error, resetErrorBoundary }: FallbackProps,
+) {
+  const reset = useAutoReset(resetErrorBoundary);
+
+  return (
+    <div role="alert">
+      <p>{error.message || "Something went wrong"}</p>
+      {isDevelopment() && error.stack ? <pre>{error.stack}</pre> : null}
+      <button onClick={reset}>Try again</button>
+    </div>
+  );
+}
+```
+
 If you'd like to nest an error boundary within your UI route component, you can
 use AppErrorBoundary or withAppErrorBoundary. If you do it this way, you will
-need to either export a boundary string or manually add errorBoundary middleware
-to your router to ensure any errors in that route are associated with the
-AppErrorBoundary you added.
+need to either export a boundary string from your route file or manually add
+errorBoundary middleware to your router to ensure any errors in that route are
+associated with the AppErrorBoundary you added.
+
+```tsx
+export const boundary = "MyComponentErrorBoundary";
+```
 
 ```ts
 const router = new Router()
