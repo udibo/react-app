@@ -15,12 +15,11 @@ function createDevApp(appPort = 9000) {
   const app = new Application();
   const router = new Router()
     .get("/live-reload", (context) => {
-      const target = context.sendEvents({
-        headers: new Headers({
-          "Access-Control-Allow-Origin": `http://localhost:${appPort}`,
-        }),
-        keepAlive: true,
-      });
+      context.response.headers.set(
+        "Access-Control-Allow-Origin",
+        `http://localhost:${appPort}`,
+      );
+      const target = context.sendEvents({ keepAlive: true });
 
       const sessionId = nextSessionId++;
       target.addEventListener("close", () => {
@@ -40,7 +39,7 @@ function createDevApp(appPort = 9000) {
         reload = false;
         queueMicrotask(() => {
           for (const target of [...sessions.values()]) {
-            target.dispatchEvent(new ServerSentEvent("reload", null));
+            target.dispatchEvent(new ServerSentEvent("reload", { data: null }));
           }
         });
       } else {
@@ -62,14 +61,13 @@ function createDevApp(appPort = 9000) {
   return app;
 }
 
-let runProcess: Deno.Process | null = null;
+let runProcess: Deno.ChildProcess | null = null;
 function runDev(entryPoint: string) {
-  runProcess = Deno.run({
-    cmd: ["deno", "run", "-A", entryPoint],
-    env: {
-      APP_ENV: "development",
-    },
+  const runCommand = new Deno.Command(Deno.execPath(), {
+    args: ["run", "-A", entryPoint],
+    stdin: "null",
   });
+  runProcess = runCommand.spawn();
 }
 
 let building = false;
@@ -79,6 +77,10 @@ let restarting = false;
 let restartAgain = false;
 let reload = false;
 
+const buildDevCommand = new Deno.Command(Deno.execPath(), {
+  args: ["task", "build"],
+  stdin: "null",
+});
 async function buildDev(entryPoint: string, changedPath?: string) {
   if (building) {
     buildAgain = true;
@@ -100,21 +102,15 @@ async function buildDev(entryPoint: string, changedPath?: string) {
       // Ignore error
     }
 
-    let status: Deno.ProcessStatus | null = null;
+    let success = false;
     try {
-      const buildProcess = Deno.run({
-        cmd: ["deno", "task", "build"],
-        env: {
-          APP_ENV: "development",
-        },
-        stdin: "null",
-      });
-      status = await buildProcess.status();
+      const buildProcess = buildDevCommand.spawn();
+      success = (await buildProcess.status).success;
     } finally {
       building = false;
       if (buildAgain) {
         await buildDev(entryPoint, buildAgainFor);
-      } else if (status?.success && runProcess) {
+      } else if (success && runProcess) {
         await restartApp(entryPoint);
       }
     }
@@ -132,13 +128,12 @@ async function restartApp(entryPoint: string) {
     queueMicrotask(() => {
       try {
         runProcess!.kill();
-        runProcess!.close();
       } catch {
         // Ignore error
       }
     });
     try {
-      await runProcess.status();
+      await runProcess.status;
     } catch {
       // Ignore error
     }
