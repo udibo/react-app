@@ -5,7 +5,7 @@ import * as esbuild from "x/esbuild/mod.js";
 import { denoPlugin } from "x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
-import { routePathFromName } from "./server.tsx";
+import { ROUTE_PARAM, ROUTE_WILDCARD, routePathFromName } from "./server.tsx";
 
 interface Route {
   name: string;
@@ -337,6 +337,8 @@ function routerFileData(
     if (children) {
       routerText += ", children: {";
       const childText: string[] = [];
+      let paramText: string | undefined = undefined;
+      let wildcardText: string | undefined = undefined;
       for (const [name, childRoute] of Object.entries(children)) {
         const {
           importLines: childImportLines,
@@ -348,9 +350,25 @@ function routerFileData(
           childRoute,
         );
         importLines.push(...childImportLines);
-        childText.push(`${JSON.stringify(name)}: ${childRouterText}`);
+
+        const text = `${JSON.stringify(name)}: ${childRouterText}`;
+        if (ROUTE_WILDCARD.test(name)) {
+          wildcardText = text;
+        } else if (ROUTE_PARAM.test(name)) {
+          if (paramText) {
+            throw new Error("Directory cannot have multiple parameter routes");
+          } else {
+            paramText = text;
+          }
+        } else {
+          childText.push(text);
+        }
+
         routeId = nextRouteId;
       }
+      if (paramText) childText.push(paramText);
+      if (wildcardText) childText.push(wildcardText);
+
       routerText += childText.join(", ") + "}";
     }
   }
