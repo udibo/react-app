@@ -1,3 +1,5 @@
+import * as path from "std/path/mod.ts";
+
 import {
   Application,
   Context,
@@ -487,7 +489,7 @@ export function errorBoundary<
   S extends AppState = AppState,
 >(boundary?: string): RouterMiddleware<string, P, S> {
   return async (context, next) => {
-    const { response, state } = context;
+    const { request, response, state } = context;
     const { app } = state;
     try {
       await next();
@@ -497,7 +499,10 @@ export function errorBoundary<
       app.error = error;
       if (boundary) error.data.boundary = boundary;
       response.status = error.status;
-      await state.app.render();
+      const extname = path.extname(request.url.pathname);
+      if (error.status !== 404 || extname === "" || extname === ".html") {
+        await state.app.render();
+      }
     }
   };
 }
