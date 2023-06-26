@@ -566,7 +566,7 @@ export function generateRouter(
 
   const router = new Router();
   if (parent?.react && !react) {
-    router.use(async ({ response }, next) => {
+    router.use(async ({ request, response }, next) => {
       try {
         await next();
       } catch (cause) {
@@ -574,7 +574,10 @@ export function generateRouter(
         console.error("API error", error);
 
         response.status = error.status;
-        response.body = HttpError.json(error);
+        const extname = path.extname(request.url.pathname);
+        if (error.status !== 404 || extname === "") {
+          response.body = HttpError.json(error);
+        }
       }
     });
   }
