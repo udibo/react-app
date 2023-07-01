@@ -7,6 +7,7 @@ import {
 
 import { AppContext } from "../context.ts";
 import { Post } from "../models/posts.ts";
+import { ErrorResponse, isErrorResponse } from "../../error.tsx";
 
 const parseResponse = async (response: Response) => {
   let data;
@@ -15,7 +16,10 @@ const parseResponse = async (response: Response) => {
   } catch (e) {
     throw new HttpError(response.status, "Invalid response");
   }
-  if (response.status !== 200) throw data;
+  if (isErrorResponse(data)) throw ErrorResponse.toError(data);
+  if (response.status >= 400) {
+    throw new HttpError(response.status, "Invalid response");
+  }
   return data;
 };
 
@@ -39,10 +43,7 @@ export function getPosts() {
         })
         .catch((error: unknown) => {
           setPosts(null);
-          const options = error && typeof error === "object"
-            ? error as HttpErrorOptions
-            : {};
-          setError(new HttpError(options));
+          setError(HttpError.from(error));
         });
     }
   }, []);
@@ -68,10 +69,7 @@ export function getPost(id: number) {
         })
         .catch((error: unknown) => {
           setPost(null);
-          const options = error && typeof error === "object"
-            ? error as HttpErrorOptions
-            : {};
-          setError(new HttpError(options));
+          setError(HttpError.from(error));
         });
     }
   }, []);

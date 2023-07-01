@@ -36,7 +36,9 @@ import {
 export {
   AppErrorBoundary,
   DefaultErrorFallback,
+  ErrorResponse,
   HttpError,
+  isErrorResponse,
   isHttpError,
   NotFound,
   useAutoReset,

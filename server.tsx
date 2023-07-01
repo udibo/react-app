@@ -24,7 +24,12 @@ import {
 } from "npm/react-router-dom";
 import serialize from "npm/serialize-javascript";
 
-import { AppErrorContext, HttpError, isHttpError } from "./error.tsx";
+import {
+  AppErrorContext,
+  ErrorResponse,
+  HttpError,
+  isHttpError,
+} from "./error.tsx";
 import {
   AppEnvironment,
   createAppContext,
@@ -576,7 +581,7 @@ export function generateRouter(
         response.status = error.status;
         const extname = path.extname(request.url.pathname);
         if (error.status !== 404 || extname === "") {
-          response.body = HttpError.json(error);
+          response.body = new ErrorResponse(error);
         }
       }
     });

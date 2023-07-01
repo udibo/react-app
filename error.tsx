@@ -1,4 +1,10 @@
-import { HttpError, HttpErrorOptions, isHttpError } from "x/http_error/mod.ts";
+import {
+  ErrorResponse,
+  HttpError,
+  HttpErrorOptions,
+  isErrorResponse,
+  isHttpError,
+} from "x/http_error/mod.ts";
 import {
   ComponentType,
   createContext,
@@ -19,7 +25,7 @@ import type {
 
 import { isDevelopment } from "./env.ts";
 
-export { HttpError, isHttpError };
+export { ErrorResponse, HttpError, isErrorResponse, isHttpError };
 export type { ErrorBoundaryProps, FallbackProps, HttpErrorOptions };
 
 /**
