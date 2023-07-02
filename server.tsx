@@ -121,8 +121,9 @@ function html<
  */
 export async function renderToReadableStream<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
 >(
-  context: Context<AppState<AppContext>>,
+  context: Context<State>,
 ) {
   const { request, state } = context;
   const { route, providerFactory, Context } = state._app;
@@ -180,7 +181,9 @@ export async function renderToReadableStream<
 /**
  * A record of application state when handling a request.
  */
-export interface AppState<AppContext = Record<string, unknown>> {
+export interface AppState<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+> {
   /** Application state that is meant for internal use only. */
   _app: {
     route: RouteObject;
@@ -228,6 +231,7 @@ function defaultProviderFactory<
 /** An interface that represents the options for creating an App Router. */
 export interface AppRouterOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
 > {
   /**
    * A react router route object.
@@ -260,7 +264,7 @@ export interface AppRouterOptions<
    * }
    * ```
    */
-  renderToReadableStream?: typeof renderToReadableStream<AppContext>;
+  renderToReadableStream?: typeof renderToReadableStream<AppContext, State>;
   /**
    * The Oak router for the application.
    * The router object will be generated automatically for the application's routes.
@@ -283,6 +287,7 @@ const TRAILING_SLASHES = /\/+$/;
  */
 export function createAppRouter<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
 >(
   {
     route,
@@ -293,12 +298,15 @@ export function createAppRouter<
     router,
     workingDirectory,
     devPort,
-  }: AppRouterOptions<AppContext>,
+  }: AppRouterOptions<AppContext, State>,
 ) {
-  renderAppToReadableStream ??= renderToReadableStream;
+  renderAppToReadableStream ??=
+    renderToReadableStream as typeof renderToReadableStream<AppContext, State>;
   router ??= new Router();
   workingDirectory ??= Deno.cwd();
-  providerFactory ??= defaultProviderFactory;
+  providerFactory ??= defaultProviderFactory as typeof defaultProviderFactory<
+    AppContext
+  >;
   Context ??= createAppContext<AppContext>();
 
   const appRouter = new Router()
@@ -312,7 +320,7 @@ export function createAppRouter<
         await next();
       }
     })
-    .use(async (context: Context<AppState<AppContext>>, next) => {
+    .use(async (context: Context<State>, next) => {
       const { request, response, state } = context;
       try {
         if (!state.app) {
@@ -490,9 +498,10 @@ export async function serve<
  * ```
  */
 export function errorBoundary<
-  P extends RouteParams<string> = RouteParams<string>,
-  S extends AppState = AppState,
->(boundary?: string): RouterMiddleware<string, P, S> {
+  Params extends RouteParams<string> = RouteParams<string>,
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
+>(boundary?: string): RouterMiddleware<string, Params, State> {
   return async (context, next) => {
     const { request, response, state } = context;
     const { app } = state;
@@ -526,23 +535,26 @@ const defaultRouter = new Router()
  * A representation of the routers for a routes directory that is used to generate an Oak router.
  * This interface is meant for internal use only.
  */
-export interface RouterDefinition {
+export interface RouterDefinition<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
+> {
   name: string;
-  parent?: RouterDefinition;
+  parent?: RouterDefinition<AppContext, State>;
   react?: boolean;
   file?: {
     react?: RouteFile;
-    oak?: Router;
+    oak?: Router<State>;
   };
   main?: {
     react?: RouteFile;
-    oak?: Router;
+    oak?: Router<State>;
   };
   index?: {
     react?: RouteFile;
-    oak?: Router;
+    oak?: Router<State>;
   };
-  children?: Record<string, RouterDefinition>;
+  children?: Record<string, RouterDefinition<AppContext, State>>;
 }
 
 export const ROUTE_PARAM = /^\[(.+)]$/;
@@ -562,14 +574,17 @@ export function routerPathFromName(name: string) {
  * The router returned by this function is the default export from the `_main.ts` file in the routes directory.
  * This function is meant for internal use only.
  */
-export function generateRouter(
-  options: RouterDefinition,
+export function generateRouter<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+  State extends AppState<AppContext> = AppState<AppContext>,
+>(
+  options: RouterDefinition<AppContext, State>,
   relativePath?: string,
   parentBoundary?: string,
-): Router {
+): Router<State> {
   const { name, react, file, main, index, children, parent } = options;
 
-  const router = new Router();
+  const router = new Router<State>();
   if (parent?.react && !react) {
     router.use(async ({ request, response }, next) => {
       try {
@@ -618,7 +633,9 @@ export function generateRouter(
     if (index) {
       if (index.react && (index.react.ErrorFallback || index.react.boundary)) {
         mainRouter.use(
-          errorBoundary(index.react.boundary ?? `${currentPath}/index`),
+          errorBoundary(
+            index.react.boundary ?? `${currentPath}/index`,
+          ),
         );
       } else if (main?.oak && boundaryMiddleware) {
         mainRouter.use(boundaryMiddleware);
@@ -638,10 +655,14 @@ export function generateRouter(
     }
 
     if (children) {
-      let notFoundRouter: Router | undefined = undefined;
+      let notFoundRouter: Router<State> | undefined = undefined;
       for (const [name, child] of Object.entries(children)) {
         child.parent = options;
-        const childRouter = generateRouter(child, currentPath, boundary);
+        const childRouter = generateRouter(
+          child,
+          currentPath,
+          boundary,
+        );
         if (name === "[...]") {
           notFoundRouter = childRouter;
         } else {
