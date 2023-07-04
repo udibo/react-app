@@ -362,6 +362,8 @@
     "https://deno.land/x/http_error@0.5.0/mod.ts": "ca622eced625a6b68cd778fa3a0db727550fb9e7f14fedadae03a1f88f0b6030",
     "https://deno.land/x/http_error@0.6.0/deps.ts": "4c5201aab868b3d91e289c095e387d680689bb412e75aaf0ae37cff597838299",
     "https://deno.land/x/http_error@0.6.0/mod.ts": "cbf722e350b52ff03ae0867c19c80f34c485e50367fa42c11f30a759db9f5ba4",
+    "https://deno.land/x/http_error@0.7.0/deps.ts": "4c5201aab868b3d91e289c095e387d680689bb412e75aaf0ae37cff597838299",
+    "https://deno.land/x/http_error@0.7.0/mod.ts": "2f9b1f553fc9589803b5e398e5b710dbd437b3f332109bd63f327beace55f776",
     "https://deno.land/x/importmap@0.2.1/_util.ts": "ada9a9618b537e6c0316c048a898352396c882b9f2de38aba18fd3f2950ede89",
     "https://deno.land/x/importmap@0.2.1/mod.ts": "ae3d1cd7eabd18c01a4960d57db471126b020f23b37ef14e1359bbb949227ade",
     "https://deno.land/x/oak@v12.4.0/application.ts": "4819f2820617f04117ccafe5bb4daae004c3cc0100eb321afd9a35ba558794d9",
