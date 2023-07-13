@@ -34,7 +34,6 @@ jobs:
     steps:
       - id: secrets
         name: Get secrets
-        if: env.CODECOV_TOKEN != ''
         run: |
           if ["${{ secrets.CODECOV_TOKEN }}" != ""];
           then
