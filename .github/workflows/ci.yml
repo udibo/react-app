@@ -37,11 +37,12 @@ jobs:
         run: |
           if ["${{ secrets.CODECOV_TOKEN }}" != ""]
           then
-            echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT
+            echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
+          fi
       - id: deno_dir
         name: Get cache directory
         run: |
-          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT
+          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT;
   lint:
     name: Lint
     runs-on: ubuntu-latest
