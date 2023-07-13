@@ -35,7 +35,7 @@ jobs:
       - id: secrets
         name: Get secrets
         run: |
-          if ["${{ secrets.CODECOV_TOKEN }}" != ""];
+          if ["${{ secrets.CODECOV_TOKEN }}" != ""]
           then
             echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT
       - id: deno_dir
