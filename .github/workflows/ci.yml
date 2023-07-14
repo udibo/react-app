@@ -37,7 +37,10 @@ jobs:
         run: |
           if [ "${{ secrets.CODECOV_TOKEN }}" != "" ]
           then
+            echo "Has codecov";
             echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
+          else
+            echo "does not have codecov";
           fi
       - id: deno_dir
         name: Get cache directory
