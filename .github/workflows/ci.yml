@@ -103,19 +103,19 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os != 'ubuntu-latest'
-          || !needs.variables.outputs.CODECOV_TOKEN
+          || needs.variables.outputs.CODECOV_TOKEN == ''
         run: deno test ${{ inputs.test-args }} .
       - name: Run tests and collect coverage
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.CODECOV_TOKEN
+          && needs.variables.outputs.CODECOV_TOKEN != ''
         run: deno test --coverage=cov ${{ inputs.test-args }} .
       - name: Generate coverage
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.CODECOV_TOKEN
+          && needs.variables.outputs.CODECOV_TOKEN != ''
         run: deno coverage --lcov=cov ${{ inputs.test-args }} > cov.lcov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
