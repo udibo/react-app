@@ -2,7 +2,7 @@ import { walk } from "std/fs/walk.ts";
 import { ensureDir } from "std/fs/ensure_dir.ts";
 import * as path from "std/path/mod.ts";
 import * as esbuild from "x/esbuild/mod.js";
-import { DenoPluginsOptions, denoPlugins } from "x/esbuild_deno_loader/mod.ts";
+import { denoPlugins } from "x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
 import { ROUTE_PARAM, ROUTE_WILDCARD, routePathFromName } from "./server.tsx";
