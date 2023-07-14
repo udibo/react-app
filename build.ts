@@ -2,7 +2,7 @@ import { walk } from "std/fs/walk.ts";
 import { ensureDir } from "std/fs/ensure_dir.ts";
 import * as path from "std/path/mod.ts";
 import * as esbuild from "x/esbuild/mod.js";
-import { denoPlugin } from "x/esbuild_deno_loader/mod.ts";
+import { DenoPluginsOptions, denoPlugins } from "x/esbuild_deno_loader/mod.ts";
 
 import { isProduction, isTest } from "./env.ts";
 import { ROUTE_PARAM, ROUTE_WILDCARD, routePathFromName } from "./server.tsx";
@@ -496,7 +496,7 @@ export async function build(options: BuildOptions) {
     );
     await ensureDir(outdir);
 
-    const importMapURL = path.toFileUrl(importMapUrl);
+    const importMapURL = path.toFileUrl(importMapUrl).toString();
 
     const buildOptions: esbuild.BuildOptions = isProduction()
       ? { minify: true }
@@ -515,7 +515,7 @@ export async function build(options: BuildOptions) {
     const esbuildPlugins = options.esbuildPlugins ?? [];
     await esbuild.build({
       plugins: [
-        denoPlugin({ importMapURL }),
+        ...denoPlugins({ importMapURL }),
         ...esbuildPlugins,
       ],
       absWorkingDir: workingDirectory,

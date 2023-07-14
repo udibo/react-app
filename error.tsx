@@ -73,9 +73,12 @@ export function AppErrorBoundary(
 
   const fallbackProps = {
     error,
-    resetErrorBoundary: (...args: unknown[]) => {
+    resetErrorBoundary: (...args) => {
       setError(null);
-      errorBoundaryProps.onReset?.(...args);
+      errorBoundaryProps.onReset?.({
+        args,
+        reason: "imperative-api",
+      });
     },
   } as FallbackProps;
 
