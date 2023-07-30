@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       DENO_DIR: ${{ steps.deno-dir.outputs.DENO_DIR }}
-      CODECOV_TOKEN: ${{ steps.secrets.outputs.CODECOV_TOKEN }}
+      HAS_CODECOV_TOKEN: ${{ steps.secrets.outputs.CODECOV_TOKEN }}
     steps:
       - id: deno-dir
         name: Get cache directory
@@ -41,7 +41,13 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          echo "CODECOV_TOKEN=TRUE" >> $GITHUB_OUTPUT;
+          if [ "${{ secrets.CODECOV_TOKEN }}" != "" ]
+          then
+            echo "Has codecov";
+            echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
+          else
+            echo "does not have codecov";
+          fi
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -126,7 +132,7 @@ jobs:
         if: |
           matrix.os == 'ubuntu-latest'
           && needs.variables.outputs.CODECOV_TOKEN != ''
-        run: deno coverage --lcov=cov ${{ inputs.test-args }} > cov.lcov
+        run: deno coverage --lcov ${{ inputs.test-args }} > cov.lcov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
