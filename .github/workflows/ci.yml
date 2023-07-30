@@ -41,7 +41,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          echo "CODECOV_TOKEN=${{ env.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
+          echo "CODECOV_TOKEN=TRUE" >> $GITHUB_OUTPUT;
   lint:
     name: Lint
     runs-on: ubuntu-latest
