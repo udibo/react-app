@@ -110,7 +110,7 @@ jobs:
         if: |
           matrix.os == 'ubuntu-latest'
           && needs.variables.outputs.HAS_CODECOV_TOKEN
-        run: deno coverage --lcov ${{ inputs.test-args }} > cov.lcov
+        run: deno coverage --lcov > cov.lcov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
