@@ -29,23 +29,19 @@ jobs:
     name: Get variables
     runs-on: ubuntu-latest
     outputs:
+      DENO_DIR: ${{ steps.deno-dir.outputs.DENO_DIR }}
       CODECOV_TOKEN: ${{ steps.secrets.outputs.CODECOV_TOKEN }}
-      DENO_DIR: ${{ steps.deno_dir.outputs.DENO_DIR }}
     steps:
-      - id: secrets
-        name: Get secrets
-        run: |
-          if [ "${{ secrets.CODECOV_TOKEN }}" != "" ]
-          then
-            echo "Has codecov";
-            echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
-          else
-            echo "does not have codecov";
-          fi
-      - id: deno_dir
+      - id: deno-dir
         name: Get cache directory
         run: |
           echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT;
+      - id: secrets
+        name: Get secrets
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        run: |
+          echo "CODECOV_TOKEN=${{ env.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT;
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -121,7 +117,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: ${{ inputs.working-directory }}/cov.lcov
-          token: ${{ needs.variables.outputs.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
         if: |
           matrix.os == 'ubuntu-latest'
