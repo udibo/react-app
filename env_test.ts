@@ -3,7 +3,7 @@ import {
   assertRejects,
   assertStrictEquals,
   assertThrows,
-} from "std/testing/asserts.ts";
+} from "std/assert/mod.ts";
 import { describe, it } from "std/testing/bdd.ts";
 import { delay } from "std/async/delay.ts";
 

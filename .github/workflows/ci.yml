@@ -29,20 +29,17 @@ jobs:
     name: Get variables
     runs-on: ubuntu-latest
     outputs:
-      CODECOV_TOKEN: ${{ steps.secrets.outputs.CODECOV_TOKEN }}
-      DENO_DIR: ${{ steps.deno_dir.outputs.DENO_DIR }}
+      DENO_DIR: ${{ steps.deno-dir.outputs.DENO_DIR }}
+      HAS_CODECOV_TOKEN: ${{ steps.secrets.outputs.HAS_CODECOV_TOKEN }}
     steps:
-      - id: secrets
-        name: Get secrets
-        if: env.CODECOV_TOKEN != ''
-        run: |
-          if ["${{ secrets.CODECOV_TOKEN }}" != ""];
-          then
-            echo "CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN }}" >> $GITHUB_OUTPUT
-      - id: deno_dir
+      - id: deno-dir
         name: Get cache directory
         run: |
-          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT
+          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT;
+      - id: secrets
+        name: Check secrets
+        run: |
+          echo "HAS_CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN != '' }}" >> $GITHUB_OUTPUT;
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -100,26 +97,26 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os != 'ubuntu-latest'
-          || !needs.variables.outputs.CODECOV_TOKEN
+          || !needs.variables.outputs.HAS_CODECOV_TOKEN
         run: deno test ${{ inputs.test-args }} .
       - name: Run tests and collect coverage
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.CODECOV_TOKEN
+          && needs.variables.outputs.HAS_CODECOV_TOKEN
         run: deno test --coverage=cov ${{ inputs.test-args }} .
       - name: Generate coverage
         working-directory: ${{ inputs.working-directory }}
         if: |
           matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.CODECOV_TOKEN
-        run: deno coverage --lcov=cov ${{ inputs.test-args }} > cov.lcov
+          && needs.variables.outputs.HAS_CODECOV_TOKEN
+        run: deno coverage --lcov cov > cov.lcov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           files: ${{ inputs.working-directory }}/cov.lcov
-          token: ${{ needs.variables.outputs.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
         if: |
           matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.CODECOV_TOKEN
+          && needs.variables.outputs.HAS_CODECOV_TOKEN
