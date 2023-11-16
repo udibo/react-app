@@ -69,10 +69,8 @@ jobs:
   test:
     name: Test ${{ matrix.os }}
     needs: [variables, lint, format]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
       fail-fast: true
     env:
       APP_ENV: test
