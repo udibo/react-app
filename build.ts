@@ -118,7 +118,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       lazyImportLine(
         routeId,
         relativePath,
-        path.posix.join(relativePath, routeId === 0 ? "" : "../", file.react),
+        path.join(relativePath, routeId === 0 ? "" : "../", file.react),
       ),
     );
     routeText += `, element: <$${routeId} /> }`;
@@ -130,13 +130,13 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
           lazyImportLine(
             routeId,
             relativePath,
-            path.posix.join(relativePath, main.react),
+            path.join(relativePath, main.react),
           ),
         );
       } else {
         importLines.push(
           `import * as $${routeId++} from "./${
-            path.posix.join(relativePath, main.react)
+            path.join(relativePath, main.react)
           }";`,
           `let $${routeId};`,
           `if (($${routeId - 1} as RouteFile).ErrorFallback) {`,
@@ -166,8 +166,8 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
       importLines.push(
         lazyImportLine(
           routeId,
-          path.posix.join(relativePath, "index"),
-          path.posix.join(relativePath, index.react),
+          path.join(relativePath, "index"),
+          path.join(relativePath, index.react),
         ),
       );
       childRouteTexts.push(`{ index: true, element: <$${routeId} /> }`);
@@ -188,7 +188,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
         nextRouteId,
       } = routeFileData(
         routeId,
-        path.posix.join(relativePath, childRoute.name),
+        path.join(relativePath, childRoute.name),
         childRoute,
       );
       importLines.push(...childImportLines);
@@ -203,7 +203,7 @@ function routeFileData(routeId: number, relativePath: string, route: Route) {
         nextRouteId,
       } = routeFileData(
         routeId,
-        path.posix.join(relativePath, notFoundRoute.name),
+        path.join(relativePath, notFoundRoute.name),
         notFoundRoute,
       );
       importLines.push(...childImportLines);
@@ -256,7 +256,7 @@ function routerFileData(
       importLines.push(
         ...routeImportLines(
           routeId,
-          path.posix.join(relativePath, routeId > 0 ? "../" : "", file.react),
+          path.join(relativePath, routeId > 0 ? "../" : "", file.react),
         ),
       );
       fileText.push(`react:$${routeId}`);
@@ -267,7 +267,7 @@ function routerFileData(
       importLines.push(
         routerImportLine(
           routeId,
-          path.posix.join(relativePath, routeId > 0 ? "../" : "", file.oak),
+          path.join(relativePath, routeId > 0 ? "../" : "", file.oak),
         ),
       );
       fileText.push(`oak:$${routeId}`);
@@ -284,7 +284,7 @@ function routerFileData(
         importLines.push(
           ...routeImportLines(
             routeId,
-            path.posix.join(relativePath, main.react),
+            path.join(relativePath, main.react),
           ),
         );
         fileText.push(`react:$${routeId}`);
@@ -295,7 +295,7 @@ function routerFileData(
         importLines.push(
           routerImportLine(
             routeId,
-            path.posix.join(relativePath, main.oak),
+            path.join(relativePath, main.oak),
           ),
         );
         fileText.push(`oak:$${routeId}`);
@@ -313,7 +313,7 @@ function routerFileData(
         importLines.push(
           ...routeImportLines(
             routeId,
-            path.posix.join(relativePath, index.react),
+            path.join(relativePath, index.react),
           ),
         );
         fileText.push(`react:$${routeId}`);
@@ -324,7 +324,7 @@ function routerFileData(
         importLines.push(
           routerImportLine(
             routeId,
-            path.posix.join(relativePath, index.oak),
+            path.join(relativePath, index.oak),
           ),
         );
         fileText.push(`oak:$${routeId}`);
@@ -346,7 +346,7 @@ function routerFileData(
           nextRouteId,
         } = routerFileData(
           routeId,
-          path.posix.join(relativePath, name),
+          path.join(relativePath, name),
           childRoute,
         );
         importLines.push(...childImportLines);
