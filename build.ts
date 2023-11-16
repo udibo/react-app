@@ -1,6 +1,6 @@
 import { walk } from "std/fs/walk.ts";
 import { ensureDir } from "std/fs/ensure_dir.ts";
-import * as path from "std/path/mod.ts";
+import * as path from "std/path/posix/mod.ts";
 import * as esbuild from "x/esbuild/mod.js";
 import { denoPlugins } from "x/esbuild_deno_loader/mod.ts";
 
