@@ -121,9 +121,9 @@ function html<
  */
 export async function renderToReadableStream<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 >(
-  context: Context<State>,
+  context: Context<AppState>,
 ) {
   const { request, state } = context;
   const { route, providerFactory, Context } = state._app;
@@ -181,15 +181,13 @@ export async function renderToReadableStream<
 /**
  * A record of application state when handling a request.
  */
-export interface AppState<
+export interface ServerState<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
 > {
   /** Application state that is meant for internal use only. */
   _app: {
     route: RouteObject;
-    providerFactory: (
-      context: Context<AppState<AppContext>>,
-    ) => ComponentType<{ children: ReactNode }>;
+    providerFactory: ProviderFactory<AppContext>;
     Context: ReactContext<AppContext>;
   };
   /** A container for the application's data and functions. */
@@ -222,16 +220,24 @@ export interface AppState<
  */
 function defaultProviderFactory<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 >(
-  context: Context<AppState<AppContext>>,
+  context: Context<AppState>,
 ): ComponentType<{ children: ReactNode }> {
   return (({ children }) => <>{children}</>);
 }
 
+export type ProviderFactory<
+  AppContext extends Record<string, unknown> = Record<string, unknown>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
+> = (
+  context: Context<AppState>,
+) => ComponentType<{ children: ReactNode }>;
+
 /** An interface that represents the options for creating an App Router. */
 export interface AppRouterOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 > {
   /**
    * A react router route object.
@@ -244,9 +250,7 @@ export interface AppRouterOptions<
    */
   env?: AppEnvironment;
   /** Creates a provider that wraps the entire application. */
-  providerFactory?: (
-    context: Context<AppState<AppContext>>,
-  ) => ComponentType<{ children: ReactNode }>;
+  providerFactory?: ProviderFactory<AppContext, AppState>;
   /** A context object for the App. State stored within the AppContext will be serialized and shared with the browser. */
   Context?: ReactContext<AppContext>;
   /**
@@ -264,13 +268,13 @@ export interface AppRouterOptions<
    * }
    * ```
    */
-  renderToReadableStream?: typeof renderToReadableStream<AppContext, State>;
+  renderToReadableStream?: typeof renderToReadableStream<AppContext, AppState>;
   /**
    * The Oak router for the application.
    * The router object will be generated automatically for the application's routes.
    * The object is the default export from the `_main.ts` file in the routes directory.
    */
-  router?: Router;
+  router?: Router<AppState>;
   /**
    * The working directory of the application.
    * Defaults to the current working directory that the application is running from.
@@ -287,7 +291,7 @@ const TRAILING_SLASHES = /\/+$/;
  */
 export function createAppRouter<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 >(
   {
     route,
@@ -298,18 +302,22 @@ export function createAppRouter<
     router,
     workingDirectory,
     devPort,
-  }: AppRouterOptions<AppContext, State>,
+  }: AppRouterOptions<AppContext, AppState>,
 ) {
   renderAppToReadableStream ??=
-    renderToReadableStream as typeof renderToReadableStream<AppContext, State>;
-  router ??= new Router();
+    renderToReadableStream as typeof renderToReadableStream<
+      AppContext,
+      AppState
+    >;
+  router ??= new Router<AppState>();
   workingDirectory ??= Deno.cwd();
-  providerFactory ??= defaultProviderFactory as typeof defaultProviderFactory<
-    AppContext
+  providerFactory ??= defaultProviderFactory as ProviderFactory<
+    AppContext,
+    AppState
   >;
   Context ??= createAppContext<AppContext>();
 
-  const appRouter = new Router()
+  const appRouter = new Router<AppState>()
     .use(async (context, next) => {
       const { request, response } = context;
       const { pathname, search } = request.url;
@@ -320,13 +328,13 @@ export function createAppRouter<
         await next();
       }
     })
-    .use(async (context: Context<State>, next) => {
+    .use(async (context: Context<AppState>, next) => {
       const { request, response, state } = context;
       try {
         if (!state.app) {
           state._app = {
             route,
-            providerFactory: providerFactory!,
+            providerFactory: providerFactory! as ProviderFactory<AppContext>,
             Context: Context!,
           };
           state.app = {
@@ -392,7 +400,8 @@ export function createAppRouter<
 /** Creates a Udibo React App. */
 export function createApp<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
->(options: AppRouterOptions<AppContext>) {
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
+>(options: AppRouterOptions<AppContext, AppState>) {
   const app = new Application();
 
   const appRouter = createAppRouter(options);
@@ -428,7 +437,8 @@ export async function listeningDev(
 
 export interface ServeOptions<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-> extends AppRouterOptions<AppContext> {
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
+> extends AppRouterOptions<AppContext, AppState> {
   /** The port your application will listen on. */
   port?: number;
 }
@@ -500,8 +510,8 @@ export async function serve<
 export function errorBoundary<
   Params extends RouteParams<string> = RouteParams<string>,
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
->(boundary?: string): RouterMiddleware<string, Params, State> {
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
+>(boundary?: string): RouterMiddleware<string, Params, AppState> {
   return async (context, next) => {
     const { request, response, state } = context;
     const { app } = state;
@@ -526,8 +536,8 @@ export function errorBoundary<
  * It is used for all route components that do not have their own route middleware.
  * The defaultRouter is not meant to be used directly by the user and is for internal use only.
  */
-const defaultRouter = new Router()
-  .get("/", async (context: Context<AppState>) => {
+const defaultRouter = new Router<ServerState>()
+  .get("/", async (context: Context<ServerState>) => {
     await context.state.app.render();
   });
 
@@ -537,24 +547,24 @@ const defaultRouter = new Router()
  */
 export interface RouterDefinition<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 > {
   name: string;
-  parent?: RouterDefinition<AppContext, State>;
+  parent?: RouterDefinition<AppContext, AppState>;
   react?: boolean;
   file?: {
     react?: RouteFile;
-    oak?: Router<State>;
+    oak?: Router<AppState>;
   };
   main?: {
     react?: RouteFile;
-    oak?: Router<State>;
+    oak?: Router<AppState>;
   };
   index?: {
     react?: RouteFile;
-    oak?: Router<State>;
+    oak?: Router<AppState>;
   };
-  children?: Record<string, RouterDefinition<AppContext, State>>;
+  children?: Record<string, RouterDefinition<AppContext, AppState>>;
 }
 
 export const ROUTE_PARAM = /^\[(.+)]$/;
@@ -576,15 +586,15 @@ export function routerPathFromName(name: string) {
  */
 export function generateRouter<
   AppContext extends Record<string, unknown> = Record<string, unknown>,
-  State extends AppState<AppContext> = AppState<AppContext>,
+  AppState extends ServerState<AppContext> = ServerState<AppContext>,
 >(
-  options: RouterDefinition<AppContext, State>,
+  options: RouterDefinition<AppContext, AppState>,
   relativePath?: string,
   parentBoundary?: string,
-): Router<State> {
+): Router<AppState> {
   const { name, react, file, main, index, children, parent } = options;
 
-  const router = new Router<State>();
+  const router = new Router<AppState>();
   if (parent?.react && !react) {
     router.use(async ({ request, response }, next) => {
       try {
@@ -655,7 +665,7 @@ export function generateRouter<
     }
 
     if (children) {
-      let notFoundRouter: Router<State> | undefined = undefined;
+      let notFoundRouter: Router<AppState> | undefined = undefined;
       for (const [name, child] of Object.entries(children)) {
         child.parent = options;
         const childRouter = generateRouter(
