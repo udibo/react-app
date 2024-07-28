@@ -103,7 +103,7 @@ function App<
  *
  * Example usage:
  * ```tsx
- * import { hydrate } from "@udibo/react_app";
+ * import { hydrate } from "@udibo/react-app";
  * import route from "./routes/_main.tsx";
  *
  * hydrate({ route });

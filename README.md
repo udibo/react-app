@@ -6,6 +6,8 @@
 [![codecov](https://codecov.io/gh/udibo/react-app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react-app)
 [![license](https://img.shields.io/github/license/udibo/react-app)](https://github.com/udibo/react-app/blob/main/LICENSE)
 
+**NOTICE**: This is a WIP, not ready for use yet.
+
 A [React](https://reactjs.org/) Framework for [Deno](https://deno.land) that
 makes it easy to create highly interactive applications that have server side
 rendering with file based routing for both your UI and API.
@@ -34,23 +36,25 @@ more about usage.
 
 ### Examples
 
-This repository contains one example for manually testing changes. To use it as
-the base for a new project, you would need to update the `import_map.json` file
-and deno.jsonc file to use udibo_react_app from the deno.land/x registry. The
-deno task commands in `deno.jsonc` would need to also use your
-`import_map.json`.
+**NOTICE**: The examples in separate repositories have not been updated yet.
 
-- [Example](https://github.com/udibo/react_app_example): A basic example.
+This repository contains one example for manually testing changes. To use it as
+the base for a new project, you would need to update the `deno.jsonc` file to
+use @udibo/react-app from the jsr.io. It's recommended to just fork one of the
+many example repositories. The one linked below is the same as the one in the
+example directory.
+
+- [Example](https://github.com/udibo/react-app-example): A basic example.
 
 The following examples are forks of the first example. They demonstate how easy
 it is to extend Udibo React Apps. The README.md file in each of them describes
 how it was done.
 
-- [Tailwindcss Example](https://github.com/udibo/react_app_example_tailwindcss):
+- [Tailwindcss Example](https://github.com/udibo/react-app-example_tailwindcss):
   A basic example using
   [esbuild-plugin-postcss](https://github.com/deanc/esbuild-plugin-postcss) to
   add Tailwindcss.
-- [React Query Example](https://github.com/udibo/react_app_example_react_query):
+- [React Query Example](https://github.com/udibo/react-app-example-react-query):
   A basic example using [React Query](https://tanstack.com/query/latest) for
   asyncronous state management.
 
@@ -204,7 +208,7 @@ Here is an example of an simple ErrorFallback. If you'd like to use it as is,
 it's exported as DefaultErrorFallback.
 
 ```ts
-import { FallbackProps } from "x/udibo_react_app/mod.tsx";
+import { FallbackProps } from "@udibo/react-app";
 
 // ...
 
