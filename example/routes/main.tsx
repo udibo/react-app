@@ -1,12 +1,23 @@
-import { Suspense } from "npm/react";
-import { Link, Outlet } from "npm/react-router-dom";
-import { Helmet } from "npm/react-helmet-async";
+import { Suspense } from "react";
+import { Link, Outlet } from "npm:react-router-dom@6";
 import {
-  AppErrorBoundary,
   DefaultErrorFallback,
-} from "x/udibo_react_app/mod.tsx";
+  ErrorBoundary,
+  Helmet,
+  isBrowser,
+  isDevelopment,
+} from "@udibo/react-app";
+import * as log from "@std/log";
 
 import { Loading } from "../components/loading.tsx";
+
+if (isBrowser()) {
+  const level = isDevelopment() ? "DEBUG" : "INFO";
+  log.setup({
+    handlers: { default: new log.ConsoleHandler(level, { useColors: false }) },
+    loggers: { "react-app": { level, handlers: ["default"] } },
+  });
+}
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -34,9 +45,9 @@ export default function Main() {
         ))}
       </ul>
       <Suspense fallback={<Loading />}>
-        <AppErrorBoundary FallbackComponent={DefaultErrorFallback}>
+        <ErrorBoundary FallbackComponent={DefaultErrorFallback}>
           <Outlet />
-        </AppErrorBoundary>
+        </ErrorBoundary>
       </Suspense>
     </>
   );

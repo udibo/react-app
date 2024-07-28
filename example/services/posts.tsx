@@ -1,20 +1,20 @@
-import { useContext, useEffect, useState } from "npm/react";
+import { useEffect, useState } from "react";
 import {
+  ErrorResponse,
   HttpError,
-  HttpErrorOptions,
-  isBrowser,
-} from "x/udibo_react_app/mod.tsx";
+  isErrorResponse,
+  useInitialState,
+} from "@udibo/react-app";
 
-import { AppContext } from "../context.ts";
-import { Post } from "../models/posts.ts";
-import { ErrorResponse, isErrorResponse } from "../../error.tsx";
+import type { AppState } from "../state.ts";
+import type { Post } from "../models/posts.ts";
 
 const parseResponse = async (response: Response) => {
   let data;
   try {
     data = await response.json();
-  } catch (e) {
-    throw new HttpError(response.status, "Invalid response");
+  } catch (cause) {
+    throw new HttpError(response.status, "Invalid response", { cause });
   }
   if (isErrorResponse(data)) throw ErrorResponse.toError(data);
   if (response.status >= 400) {
@@ -23,55 +23,63 @@ const parseResponse = async (response: Response) => {
   return data;
 };
 
-export function getPosts() {
+export function getPosts(): { [id: number]: Post } | null {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const context = useContext(AppContext);
-  const [posts, setPosts] = useState<Post[] | null>(
-    Array.isArray(context.posts) ? context.posts : null,
+  const initialState = useInitialState<AppState>();
+  const [posts, setPosts] = useState<{ [id: number]: Post } | null>(
+    initialState.posts ?? null,
   );
-  if (isBrowser()) delete context.posts;
 
   useEffect(() => {
-    if (!posts) {
-      fetch("/api/blog/posts")
-        .then(parseResponse)
-        .then((posts: Post[]) => {
-          setPosts(posts);
-          setError(null);
-        })
-        .catch((error: unknown) => {
-          setPosts(null);
-          setError(HttpError.from(error));
-        });
-    }
+    fetch("/api/blog/posts")
+      .then(parseResponse)
+      .then((posts: Post[]) => {
+        setPosts(posts);
+        setError(null);
+      })
+      .catch((error: unknown) => {
+        setPosts(null);
+        setError(HttpError.from(error));
+      });
+
+    return () => {
+      delete initialState.posts;
+      setPosts(null);
+      setError(null);
+    };
   }, []);
 
   return posts;
 }
 
-export function getPost(id: number) {
+export function getPost(id: number): Post | null {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const context = useContext(AppContext);
-  const [post, setPost] = useState<Post | null>(context.posts?.[id] ?? null);
-  if (isBrowser()) delete context.posts;
+  const initialState = useInitialState<AppState>();
+  const [post, setPost] = useState<Post | null>(
+    initialState.posts?.[id] ?? null,
+  );
 
   useEffect(() => {
-    if (!post) {
-      fetch(`/api/blog/posts/${id}`)
-        .then(parseResponse)
-        .then((post: Post) => {
-          setPost(post);
-          setError(null);
-        })
-        .catch((error: unknown) => {
-          setPost(null);
-          setError(HttpError.from(error));
-        });
-    }
+    fetch(`/api/blog/posts/${id}`)
+      .then(parseResponse)
+      .then((post: Post) => {
+        setPost(post);
+        setError(null);
+      })
+      .catch((error: unknown) => {
+        setPost(null);
+        setError(HttpError.from(error));
+      });
+
+    return () => {
+      delete initialState.posts;
+      setPost(null);
+      setError(null);
+    };
   }, []);
 
   return post;

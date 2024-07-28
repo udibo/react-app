@@ -1,12 +1,10 @@
-import { Suspense } from "npm/react";
-import { Outlet } from "npm/react-router-dom";
-import { Helmet } from "npm/react-helmet-async";
-import {
-  AppErrorBoundary,
-  DefaultErrorFallback,
-} from "x/udibo_react_app/mod.tsx";
+import { Suspense } from "react";
+import { Outlet } from "react-router-dom";
+import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
 
 import { Loading } from "../../components/loading.tsx";
+
+export const boundary = "/blog";
 
 export default function Blog() {
   return (
@@ -16,15 +14,13 @@ export default function Blog() {
       </Helmet>
       <h1>Blog</h1>
       <Suspense fallback={<Loading />}>
-        <AppErrorBoundary
+        <ErrorBoundary
           FallbackComponent={DefaultErrorFallback}
-          boundary="/blog"
+          boundary={boundary}
         >
           <Outlet />
-        </AppErrorBoundary>
+        </ErrorBoundary>
       </Suspense>
     </>
   );
 }
-
-export const boundary = "/blog";

@@ -1,9 +1,10 @@
-import { Router } from "x/oak/mod.ts";
-import { HttpError } from "x/udibo_react_app/mod.tsx";
+import { HttpError } from "@udibo/react-app";
+import { Router } from "@udibo/react-app/server";
 
 import { getPost, getPosts } from "../../../services/posts.ts";
+import type { AppState } from "../../../state.ts";
 
-export default new Router()
+export default new Router<AppState>()
   .get("/", (context) => {
     const { response } = context;
     response.body = getPosts();

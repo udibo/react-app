@@ -1,24 +1,95 @@
 {
+  "name": "@udibo/react-app",
+  "version": "0.21.0",
+  "exports": {
+    ".": "./mod.tsx",
+    "./build": "./build.ts",
+    "./dev": "./dev.ts",
+    "./client": "./client.tsx",
+    "./server": "./server.tsx",
+    "./test-utils": "./test-utils.ts",
+    "./global-jsdom": "./global-jsdom.ts"
+  },
+  "publish": {
+    "include": [
+      "LICENSE",
+      "README.md",
+      "**/*.ts",
+      "**/*.tsx"
+    ],
+    "exclude": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "test-utils.tsx",
+      "example"
+    ]
+  },
   "tasks": {
+    // Builds the application.
     "build": "cd ./example && deno task build",
-    "run": "cd ./example && deno task run",
+    // Builds the application in development mode.
+    "build-dev": "cd ./example && deno task build-dev",
+    // Builds the application in production mode.
+    "build-prod": "cd ./example && deno task build-prod",
+    // Builds and runs the application in development mode, with hot reloading.
     "dev": "cd ./example && deno task dev",
-    "test": "export APP_ENV=test && deno test -A .",
-    "test-watch": "export APP_ENV=test && deno test -A --watch .",
+    // Runs the application. Requires the application to be built first.
+    "run": "cd ./example && deno task run",
+    // Runs the application in development mode. Requires the application to be built first.
+    "run-dev": "cd ./example && deno task run-dev",
+    // Runs the application in production mode. Requires the application to be built first.
+    "run-prod": "cd ./example && deno task run-prod",
+    // Runs the tests.
+    "test": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks",
+    // Runs the tests in watch mode.
+    "test-watch": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks --watch",
+    // Checks the formatting and runs the linter.
     "check": "deno lint && deno fmt --check",
-    "cache-reload": "cd ./example && deno task cache-reload",
+    // Gets your branch up to date with master after a squash merge.
     "git-rebase": "git fetch origin main && git rebase --onto origin/main HEAD"
   },
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
-    "jsxImportSource": "npm/react"
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
   },
   "lint": {
-    "exclude": ["example/public/build"]
+    "exclude": [
+      "example/public/build",
+      "example/routes/_main.ts",
+      "example/routes/_main.tsx"
+    ]
   },
   "fmt": {
     "exclude": ["example/public/build"]
   },
-  "importMap": "./import_map.json"
+  "imports": {
+    "@udibo/http-error": "jsr:@udibo/http-error@0",
+    "@udibo/react-app": "./mod.tsx",
+    "@udibo/react-app/build": "./build.tsx",
+    "@udibo/react-app/dev": "./dev.tsx",
+    "@udibo/react-app/server": "./server.tsx",
+    "@udibo/react-app/client": "./client.tsx",
+    "@udibo/react-app/test-utils": "./test-utils.tsx",
+    "@udibo/react-app/global-jsdom": "./global-jsdom.ts",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@0.10",
+    "@oak/oak": "jsr:@oak/oak@16",
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/async": "jsr:@std/async@1",
+    "@std/fs": "jsr:@std/fs@0",
+    "@std/log": "jsr:@std/log@0",
+    "@std/path": "jsr:@std/path@1",
+    "@std/testing": "jsr:@std/testing@0",
+    "esbuild": "npm:esbuild@0.20",
+    "react": "npm:react@18",
+    "@types/react": "npm:@types/react@18",
+    "react-dom": "npm:react-dom@18",
+    "react-error-boundary": "npm:react-error-boundary@4",
+    "react-router-dom": "npm:react-router-dom@6",
+    "react-helmet-async": "npm:react-helmet-async@2",
+    "serialize-javascript": "npm:serialize-javascript@6",
+    "@testing-library/react": "npm:@testing-library/react@16",
+    "global-jsdom": "npm:global-jsdom@24"
+  }
 }

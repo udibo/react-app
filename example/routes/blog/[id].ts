@@ -1,8 +1,8 @@
-import { AppState } from "x/udibo_react_app/server.tsx";
-import { HttpError } from "x/udibo_react_app/mod.tsx";
-import { Router } from "x/oak/mod.ts";
+import { HttpError } from "@udibo/react-app";
+import { Router } from "@udibo/react-app/server";
 
 import { getPost } from "../../services/posts.ts";
+import type { AppState } from "../../state.ts";
 
 export default new Router<AppState>()
   .get("/", async (context) => {
@@ -12,7 +12,7 @@ export default new Router<AppState>()
       throw new HttpError(400, "Invalid id");
     }
 
-    state.app.context.posts = {
+    state.app.initialState.posts = {
       [id]: getPost(id),
     };
     await state.app.render();
