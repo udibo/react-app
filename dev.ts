@@ -8,11 +8,12 @@
  * ```jsonc
  * "tasks": {
       // Builds and runs the application in development mode, with hot reloading.
- *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A @udibo/react-app/dev",
+ *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.21/dev",
  * }
  * ```
  *
  * Note: The `NODE_ENV` environment variable is set because some libraries like react use it to determine the environment.
+ * Calling it directly also requires you to specify the config file to use along with using a jsr specifier.
  *
  * If the default configuration settings are insufficient for your application, you can create a custom dev script like shown below:
  * ```ts

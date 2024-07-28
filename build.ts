@@ -7,7 +7,7 @@
  * ```jsonc
  * "tasks": {
  *   // Builds the application.
- *   "build": "deno run -A @udibo/react-app/build",
+ *   "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.21/build",
  *   // Builds the application in development mode.
  *   "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
  *   // Builds the application in production mode.
@@ -16,6 +16,7 @@
  * ```
  *
  * Note: The `NODE_ENV` environment variable is set because some libraries like react use it to determine the environment.
+ * Calling it directly also requires you to specify the config file to use along with using a jsr specifier.
  *
  * If the default configuration settings are insufficient for your application, you can create a build script like shown below:
  * ```ts
