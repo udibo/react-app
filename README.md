@@ -1,14 +1,14 @@
 # Udibo React App
 
-[![release](https://img.shields.io/badge/release-0.19.0-success)](https://github.com/udibo/react_app/releases/tag/0.19.0)
-[![deno doc](https://doc.deno.land/badge.svg)](https://deno.land/x/udibo_react_app@0.19.0)
-[![CI/CD](https://github.com/udibo/react_app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react_app/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/udibo/react_app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react_app)
-[![license](https://img.shields.io/github/license/udibo/react_app)](https://github.com/udibo/react_app/blob/main/LICENSE)
+[![JSR](https://jsr.io/badges/@udibo/react-app)](https://jsr.io/@udibo/react-app)
+[![JSR Score](https://jsr.io/badges/@udibo/react-app/score)](https://jsr.io/@udibo/react-app)
+[![CI/CD](https://github.com/udibo/react-app/actions/workflows/main.yml/badge.svg)](https://github.com/udibo/react-app/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/udibo/react-app/branch/main/graph/badge.svg?token=G5XCR01X8E)](https://codecov.io/gh/udibo/react-app)
+[![license](https://img.shields.io/github/license/udibo/react-app)](https://github.com/udibo/react-app/blob/main/LICENSE)
 
 A [React](https://reactjs.org/) Framework for [Deno](https://deno.land) that
-makes it easy to create highly interactive apps that have server side rendering
-with file based routing for both your UI and API.
+makes it easy to create highly interactive applications that have server side
+rendering with file based routing for both your UI and API.
 
 Apps are created using [React Router](https://reactrouter.com),
 [React Helmet Async](https://www.npmjs.com/package/react-helmet-async), and
@@ -29,16 +29,8 @@ Apps are created using [React Router](https://reactrouter.com),
 
 ## Usage
 
-This module has 2 entry points.
-
-- [mod.tsx](https://deno.land/x/udibo_react_app@0.19.0/mod.tsx): For use in code
-  that will be used both on the server and in the browser.
-- [server.tsx](https://deno.land/x/udibo_react_app@0.19.0/server.tsx): For use
-  in code that will only be used on the server.
-
-You can look at the [examples](#examples) and
-[deno docs](https://deno.land/x/udibo_react_app@0.19.0) to learn more about
-usage.
+You can look at the [examples](#examples) and documentation on JSR.io to learn
+more about usage.
 
 ### Examples
 
@@ -48,20 +40,19 @@ and deno.jsonc file to use udibo_react_app from the deno.land/x registry. The
 deno task commands in `deno.jsonc` would need to also use your
 `import_map.json`.
 
-- [Example](https://github.com/udibo/react_app_example): A basic example of a
-  Udibo React App.
+- [Example](https://github.com/udibo/react_app_example): A basic example.
 
 The following examples are forks of the first example. They demonstate how easy
 it is to extend Udibo React Apps. The README.md file in each of them describes
 how it was done.
 
-- [Twind Example](https://github.com/udibo/react_app_example_twind): A basic
-  example of a [Udibo React App](https://deno.land/x/udibo_react_app) using
-  [Twind](https://twind.style/) to add Tailwind v3 support.
+- [Tailwindcss Example](https://github.com/udibo/react_app_example_tailwindcss):
+  A basic example using
+  [esbuild-plugin-postcss](https://github.com/deanc/esbuild-plugin-postcss) to
+  add Tailwindcss.
 - [React Query Example](https://github.com/udibo/react_app_example_react_query):
-  A basic example of a [Udibo React App](https://deno.land/x/udibo_react_app)
-  using [React Query](https://tanstack.com/query/latest) for asyncronous state
-  management.
+  A basic example using [React Query](https://tanstack.com/query/latest) for
+  asyncronous state management.
 
 ### Tasks
 
@@ -69,16 +60,28 @@ To run the tests, use `deno task test` or `deno task test-watch`.
 
 To check formatting and run lint, use `deno task check`.
 
-To create a build and to run the build, use `deno task build` and
-`deno task run`. By default, the application builds and runs in development
-mode. To build and run a production build, set the `APP_ENV` environment
-variable to `production`.
+The following 2 commands can be used for creating builds.
+
+- `deno task build-dev`: Builds the application in development mode.
+- `deno task build-prod`: Builds the application in production mode.
+
+A build must be generated before you can run an application. You can use the
+following 2 commands to run the application.
+
+- `deno task run-dev`: Runs the application in development mode.
+- `deno task run-prod`: Runs the application in production mode.
 
 To run the application in development mode with live reloading, use
 `deno task dev`.
 
 When in development, identifiers are not minified and sourcemaps are generated
 and linked.
+
+The commands ending in `-dev` and `-prod` set the `APP_ENV` and `NODE_ENV`
+environment variables. The `NODE_ENV` environment variable is needed for react.
+If you use the `deno task build` or `deno task run` tasks, you should make sure
+that you set both of those environment variables. Those environment variables
+are also needed if you deploy to Deno Deploy.
 
 ### Deployment
 
@@ -103,8 +106,8 @@ of the example in this repository. The Helmet in the main route of a directory
 will apply to all routes within the directory.
 
 ```tsx
-import { Helmet } from "npm/react-helmet-async";
-// ...
+import { Helmet } from "react-helmet-async";
+
 <Helmet
   defaultTitle="Example"
   titleTemplate="Example | %s"
@@ -175,8 +178,9 @@ parameters are stored on the context's params property. The key for wildcard
 parameters will be "0".
 
 ```ts
-import { Router } from "x/oak/mod.ts";
-import { AppState } from "x/udibo_react_app/app_server.tsx";
+import { Router } from "@udibo/react-app/server";
+
+import { AppState } from "../state.ts";
 
 export default new Router<AppState>()
   .get("/", async (context) => {
@@ -269,23 +273,14 @@ routes directory. Those files are generated during the build process.
 - `_main.tsx`: Exports a React Router route object that connects all your React
   component files together.
 
-### Import map
-
-Deno has support for npm modules, however deno deploy doesn't yet. Because of
-that, the import map currently imports all npm modules from esm.sh. To ensure
-all npm dependencies are using the same version of react, they need to have
-their version pinned. Once Deno Deploy has npm support, I'll switch from using
-esm.sh to npm specifier imports.
-
 ### Disabling server side rendering
 
 All pages will be rendered server side by default. If you have a component you
 don't want to render on the server, you can disable it by having it return the
 fallback on the server. You can use `isServer()` to determine if the code is
-running on the server or in the browser. For example, in
-[example/routes/blog](example/routes/blog), you could have it only get the post
-when rendering in the browser by setting post to undefined when on the server
-like shown below.
+running on the server or in the browser. In the example's blog, you could have
+it only get the post when rendering in the browser by setting post to undefined
+when on the server like shown below.
 
 ```tsx
 const post = isServer() ? undefined : getPost(id);
@@ -316,10 +311,10 @@ The actual example currently does render the post on the server.
 
 To render a route that loads data on the server, you can add a matching Oak
 router that will cache the information being fetched before rendering the
-application. The example in this repository uses the AppContext to store the
-cached responses but that's not the only way to do it. It's recommended that you
-use a library like [React Query](https://tanstack.com/query/latest) to get your
-data.
+application. The example in this repository uses the application's initial state
+to store the cached responses but that's not the only way to do it. It's
+recommended that you use a library like
+[React Query](https://tanstack.com/query/latest) to get your data.
 
 ## Contributing
 

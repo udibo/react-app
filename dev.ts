@@ -1,32 +1,86 @@
-import * as path from "std/path/mod.ts";
-import { debounce } from "std/async/debounce.ts";
+/**
+ * This module provides a function for starting a development server that watches for changes in the file system.
+ * It will automatically rebuild the application and restart the server when changes are detected.
+ * The server will also notify any active browser sessions to reload the page once the new build is ready.
+ *
+ * If the default configuration settings work for building your application, you can run this script directly.
+ * To call it directly, add the following to your deno config file's tasks section:
+ * ```jsonc
+ * "tasks": {
+      // Builds and runs the application in development mode, with hot reloading.
+ *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A @udibo/react-app/dev",
+ * }
+ * ```
+ *
+ * Note: The `NODE_ENV` environment variable is set because some libraries like react use it to determine the environment.
+ *
+ * If the default configuration settings are insufficient for your application, you can create a custom dev script like shown below:
+ * ```ts
+ * import { startDev } from "@udibo/react-app/dev";
+ * import * as log from "@std/log";
+ *
+ * // Import the build options from the build script
+ * import { buildOptions } from "./build.ts";
+ *
+ * // You can enable dev script logging here or in a separate file that you import into this file.
+ * log.setup({
+ *   loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+ * });
+ *
+ * startDev({
+ *   buildOptions,
+ *   // Add your own options here
+ * });
+ * ```
+ *
+ * Then update your deno config file's tasks section to use your dev script:
+ * ```jsonc
+ * "tasks": {
+      // Builds and runs the application in development mode, with hot reloading.
+ *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A ./dev.ts",
+ * }
+ * ```
+ *
+ * @module
+ */
+
+import * as path from "@std/path";
+import { debounce } from "@std/async/debounce";
+import * as log from "@std/log";
 import {
   Application,
   Router,
   ServerSentEvent,
-  ServerSentEventTarget,
-} from "x/oak/mod.ts";
-import { getEnv, isTest } from "./env.ts";
+  type ServerSentEventTarget,
+} from "@oak/oak";
+
+import { isTest } from "./env.ts";
+import { getLogger } from "./log.ts";
+import { build, getBuildOptions, rebuild } from "./build.ts";
+import type { BuildOptions } from "./build.ts";
 
 const sessions = new Map<number, ServerSentEventTarget>();
 let nextSessionId = 0;
 
-function createDevApp(appPort = 9000) {
+function createDevApp() {
   const app = new Application();
   const router = new Router()
-    .get("/live-reload", (context) => {
+    .get("/live-reload", async (context) => {
       context.response.headers.set(
         "Access-Control-Allow-Origin",
-        `http://localhost:${appPort}`,
+        `*`,
       );
-      const target = context.sendEvents({ keepAlive: true });
+      const target = await context.sendEvents({ keepAlive: true });
 
       const sessionId = nextSessionId++;
       target.addEventListener("close", () => {
         sessions.delete(sessionId);
       });
       target.addEventListener("error", (event) => {
-        console.log("Live reload: Error", event);
+        if (sessions.has(sessionId)) {
+          getLogger().error("Live reload: Error", event);
+          console.log(event);
+        }
       });
       sessions.set(sessionId, target);
       target.dispatchMessage("Waiting");
@@ -35,7 +89,7 @@ function createDevApp(appPort = 9000) {
       response.status = 200;
 
       if (reload) {
-        console.log("Server restarted");
+        getLogger().info("Server restarted");
         reload = false;
         queueMicrotask(() => {
           for (const target of [...sessions.values()]) {
@@ -43,7 +97,7 @@ function createDevApp(appPort = 9000) {
           }
         });
       } else {
-        console.log("Server started");
+        getLogger().info("Server started");
       }
     });
 
@@ -55,7 +109,7 @@ function createDevApp(appPort = 9000) {
 
   app.addEventListener("listen", ({ hostname, port, secure }) => {
     const origin = `${secure ? "https://" : "http://"}${hostname}`;
-    console.log(`Live reload listening on: ${origin}:${port}`);
+    getLogger().info(`Live reload listening on: ${origin}:${port}`);
   });
 
   return app;
@@ -70,6 +124,7 @@ function runDev(entryPoint: string) {
   runProcess = runCommand.spawn();
 }
 
+let buildInit = false;
 let building = false;
 let buildAgain = false;
 let buildAgainFor = "";
@@ -77,11 +132,11 @@ let restarting = false;
 let restartAgain = false;
 let reload = false;
 
-const buildDevCommand = new Deno.Command(Deno.execPath(), {
-  args: ["task", "build"],
-  stdin: "null",
-});
-async function buildDev(entryPoint: string, changedPath?: string) {
+async function buildDev(
+  entryPoint: string,
+  buildOptions?: BuildOptions,
+  changedPath?: string,
+) {
   if (building) {
     buildAgain = true;
     buildAgainFor = changedPath ?? "";
@@ -93,23 +148,21 @@ async function buildDev(entryPoint: string, changedPath?: string) {
     building = true;
 
     if (changedPath) {
-      console.log(`Detected change: ${changedPath}`);
-    }
-
-    try {
-      await Deno.remove(buildDir, { recursive: true });
-    } catch {
-      // Ignore error
+      getLogger().info(`Detected change: ${changedPath}`);
     }
 
     let success = false;
     try {
-      const buildProcess = buildDevCommand.spawn();
-      success = (await buildProcess.status).success;
+      if (!buildInit) {
+        buildInit = true;
+        success = await build(buildOptions);
+      } else {
+        success = await rebuild();
+      }
     } finally {
       building = false;
       if (buildAgain) {
-        await buildDev(entryPoint, buildAgainFor);
+        await buildDev(entryPoint, buildOptions, buildAgainFor);
       } else if (success && runProcess) {
         await restartApp(entryPoint);
       }
@@ -124,7 +177,7 @@ async function restartApp(entryPoint: string) {
     restartAgain = false;
     reload = false;
     restarting = true;
-    console.log("Restarting app");
+    getLogger().info("Restarting app");
     queueMicrotask(() => {
       try {
         runProcess!.kill();
@@ -149,56 +202,67 @@ async function restartApp(entryPoint: string) {
   }
 }
 
-const cwd = Deno.cwd();
-const buildDir = path.resolve(
-  cwd,
-  `./public/${isTest() ? "test-" : ""}build`,
-);
-const artifacts = new Set();
-artifacts.add(path.resolve(cwd, "./routes/_main.tsx"));
-artifacts.add(path.resolve(cwd, "./routes/_main.ts"));
-
-function isBuildArtifact(pathname: string) {
-  return pathname.startsWith(buildDir) || artifacts.has(pathname);
-}
-
+/** The options for starting the dev script. */
 export interface DevOptions {
   /**
-   * Used to identify and ignore additional build artifacts created in your preBuild and postBuild functions.
+   * Used to identify and ignore build artifacts that should be ignored by the live reload script.
+   * This should be used to ignore files that are generated by the build script.
+   * If a build artifact is not ignored, the live reload script will trigger a rebuild and restart of the app repeatedly.
+   * The _main.ts and _main.tsx files in your routes directory are automatically ignored.
    */
-  isCustomBuildArtifact?: (pathname: string) => boolean;
-  /** The port that the application uses. Defaults to APP_PORT environment variable or 9000. */
-  appPort?: number;
-  /** The port for the dev script's live reload server. Defaults to DEV_PORT environment variable or 9001. */
+  isBuildArtifact?: (pathname: string) => boolean;
+  /** The port for the dev script's live reload server. Defaults to 9001. */
   devPort?: number;
-  /** The entry point for the application server. Defaults to getEnv("APP_ENTRY_POINT") or "./main.ts". */
+  /** The entry point for the application server. Defaults to "./main.ts". */
   entryPoint?: string;
+  /** The options used for building the application. */
+  buildOptions?: BuildOptions;
 }
 
 /**
  * Starts a file watcher for triggering new builds to be generated.
  * When changes are made, the app will be re-built and the app will be restarted.
  * Any active browser sessions will be reloaded once the new build is ready and the app has been restarted.
+ *
+ * This function can be used in a dev script like the following:
+ * ```ts
+ * import { startDev } from "@udibo/react-app/dev";
+ * import * as log from "@std/log";
+ *
+ * // Import the build options from the build script
+ * import { buildOptions } from "./build.ts";
+ *
+ * // You can enable dev script logging here or in a separate file that you import into this file.
+ * log.setup({
+ *  loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+ * });
+ *
+ * startDev({
+ *   buildOptions,
+ *   // Add your own options here
+ * });
+ * ```
  */
-export function startDev({
-  isCustomBuildArtifact,
-  appPort,
-  devPort,
-  entryPoint,
-}: DevOptions = {}) {
-  if (!appPort) {
-    const APP_PORT = +(getEnv("APP_PORT") ?? "");
-    if (APP_PORT && !isNaN(APP_PORT)) {
-      appPort = APP_PORT;
-    }
+export function startDev(options: DevOptions = {}): void {
+  const devPort = options.devPort ?? 9001;
+  const entryPoint = options.entryPoint ?? "./main.ts";
+  const {
+    isBuildArtifact: isCustomBuildArtifact,
+  } = options;
+  const buildOptions = getBuildOptions(options.buildOptions);
+
+  const { workingDirectory, routesUrl, publicUrl } = buildOptions;
+  const buildDir = path.resolve(
+    publicUrl,
+    `./${isTest() ? "test-" : ""}build`,
+  );
+  const artifacts = new Set();
+  artifacts.add(path.resolve(routesUrl, "./_main.tsx"));
+  artifacts.add(path.resolve(routesUrl, "./_main.ts"));
+
+  function isBuildArtifact(pathname: string) {
+    return pathname.startsWith(buildDir) || artifacts.has(pathname);
   }
-  if (!devPort) {
-    const DEV_PORT = +(getEnv("DEV_PORT") ?? "");
-    if (DEV_PORT && !isNaN(DEV_PORT)) {
-      devPort = DEV_PORT;
-    }
-  }
-  entryPoint ??= getEnv("APP_ENTRY_POINT") ?? "./main.ts";
 
   const shouldBuild = isCustomBuildArtifact
     ? ((pathname: string) =>
@@ -206,16 +270,16 @@ export function startDev({
     : ((pathname: string) => !isBuildArtifact(pathname));
 
   queueMicrotask(async () => {
-    await buildDev(entryPoint!);
-    console.log("Starting app");
+    await buildDev(entryPoint!, buildOptions);
+    getLogger().info("Starting app");
     queueMicrotask(() => runDev(entryPoint!));
   });
 
   async function watcher() {
-    console.log(`Watching ${cwd}`);
+    getLogger().info(`Watching ${workingDirectory}`);
     const build = debounce(
       (changedPath: string) =>
-        queueMicrotask(() => buildDev(entryPoint!, changedPath)),
+        queueMicrotask(() => buildDev(entryPoint!, buildOptions, changedPath)),
       20,
     );
     for await (const event of Deno.watchFs(Deno.cwd())) {
@@ -228,11 +292,15 @@ export function startDev({
   queueMicrotask(watcher);
 
   queueMicrotask(() => {
-    const app = createDevApp(appPort);
-    app.listen({ port: devPort ?? 9002 });
+    const app = createDevApp();
+    app.listen({ port: devPort });
   });
 }
 
 if (import.meta.main) {
+  log.setup({
+    loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+  });
+
   startDev();
 }

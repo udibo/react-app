@@ -1,12 +1,12 @@
-import { AppState } from "x/udibo_react_app/server.tsx";
-import { Router } from "x/oak/mod.ts";
+import { Router } from "@udibo/react-app/server";
 
 import { getPosts } from "../../services/posts.ts";
+import type { AppState } from "../../state.ts";
 
 export default new Router<AppState>()
   .get("/", async (context) => {
     const { state } = context;
 
-    state.app.context.posts = getPosts();
+    state.app.initialState.posts = getPosts();
     await state.app.render();
   });

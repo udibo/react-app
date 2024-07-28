@@ -1,6 +1,8 @@
-import { Router } from "x/oak/mod.ts";
+import { Router } from "@udibo/react-app/server";
 
-export default new Router()
+import type { AppState } from "../state.ts";
+
+export default new Router<AppState>()
   .use(async (context, next) => {
     const { request, response } = context;
     const start = Date.now();

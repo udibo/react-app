@@ -1,4 +1,4 @@
-import { Helmet } from "npm/react-helmet-async";
+import { Helmet } from "@udibo/react-app";
 
 export default function About() {
   return (

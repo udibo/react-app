@@ -1,5 +1,5 @@
-import { Link } from "npm/react-router-dom";
-import { Helmet } from "npm/react-helmet-async";
+import { Link } from "react-router-dom";
+import { Helmet } from "@udibo/react-app";
 
 import { getPosts } from "../../services/posts.tsx";
 
@@ -12,9 +12,9 @@ export default function BlogIndex() {
           <meta name="description" content="This is an example blog." />
         </Helmet>
         <ul>
-          {posts.map((post) => (
-            <li key={`${post.id}`}>
-              <Link to={`${post.id}`}>{post.title}</Link>
+          {Object.entries(posts).map(([id, post]) => (
+            <li key={`${id}`}>
+              <Link to={`${id}`}>{post.title}</Link>
             </li>
           ))}
         </ul>
