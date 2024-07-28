@@ -198,7 +198,7 @@ async function routeFileData(
       } else {
         const mainPath = path.join(relativePath, main.react);
         const mainMod = (await import(
-          "file://" + path.join(routesUrl, mainPath)
+          path.toFileUrl(path.join(routesUrl, mainPath)).toString()
         )) as RouteFile;
         importLines.push(`import * as $${routeId++} from "./${mainPath}";`);
         if (mainMod.ErrorFallback) {
