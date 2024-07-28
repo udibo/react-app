@@ -1,6 +1,6 @@
 {
   "name": "@udibo/react-app",
-  "version": "0.20.1",
+  "version": "0.20.2",
   "exports": {
     ".": "./mod.tsx",
     "./build": "./build.ts",
