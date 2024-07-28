@@ -586,6 +586,7 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
   getLogger().info("Building app");
   performance.mark("buildStart");
   let success = false;
+  let error: Error | null = null;
   try {
     const { workingDirectory, routesUrl: _routesUrl, publicUrl } =
       getBuildOptions(options);
@@ -641,8 +642,8 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
     });
     await context.rebuild();
     success = true;
-  } catch {
-    // Ignore error, esbuild already logs it
+  } catch (_error) {
+    error = _error;
   } finally {
     performance.mark("buildEnd");
     const measure = performance.measure("build", "buildStart", "buildEnd");
@@ -650,8 +651,16 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
       `Build ${success ? "completed" : "failed"} in ${
         Math.round(measure.duration)
       } ms`,
-      { duration: measure.duration },
     );
+    const message = `Build ${success ? "completed" : "failed"} in ${
+      Math.round(measure.duration)
+    } ms`;
+    const data = { duration: measure.duration };
+    if (success) {
+      getLogger().info(message, data);
+    } else {
+      getLogger().error(message, error, data);
+    }
   }
 
   return success;
@@ -669,20 +678,25 @@ export async function rebuild(): Promise<boolean> {
   getLogger().info("Building app");
   performance.mark("buildStart");
   let success = false;
+  let error: Error | null = null;
   try {
     await buildRoutes(routesUrl);
     await context.rebuild();
     success = true;
-  } catch {
-    // Ignore error, esbuild already logs it
+  } catch (_error) {
+    error = _error;
   } finally {
     performance.mark("buildEnd");
     const measure = performance.measure("build", "buildStart", "buildEnd");
-    getLogger()[success ? "info" : "error"](
-      `Build ${success ? "completed" : "failed"} in ${
-        Math.round(measure.duration)
-      } ms`,
-    );
+    const message = `Build ${success ? "completed" : "failed"} in ${
+      Math.round(measure.duration)
+    } ms`;
+    const data = { duration: measure.duration };
+    if (success) {
+      getLogger().info(message, data);
+    } else {
+      getLogger().error(message, error, data);
+    }
   }
 
   return success;
