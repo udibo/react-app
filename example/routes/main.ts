@@ -1,4 +1,5 @@
 import { Router } from "@udibo/react-app/server";
+import * as log from "@std/log";
 
 import type { AppState } from "../state.ts";
 
@@ -11,11 +12,9 @@ export default new Router<AppState>()
     } finally {
       const dt = Date.now() - start;
       response.headers.set("X-Response-Time", `${dt}ms`);
-      console.log({
-        status: response.status,
-        method: request.method,
-        href: request.url.href,
-        responseTime: dt,
-      });
+      log.info(
+        `${request.method} ${request.url.href}`,
+        { status: response.status, responseTime: dt },
+      );
     }
   });

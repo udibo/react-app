@@ -6,6 +6,7 @@ import {
   Helmet,
   isBrowser,
   isDevelopment,
+  logFormatter,
 } from "@udibo/react-app";
 import * as log from "@std/log";
 
@@ -14,7 +15,12 @@ import { Loading } from "../components/loading.tsx";
 if (isBrowser()) {
   const level = isDevelopment() ? "DEBUG" : "INFO";
   log.setup({
-    handlers: { default: new log.ConsoleHandler(level, { useColors: false }) },
+    handlers: {
+      default: new log.ConsoleHandler(level, {
+        formatter: logFormatter,
+        useColors: false,
+      }),
+    },
     loggers: { "react-app": { level, handlers: ["default"] } },
   });
 }
