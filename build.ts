@@ -60,8 +60,7 @@ import * as path from "@std/path/posix";
 import * as esbuild from "esbuild";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 
-import { isProduction, isTest } from "./mod.tsx";
-import type { RouteFile } from "./client.tsx";
+import { isDevelopment, isProduction, isTest, logFormatter } from "./mod.tsx";
 import { ROUTE_PARAM, ROUTE_WILDCARD, routePathFromName } from "./server.tsx";
 import { getLogger } from "./log.ts";
 
@@ -88,6 +87,7 @@ const TEST_PATH = /(\.|_)test(\.(?:js|jsx|ts|tsx))$/;
 const IGNORE_PATH = /(\/|\\)_[^\/\\]*(\.(?:js|jsx|ts|tsx))$/;
 const ROUTE_PATH = /(\.(?:js|jsx|ts|tsx))$/;
 const REACT_EXT = /(\.(?:jsx|tsx))$/;
+const ERROR_FALLBACK_EXPORT = /export\s+const\s+ErrorFallback\s*=/g;
 
 function addFileToDir(route: Route, name: string, ext: string) {
   const isReactFile = REACT_EXT.test(ext);
@@ -198,11 +198,9 @@ async function routeFileData(
         );
       } else {
         const mainPath = path.join(relativePath, main.react);
-        const mainMod = (await import(
-          path.toFileUrl(path.join(routesUrl, mainPath)).toString()
-        )) as RouteFile;
+        const mainMod = await Deno.readTextFile(path.join(routesUrl, mainPath));
         importLines.push(`import * as $${routeId++} from "./${mainPath}";`);
-        if (mainMod.ErrorFallback) {
+        if (ERROR_FALLBACK_EXPORT.test(mainMod)) {
           importLines.push(
             `const $${routeId} = withErrorBoundary($${routeId - 1}.default, {`,
             `  FallbackComponent: $${routeId - 1}.ErrorFallback,`,
@@ -572,6 +570,25 @@ export function getBuildOptions(
   };
 }
 
+function postBuild(success: boolean, error: Error | null) {
+  performance.mark("buildEnd");
+  const duration =
+    performance.measure("build", "buildStart", "buildEnd").duration;
+  const routesDuration =
+    performance.measure("esbuild", "routesStart", "esbuildStart").duration;
+  const esbuildDuration =
+    performance.measure("esbuild", "esbuildStart", "buildEnd").duration;
+  const message = `Build ${success ? "completed" : "failed"} in ${
+    Math.round(duration)
+  } ms`;
+  const data = { duration, esbuildDuration, routesDuration };
+  if (success) {
+    getLogger().info(message, data);
+  } else {
+    getLogger().error(message, error, data);
+  }
+}
+
 /**
  * Builds the application and all of it's routes.
  *
@@ -619,12 +636,14 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
         sourcemap: "linked",
       };
 
+    performance.mark("routesStart");
     await buildRoutes(routesUrl);
 
     const esbuildPlugins = options.esbuildPlugins ?? [];
     if (context) {
       throw new Error("Build already in progress");
     }
+    performance.mark("esbuildStart");
     context = await esbuild.context({
       plugins: [
         ...denoPlugins({ configPath }),
@@ -647,22 +666,7 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
   } catch (_error) {
     error = _error;
   } finally {
-    performance.mark("buildEnd");
-    const measure = performance.measure("build", "buildStart", "buildEnd");
-    getLogger()[success ? "info" : "error"](
-      `Build ${success ? "completed" : "failed"} in ${
-        Math.round(measure.duration)
-      } ms`,
-    );
-    const message = `Build ${success ? "completed" : "failed"} in ${
-      Math.round(measure.duration)
-    } ms`;
-    const data = { duration: measure.duration };
-    if (success) {
-      getLogger().info(message, data);
-    } else {
-      getLogger().error(message, error, data);
-    }
+    postBuild(success, error);
   }
 
   return success;
@@ -682,23 +686,15 @@ export async function rebuild(): Promise<boolean> {
   let success = false;
   let error: Error | null = null;
   try {
+    performance.mark("routesStart");
     await buildRoutes(routesUrl);
+    performance.mark("esbuildStart");
     await context.rebuild();
     success = true;
   } catch (_error) {
     error = _error;
   } finally {
-    performance.mark("buildEnd");
-    const measure = performance.measure("build", "buildStart", "buildEnd");
-    const message = `Build ${success ? "completed" : "failed"} in ${
-      Math.round(measure.duration)
-    } ms`;
-    const data = { duration: measure.duration };
-    if (success) {
-      getLogger().info(message, data);
-    } else {
-      getLogger().error(message, error, data);
-    }
+    postBuild(success, error);
   }
 
   return success;
@@ -721,6 +717,7 @@ export async function stop() {
  * This function can be used in a build script like the following:
  * ```ts
  * import { buildOnce, type BuildOptions } from "@udibo/react-app/build";
+ * import { logFormatter } from "@udibo/react-app";
  * import * as log from "@std/log";
  *
  * export const buildOptions: BuildOptions = {
@@ -729,8 +726,14 @@ export async function stop() {
  *
  * if (import.meta.main) {
  *   // You can enable build script logging here or in a separate file that you import into this file.
+ *   const level = isDevelopment() ? "DEBUG" : "INFO";
  *   log.setup({
- *     loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+ *     handlers: {
+ *       default: new log.ConsoleHandler(level, {
+ *         formatter: logFormatter,
+ *       }),
+ *     },
+ *     loggers: { "react-app": { level, handlers: ["default"] } },
  *   });
  *
  *   buildOnce(buildOptions);
@@ -746,8 +749,14 @@ export async function buildOnce(options: BuildOptions = {}): Promise<void> {
 }
 
 if (import.meta.main) {
+  const level = isDevelopment() ? "DEBUG" : "INFO";
   log.setup({
-    loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+    handlers: {
+      default: new log.ConsoleHandler(level, {
+        formatter: logFormatter,
+      }),
+    },
+    loggers: { "react-app": { level, handlers: ["default"] } },
   });
 
   buildOnce();

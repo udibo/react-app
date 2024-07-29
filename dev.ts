@@ -18,14 +18,21 @@
  * If the default configuration settings are insufficient for your application, you can create a custom dev script like shown below:
  * ```ts
  * import { startDev } from "@udibo/react-app/dev";
+ * import { logFormatter } from "@udibo/react-app";
  * import * as log from "@std/log";
  *
  * // Import the build options from the build script
  * import { buildOptions } from "./build.ts";
  *
  * // You can enable dev script logging here or in a separate file that you import into this file.
+ * const level = isDevelopment() ? "DEBUG" : "INFO";
  * log.setup({
- *   loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+ *   handlers: {
+ *     default: new log.ConsoleHandler(level, {
+ *       formatter: logFormatter,
+ *     }),
+ *   },
+ *   loggers: { "react-app": { level, handlers: ["default"] } },
  * });
  *
  * startDev({
@@ -55,10 +62,11 @@ import {
   type ServerSentEventTarget,
 } from "@oak/oak";
 
-import { isTest } from "./env.ts";
+import { isDevelopment, isTest } from "./env.ts";
 import { getLogger } from "./log.ts";
 import { build, getBuildOptions, rebuild } from "./build.ts";
 import type { BuildOptions } from "./build.ts";
+import { logFormatter } from "./mod.tsx";
 
 const sessions = new Map<number, ServerSentEventTarget>();
 let nextSessionId = 0;
@@ -299,8 +307,14 @@ export function startDev(options: DevOptions = {}): void {
 }
 
 if (import.meta.main) {
+  const level = isDevelopment() ? "DEBUG" : "INFO";
   log.setup({
-    loggers: { "react-app": { level: "INFO", handlers: ["default"] } },
+    handlers: {
+      default: new log.ConsoleHandler(level, {
+        formatter: logFormatter,
+      }),
+    },
+    loggers: { "react-app": { level, handlers: ["default"] } },
   });
 
   startDev();
