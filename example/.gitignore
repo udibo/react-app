@@ -6,3 +6,6 @@ routes/_main.ts
 
 # VSCode
 .vscode/*.log
+
+# Coverage
+coverage

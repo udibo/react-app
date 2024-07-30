@@ -1,120 +1,66 @@
 name: CI
 on:
   workflow_call:
-    inputs:
-      working-directory:
-        required: false
-        type: string
-        default: './'
-      app-directory:
-        required: false
-        type: string
-      lint-args:
-        required: false
-        type: string
-        default: ''
-      fmt-args:
-        required: false
-        type: string
-        default: ''
-      test-args:
-        required: false
-        type: string
-        default: ''
     secrets:
       CODECOV_TOKEN:
+        description: Repository codecov token
         required: false
 jobs:
-  variables:
-    name: Get variables
-    runs-on: ubuntu-latest
-    outputs:
-      DENO_DIR: ${{ steps.deno-dir.outputs.DENO_DIR }}
-      HAS_CODECOV_TOKEN: ${{ steps.secrets.outputs.HAS_CODECOV_TOKEN }}
-    steps:
-      - id: deno-dir
-        name: Get cache directory
-        run: |
-          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT;
-      - id: secrets
-        name: Check secrets
-        run: |
-          echo "HAS_CODECOV_TOKEN=${{ secrets.CODECOV_TOKEN != '' }}" >> $GITHUB_OUTPUT;
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
       - name: Setup deno
-        uses: denoland/setup-deno@main
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
       - name: Lint source files
-        working-directory: ${{ inputs.working-directory }}
-        run: deno lint ${{ inputs.lint-args }}
+        run: deno lint
   format:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
       - name: Setup deno
-        uses: denoland/setup-deno@main
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
       - name: Check formatting
-        working-directory: ${{ inputs.working-directory }}
-        run: deno fmt --check ${{ inputs.fmt-args }}
+        run: deno fmt --check
   test:
     name: Test ${{ matrix.os }}
-    needs: [variables, lint, format]
-    runs-on: ubuntu-latest
+    needs: [lint, format]
+    runs-on: ${{ matrix.os }}
     strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: true
-    env:
-      APP_ENV: test
-      DENO_DIR: ${{ needs.variables.outputs.DENO_DIR }}
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
       - name: Setup deno
-        uses: denoland/setup-deno@main
+        uses: denoland/setup-deno@v1
         with:
           deno-version: v1.x
-      - name: Cache Deno dependencies
-        uses: actions/cache@v3.2.3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: deno-dir-${{ hashFiles('deno.lock') }}
-          restore-keys: deno-dir-
       - name: Build
-        working-directory: ${{ inputs.app-directory || inputs.working-directory }}
-        run: deno task build
+        run: deno task build-dev
       - name: Run tests
-        working-directory: ${{ inputs.working-directory }}
-        if: |
-          matrix.os != 'ubuntu-latest'
-          || !needs.variables.outputs.HAS_CODECOV_TOKEN
-        run: deno test ${{ inputs.test-args }} .
+        if: matrix.os != 'ubuntu-latest'
+        run: deno task test
       - name: Run tests and collect coverage
-        working-directory: ${{ inputs.working-directory }}
-        if: |
-          matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.HAS_CODECOV_TOKEN
-        run: deno test --coverage=cov ${{ inputs.test-args }} .
+        if: matrix.os == 'ubuntu-latest'
+        run: deno task test --coverage
       - name: Generate coverage
-        working-directory: ${{ inputs.working-directory }}
-        if: |
-          matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.HAS_CODECOV_TOKEN
-        run: deno coverage --lcov cov > cov.lcov
+        if: matrix.os == 'ubuntu-latest'
+        run: deno coverage --lcov > coverage.lcov
       - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v4
         with:
-          files: ${{ inputs.working-directory }}/cov.lcov
-          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-        if: |
-          matrix.os == 'ubuntu-latest'
-          && needs.variables.outputs.HAS_CODECOV_TOKEN
+          files: coverage.lcov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

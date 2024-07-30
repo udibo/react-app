@@ -3,60 +3,34 @@ on:
   workflow_call:
     inputs:
       working-directory:
-        required: false
         type: string
-        default: './'
+        default: '.'
       entrypoint:
-        required: false
         type: string
         default: 'main.ts'
-      app-directory:
-        required: false
-        type: string
       project:
         required: true
         type: string
 jobs:
-  variables:
-    name: Get variables
-    runs-on: ubuntu-latest
-    outputs:
-      DENO_DIR: ${{ steps.deno_dir.outputs.DENO_DIR }}
-    steps:
-      - id: deno_dir
-        name: Get cache directory
-        run: |
-          echo "DENO_DIR=${{ runner.temp }}/deno_dir" >> $GITHUB_OUTPUT
   deploy:
     name: Deploy
-    needs: [variables]
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-    env:
-      APP_ENV: production
-      DENO_DIR: ${{ needs.variables.outputs.DENO_DIR }}
     steps:
       - name: Clone repository
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v4
       - name: Setup deno
         uses: denoland/setup-deno@main
         with:
           deno-version: v1.x
-      - name: Cache Deno dependencies
-        uses: actions/cache@v3.2.3
-        with:
-          path: ${{ env.DENO_DIR }}
-          key: deno-dir-prod-${{ hashFiles('deno.lock') }}
-          restore-keys: deno-dir-${{ hashFiles('deno.lock') }}
       - name: Build
-        working-directory: ${{ inputs.app-directory }}
-        run: deno task build
-      - name: Upload to Deno Deploy
+        working-directory: ${{ inputs.working-directory }}
+        run: deno task build-prod
+      - name: Deploy to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: ${{ inputs.project }}
           root: ${{ inputs.working-directory }}
-          entrypoint: '${{ inputs.app-directory || inputs.working-directory }}/${{ inputs.entrypoint }}'
-          import-map: '${{ inputs.app-directory || inputs.working-directory }}/import_map.json'
+          entrypoint: '${{ inputs.working-directory }}/${{ inputs.entrypoint }}'

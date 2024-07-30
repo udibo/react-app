@@ -42,7 +42,7 @@
     // Runs the tests.
     "test": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks",
     // Runs the tests in watch mode.
-    "test-watch": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks --watch",
+    "test-watch": "deno task test --watch",
     // Checks the formatting and runs the linter.
     "check": "deno lint && deno fmt --check",
     // Gets your branch up to date with master after a squash merge.
