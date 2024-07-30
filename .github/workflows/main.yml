@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        description: Repository codecov token
+        required: false
 jobs:
   ci:
     name: CI
     uses: ./.github/workflows/ci.yml
-    with:
-      app-directory: ./example
-      test-args: '-A'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   cd:
@@ -19,4 +21,4 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       project: udibo-react-app
-      app-directory: ./example
+      app-directory: example
