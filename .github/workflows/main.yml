@@ -21,4 +21,4 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       project: udibo-react-app
-      working-directory: ./example
+      app-directory: example
