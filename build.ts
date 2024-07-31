@@ -621,7 +621,10 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
     const { workingDirectory, routesUrl: _routesUrl, publicUrl } =
       getBuildOptions(options);
     routesUrl = path.resolve(_routesUrl);
-    const entryPoint = path.join(routesUrl, "./_main.tsx");
+    const entryPoint = path.relative(
+      workingDirectory,
+      path.join(routesUrl, "./_main.tsx"),
+    );
     let configPath = options.configPath ??
       path.join(workingDirectory!, "deno.json");
     if (!options.configPath && !await exists(configPath)) {
