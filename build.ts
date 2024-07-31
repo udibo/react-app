@@ -56,7 +56,7 @@ import { walk } from "@std/fs/walk";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { exists } from "@std/fs/exists";
 import * as log from "@std/log";
-import * as path from "@std/path/posix";
+import * as path from "@std/path";
 import * as esbuild from "esbuild";
 import { denoPlugins } from "@luca/esbuild-deno-loader";
 
@@ -129,7 +129,7 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
   const rootRoute = { name: "", children: {} } as Route;
 
   for await (
-    const entry of walk(routesUrl, {
+    const entry of walk(path.resolve(routesUrl), {
       includeDirs: false,
       match: [ROUTE_PATH],
       skip: [TEST_PATH, IGNORE_PATH],
@@ -137,7 +137,10 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
   ) {
     const parsedPath = path.parse(entry.path);
     const { name, ext, dir } = parsedPath;
-    const relativePath = path.relative(routesUrl, dir.replaceAll("\\", "/"));
+    const relativePath = path.relative(
+      routesUrl,
+      dir,
+    );
     const layers = relativePath.length ? relativePath.split("/") : [];
 
     let parentRoute = rootRoute;
@@ -161,8 +164,8 @@ async function generateRoutes(routesUrl: string): Promise<Route> {
 
 function lazyImportLine(routeId: number, routePath: string, filePath: string) {
   return `const $${routeId} = lazy(${
-    routePath ? `"/${routePath}", ` : ""
-  }() => import("./${filePath}"));`;
+    routePath ? `"/${routePath.replaceAll("\\", "/")}", ` : ""
+  }() => import("./${filePath.replaceAll("\\", "/")}"));`;
 }
 
 async function routeFileData(
@@ -180,7 +183,7 @@ async function routeFileData(
     importLines.push(
       lazyImportLine(
         routeId,
-        relativePath,
+        path.join(relativePath),
         path.join(relativePath, routeId === 0 ? "" : "../", file.react),
       ),
     );
@@ -192,13 +195,15 @@ async function routeFileData(
         importLines.push(
           lazyImportLine(
             routeId,
-            relativePath,
+            path.join(relativePath),
             path.join(relativePath, main.react),
           ),
         );
       } else {
         const mainPath = path.join(relativePath, main.react);
-        const mainMod = await Deno.readTextFile(path.join(routesUrl, mainPath));
+        const mainMod = await Deno.readTextFile(
+          path.join(routesUrl, mainPath),
+        );
         importLines.push(`import * as $${routeId++} from "./${mainPath}";`);
         if (ERROR_FALLBACK_EXPORT.test(mainMod)) {
           importLines.push(
@@ -291,13 +296,13 @@ async function routeFileData(
 
 function routeImportLines(routeId: number, relativePath: string) {
   return [
-    `import "./${relativePath}";`,
-    `import * as $${routeId} from "./${relativePath}";`,
+    `import "./${relativePath.replaceAll("\\", "/")}";`,
+    `import * as $${routeId} from "./${relativePath.replaceAll("\\", "/")}";`,
   ];
 }
 
 function routerImportLine(routeId: number, relativePath: string) {
-  return `import $${routeId} from "./${relativePath}";`;
+  return `import $${routeId} from "./${relativePath.replaceAll("\\", "/")}";`;
 }
 
 function routerFileData(
@@ -572,12 +577,18 @@ export function getBuildOptions(
 
 function postBuild(success: boolean, error: Error | null) {
   performance.mark("buildEnd");
-  const duration =
-    performance.measure("build", "buildStart", "buildEnd").duration;
-  const routesDuration =
-    performance.measure("esbuild", "routesStart", "esbuildStart").duration;
-  const esbuildDuration =
-    performance.measure("esbuild", "esbuildStart", "buildEnd").duration;
+  let duration: number = 0;
+  let routesDuration: number | null = null;
+  let esbuildDuration: number | null = null;
+  try {
+    duration = performance.measure("build", "buildStart", "buildEnd").duration;
+    routesDuration =
+      performance.measure("esbuild", "routesStart", "esbuildStart").duration;
+    esbuildDuration =
+      performance.measure("esbuild", "esbuildStart", "buildEnd").duration;
+  } catch {
+    // Ignore measurement errors
+  }
   const message = `Build ${success ? "completed" : "failed"} in ${
     Math.round(duration)
   } ms`;
@@ -609,7 +620,7 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
   try {
     const { workingDirectory, routesUrl: _routesUrl, publicUrl } =
       getBuildOptions(options);
-    routesUrl = _routesUrl;
+    routesUrl = path.resolve(_routesUrl);
     const entryPoint = path.join(routesUrl, "./_main.tsx");
     let configPath = options.configPath ??
       path.join(workingDirectory!, "deno.json");
