@@ -30,10 +30,15 @@
     "jsxImportSourceTypes": "@types/react"
   },
   "lint": {
-    "exclude": ["public/build", "routes/_main.ts", "routes/_main.tsx"]
+    "exclude": [
+      "coverage",
+      "public/build",
+      "routes/_main.ts",
+      "routes/_main.tsx"
+    ]
   },
   "fmt": {
-    "exclude": ["public/build"]
+    "exclude": ["coverage", "public/build"]
   },
   "imports": {
     "@udibo/http-error": "jsr:@udibo/http-error@0",

@@ -13,7 +13,9 @@
   "publish": {
     "include": [
       "LICENSE",
-      "README.md",
+      "**/*.json",
+      "**/*.jsonc",
+      "**/*.md",
       "**/*.ts",
       "**/*.tsx"
     ],
@@ -21,7 +23,8 @@
       "**/*.test.ts",
       "**/*.test.tsx",
       "test-utils.tsx",
-      "example"
+      "example",
+      "coverage"
     ]
   },
   "tasks": {
@@ -56,13 +59,14 @@
   },
   "lint": {
     "exclude": [
+      "coverage",
       "example/public/build",
       "example/routes/_main.ts",
       "example/routes/_main.tsx"
     ]
   },
   "fmt": {
-    "exclude": ["example/public/build"]
+    "exclude": ["coverage", "example/public/build"]
   },
   "imports": {
     "@udibo/http-error": "jsr:@udibo/http-error@0",
