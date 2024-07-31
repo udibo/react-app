@@ -66,6 +66,7 @@
     "react-helmet-async": "npm:react-helmet-async@2",
     "serialize-javascript": "npm:serialize-javascript@6",
     "@testing-library/react": "npm:@testing-library/react@16",
-    "global-jsdom": "npm:global-jsdom@24"
+    "global-jsdom": "npm:global-jsdom@24",
+    "@tanstack/query": "npm:@tanstack/query@5"
   }
 }
