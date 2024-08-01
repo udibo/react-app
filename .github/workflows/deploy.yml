@@ -2,16 +2,16 @@ name: Deploy
 on:
   workflow_call:
     inputs:
-      working-directory:
-        type: string
-        default: '.'
       app-directory:
+        description: The directory containing the application to deploy
         type: string
         default: '.'
       entrypoint:
+        description: The entrypoint file for running your application
         type: string
         default: 'main.ts'
       project:
+        description: The Deno Deploy project to deploy to
         required: true
         type: string
 jobs:
@@ -29,11 +29,10 @@ jobs:
         with:
           deno-version: v1.x
       - name: Build
-        working-directory: ${{ inputs.working-directory }}
+        working-directory: ${{ inputs.app-directory }}
         run: deno task build-prod
       - name: Deploy to Deno Deploy
         uses: denoland/deployctl@v1
         with:
           project: ${{ inputs.project }}
-          root: ${{ inputs.working-directory }}
           entrypoint: '${{ inputs.app-directory }}/${{ inputs.entrypoint }}'
