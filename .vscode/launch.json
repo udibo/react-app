@@ -3,7 +3,7 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "deno task: build",
+      "name": "build",
       "type": "node",
       "program": "${workspaceFolder}/build.ts",
       "cwd": "${workspaceFolder}/example",
@@ -14,13 +14,14 @@
         "--inspect-wait"
       ],
       "env": {
-        "APP_ENV": "production"
+        "APP_ENV": "development",
+        "NODE_ENV": "development"
       },
       "attachSimplePort": 9229
     },
     {
       "request": "launch",
-      "name": "deno task: run",
+      "name": "run",
       "type": "node",
       "program": "${workspaceFolder}/example/main.ts",
       "cwd": "${workspaceFolder}/example",
@@ -31,13 +32,14 @@
         "--inspect-wait"
       ],
       "env": {
-        "APP_ENV": "production"
+        "APP_ENV": "development",
+        "NODE_ENV": "development"
       },
       "attachSimplePort": 9229
     },
     {
       "request": "launch",
-      "name": "deno task: test",
+      "name": "test",
       "type": "node",
       "program": ".",
       "cwd": "${workspaceFolder}",
@@ -48,7 +50,8 @@
         "--inspect-wait"
       ],
       "env": {
-        "APP_ENV": "test"
+        "APP_ENV": "test",
+        "NODE_ENV": "development"
       },
       "attachSimplePort": 9229
     }
