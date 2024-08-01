@@ -29,6 +29,7 @@
       "jsr:@std/internal@^1.0.1": "jsr:@std/internal@1.0.1",
       "jsr:@std/io@0.223": "jsr:@std/io@0.223.0",
       "jsr:@std/io@^0.224.3": "jsr:@std/io@0.224.3",
+      "jsr:@std/json@^0.213.1": "jsr:@std/json@0.213.1",
       "jsr:@std/jsonc@0.213": "jsr:@std/jsonc@0.213.1",
       "jsr:@std/log@0": "jsr:@std/log@0.224.5",
       "jsr:@std/media-types@0.223": "jsr:@std/media-types@0.223.0",
@@ -171,10 +172,14 @@
       "@std/io@0.224.3": {
         "integrity": "b402edeb99c6b3778d9ae3e9927bc9085b170b41e5a09bbb7064ab2ee394ae2f"
       },
+      "@std/json@0.213.1": {
+        "integrity": "f572b1de605d07c4a5602445dac54bfc51b1fb87a3710a17aed2608bfca54e68"
+      },
       "@std/jsonc@0.213.1": {
         "integrity": "5578f21aa583b7eb7317eed077ffcde47b294f1056bdbb9aacec407758637bfe",
         "dependencies": [
-          "jsr:@std/assert@^0.213.1"
+          "jsr:@std/assert@^0.213.1",
+          "jsr:@std/json@^0.213.1"
         ]
       },
       "@std/log@0.224.5": {
@@ -887,6 +892,7 @@
       "jsr:@std/path@1",
       "jsr:@std/testing@0",
       "jsr:@udibo/http-error@0",
+      "npm:@tanstack/query@5",
       "npm:@testing-library/react@16",
       "npm:@types/react@18",
       "npm:esbuild@0.20",
