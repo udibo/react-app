@@ -4,11 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_call:
-    secrets:
-      CODECOV_TOKEN:
-        description: Repository codecov token
-        required: false
 jobs:
   ci:
     name: CI
