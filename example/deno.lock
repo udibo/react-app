@@ -301,7 +301,7 @@
       "npm:@tanstack/query@5",
       "npm:@testing-library/react@16",
       "npm:@types/react@18",
-      "npm:esbuild@0.20",
+      "npm:esbuild@0.23",
       "npm:global-jsdom@24",
       "npm:react-dom@18",
       "npm:react-error-boundary@4",
