@@ -84,7 +84,7 @@
     "@std/fs": "jsr:@std/fs@0",
     "@std/log": "jsr:@std/log@0",
     "@std/path": "jsr:@std/path@1",
-    "@std/testing": "jsr:@std/testing@0",
+    "@std/testing": "jsr:@std/testing@1",
     "esbuild": "npm:esbuild@0.20",
     "react": "npm:react@18",
     "@types/react": "npm:@types/react@18",
