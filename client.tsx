@@ -180,18 +180,25 @@ export function lazy<
     : undefined;
   if (typeof boundaryOrFactory !== "string") factory = boundaryOrFactory;
   return reactLazy(async () => {
-    const { default: Component, ErrorFallback, boundary: boundaryOverride } =
-      await factory!();
-    const errorBoundaryProps = {
-      FallbackComponent: ErrorFallback,
-    } as ErrorBoundaryProps;
-    if (boundaryOverride) boundary = boundaryOverride;
-    if (boundary) errorBoundaryProps.boundary = boundaryOverride ?? boundary;
+    try {
+      const { default: Component, ErrorFallback, boundary: boundaryOverride } =
+        await factory!();
+      const errorBoundaryProps = {
+        FallbackComponent: ErrorFallback,
+      } as ErrorBoundaryProps;
+      if (boundaryOverride) boundary = boundaryOverride;
+      if (boundary) errorBoundaryProps.boundary = boundaryOverride ?? boundary;
 
-    return {
-      default: errorBoundaryProps.FallbackComponent
-        ? withErrorBoundary(Component, errorBoundaryProps)
-        : Component,
-    };
+      return {
+        default: errorBoundaryProps.FallbackComponent
+          ? withErrorBoundary(Component, errorBoundaryProps)
+          : Component,
+      };
+    } catch (error) {
+      const log = getLogger();
+      log.error("Error loading component", error, { boundary });
+      window.location.reload();
+      throw error;
+    }
   });
 }
