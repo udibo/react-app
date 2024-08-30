@@ -1,29 +1,9 @@
 import { Suspense } from "react";
-import { Link, Outlet } from "npm:react-router-dom@6";
-import {
-  DefaultErrorFallback,
-  ErrorBoundary,
-  Helmet,
-  isBrowser,
-  isDevelopment,
-  logFormatter,
-} from "@udibo/react-app";
-import * as log from "@std/log";
+import { Link, Outlet } from "react-router-dom";
+import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
+import "../log.ts";
 
 import { Loading } from "../components/loading.tsx";
-
-if (isBrowser()) {
-  const level = isDevelopment() ? "DEBUG" : "INFO";
-  log.setup({
-    handlers: {
-      default: new log.ConsoleHandler(level, {
-        formatter: logFormatter,
-        useColors: false,
-      }),
-    },
-    loggers: { "react-app": { level, handlers: ["default"] } },
-  });
-}
 
 const navLinks = [
   { label: "Home", to: "/" },

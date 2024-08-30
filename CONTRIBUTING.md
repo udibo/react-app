@@ -1,7 +1,7 @@
 # Contributing
 
-To contribute, create an issue or comment on an existing issue you would like to
-work on. All code contributions require test coverage and must pass
+To contribute, create an issue or comment on an existing issue that you would
+like to work on. All code contributions require test coverage and must pass
 formatting/lint checks before being approved and merged.
 
 ## Prerequisites
@@ -27,3 +27,5 @@ To run the application in development mode with live reloading, use
 This repository uses squash merging. If your branch is merged into main, you can
 get your branch back up to date with `deno task git-rebase`. Alternatively, you
 can delete your branch and create a new one off of the main branch.
+
+To learn more about working on this framework, see the [documentation](docs).

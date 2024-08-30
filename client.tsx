@@ -42,7 +42,7 @@ type AppOptions = HydrateOptions;
  * @param options - The configuration for rendering the application.
  */
 function App<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -80,8 +80,8 @@ function App<
     globalThis.addEventListener("beforeunload", () => source.close());
   }
 
-  const initialState = (window as AppWindow<AppState>).app?.initialState ??
-    {} as AppState;
+  const initialState = (window as AppWindow<SharedState>).app?.initialState ??
+    {} as SharedState;
   const appErrorContext = { error };
   return (
     <StrictMode>
@@ -114,7 +114,7 @@ function App<
  *              The route object is the default export from the generated `_main.tsx` file in your routes directory.
  */
 export function hydrate<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -124,7 +124,7 @@ export function hydrate<
     startTransition(() => {
       hydrateRoot(
         document.getElementById("root"),
-        <App<AppState> route={route} />,
+        <App<SharedState> route={route} />,
       );
     });
 

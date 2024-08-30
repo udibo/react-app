@@ -1,9 +1,7 @@
 import { Router } from "@udibo/react-app/server";
 import * as log from "@std/log";
 
-import type { AppState } from "../state.ts";
-
-export default new Router<AppState>()
+export default new Router()
   .use(async (context, next) => {
     const { request, response } = context;
     const start = Date.now();
