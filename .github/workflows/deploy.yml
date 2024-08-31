@@ -5,7 +5,7 @@ on:
       app-directory:
         description: The directory containing the application to deploy
         type: string
-        default: ''
+        default: '.'
       entrypoint:
         description: The entrypoint file for running your application
         type: string
