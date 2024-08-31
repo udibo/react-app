@@ -4,5 +4,8 @@
 # Coverage
 coverage
 
+# Node modules
+node_modules
+
 # WIP
 test-utils.tsx

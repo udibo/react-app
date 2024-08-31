@@ -38,12 +38,12 @@ export type { HttpErrorOptions } from "./error.tsx";
  * @returns The initial state of the application.
  */
 export function useInitialState<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
->(): AppState {
-  return useContext(InitialStateContext) as AppState;
+>(): SharedState {
+  return useContext(InitialStateContext) as SharedState;
 }
 
 /**

@@ -3,10 +3,9 @@ import { serve } from "@udibo/react-app/server";
 
 import route from "./routes/_main.tsx";
 import router from "./routes/_main.ts";
-import type { AppState } from "./state.ts";
 import "./log.ts";
 
-await serve<AppState>({
+await serve({
   port: 9000,
   router,
   route,

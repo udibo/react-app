@@ -9,3 +9,6 @@ routes/_main.ts
 
 # Coverage
 coverage
+
+# Node modules
+node_modules

@@ -633,6 +633,7 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
     if (!await exists(configPath)) {
       throw new Error("Could not find deno config file");
     }
+    configPath = path.resolve(configPath);
 
     const outdir = path.join(
       publicUrl,

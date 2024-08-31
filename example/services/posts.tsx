@@ -6,8 +6,7 @@ import {
   useInitialState,
 } from "@udibo/react-app";
 
-import type { AppState } from "../state.ts";
-import type { Post } from "../models/posts.ts";
+import type { Post, PostsState } from "../models/posts.ts";
 
 const parseResponse = async (response: Response) => {
   let data;
@@ -27,7 +26,7 @@ export function getPosts(): { [id: number]: Post } | null {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const initialState = useInitialState<AppState>();
+  const initialState = useInitialState<PostsState>();
   const [posts, setPosts] = useState<{ [id: number]: Post } | null>(
     initialState.posts ?? null,
   );
@@ -58,7 +57,7 @@ export function getPost(id: number): Post | null {
   const [error, setError] = useState<Error | null>(null);
   if (error) throw error;
 
-  const initialState = useInitialState<AppState>();
+  const initialState = useInitialState<PostsState>();
   const [post, setPost] = useState<Post | null>(
     initialState.posts?.[id] ?? null,
   );

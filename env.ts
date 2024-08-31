@@ -8,7 +8,7 @@ export const _env = {
 
 /** A JSON representation of the initial app state. */
 export interface AppData<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -16,7 +16,7 @@ export interface AppData<
   /** The environment that the application is running in. */
   env: string;
   /** The initial state for the app. */
-  initialState: AppState;
+  initialState: SharedState;
   /** The error that occurred when rendering the apps initially. */
   error?: HttpErrorOptions;
   /** The port for the dev script's live reload server. Defaults to 9001. */
@@ -27,12 +27,12 @@ export interface AppData<
  * A type representing the browser's window object augmented with an `app` property that is used for internal purposes only.
  */
 export type AppWindow<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 > = typeof window & {
-  app?: AppData<AppState>;
+  app?: AppData<SharedState>;
 };
 
 /**

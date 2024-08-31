@@ -37,13 +37,13 @@ if (isBrowser()) {
  * An interface that defines the configuration for generating the HTML that wraps the server-side rendered React application.
  */
 interface HTMLOptions<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 > {
   helmet: HelmetServerState;
-  initialState: AppState;
+  initialState: SharedState;
   error?: HttpError<{ boundary?: string }>;
   devPort?: number;
 }
@@ -55,12 +55,12 @@ interface HTMLOptions<
  * @returns An object containing the start and end of the HTML that wraps the server-side rendered React application.
  */
 function html<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 >(
-  options: HTMLOptions<AppState>,
+  options: HTMLOptions<SharedState>,
 ): { start: string; end: string } {
   const { helmet, initialState, devPort, error } = options;
   const errorJSON = HttpError.json(error);
@@ -169,12 +169,12 @@ interface RenderOptions {
  * @returns A readable stream that can be returned to the client.
  */
 async function renderAppToReadableStream<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 >(
-  context: Context<AppState>,
+  context: Context<SharedState>,
   options: RenderOptions,
 ) {
   const { request, response, state } = context;
@@ -233,7 +233,7 @@ async function renderAppToReadableStream<
  */
 export interface State<
   /** The initial state that is used to render the application. */
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -243,7 +243,7 @@ export interface State<
    * It will be serialized and sent to the browser.
    * These initialState can be accessed from the React application using `useInitialState`.
    */
-  initialState: AppState;
+  initialState: SharedState;
   /** A function that renders the application to a readable stream and responds to the request with it. */
   render: () => Promise<void>;
 }
@@ -255,32 +255,32 @@ export interface State<
  */
 export class Router<
   /** The initial state that is used to render the application. */
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
   RouterState extends oak.State = Record<string, unknown>,
-> extends oak.Router<RouterState & { app: State<AppState> }> {}
+> extends oak.Router<RouterState & { app: State<SharedState> }> {}
 
 /**
  * Provides context about the current request and response to middleware functions.
  * This should be used when in handlers that could render the application.
  */
 export type Context<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
   ContextState extends ApplicationState = oak.State,
   ApplicationState extends oak.State = Record<string, unknown>,
 > = oak.Context<
-  ContextState & { app: State<AppState> },
+  ContextState & { app: State<SharedState> },
   ApplicationState
 >;
 
 /** The options for creating the application. */
 export interface ApplicationOptions<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -292,7 +292,7 @@ export interface ApplicationOptions<
    * Data can be added to it before the application is rendered.
    * These initialState can be accessed from the React application using `useInitialState`.
    */
-  initialState?: AppState;
+  initialState?: SharedState;
   /**
    * The React Router route for the application.
    * The build script will automatically generate this for your application's routes.
@@ -304,7 +304,7 @@ export interface ApplicationOptions<
    * The build script will automatically generate this for your application's routes.
    * The router object is the default export from the `_main.ts` file in the routes directory.
    */
-  router: Router<AppState, ApplicationState>;
+  router: Router<SharedState, ApplicationState>;
   /**
    * The working directory of the application.
    * Defaults to the current working directory that the application is running from.
@@ -318,13 +318,13 @@ const TRAILING_SLASHES = /\/+$/;
 
 /** An application server. */
 export class Application<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
   ApplicationState extends oak.State = Record<string, unknown>,
-> extends oak.Application<ApplicationState & { app: State<AppState> }> {
-  constructor(options: ApplicationOptions<AppState, ApplicationState>) {
+> extends oak.Application<ApplicationState & { app: State<SharedState> }> {
+  constructor(options: ApplicationOptions<SharedState, ApplicationState>) {
     const {
       initialState,
       route,
@@ -337,7 +337,7 @@ export class Application<
     const workingDirectory = _workingDirectory ?? Deno.cwd();
     const handler = createStaticHandler([route]);
 
-    const appRouter = new Router<AppState, ApplicationState>()
+    const appRouter = new Router<SharedState, ApplicationState>()
       .use(async (context, next) => {
         const { request, response } = context;
         const { pathname, search } = request.url;
@@ -348,13 +348,13 @@ export class Application<
           await next();
         }
       })
-      .use(async (context: Context<AppState, ApplicationState>, next) => {
+      .use(async (context: Context<SharedState, ApplicationState>, next) => {
         const { response, state } = context;
         let error: HttpError | undefined = undefined;
         try {
           if (!state.app) {
             state.app = {
-              initialState: structuredClone(initialState) ?? {} as AppState,
+              initialState: structuredClone(initialState) ?? {} as SharedState,
               render: async () => {
                 response.type = "html";
                 response.body = await renderAppToReadableStream!(context, {
@@ -433,19 +433,19 @@ export async function listeningDev(
 
 /** The options to create and start an application server. */
 export type ServeOptions<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
-> = ApplicationOptions<AppState> & oak.ListenOptions;
+> = ApplicationOptions<SharedState> & oak.ListenOptions;
 
 /** Creates and starts an application server. */
 export async function serve<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
->(options: ServeOptions<AppState>) {
+>(options: ServeOptions<SharedState>) {
   const { port, hostname, secure, signal, ...appOptions } = options;
   const app = new Application(appOptions);
 
@@ -512,7 +512,7 @@ export async function serve<
 export function errorBoundary<
   RouteParams extends oak.RouteParams<string> = oak.RouteParams<string>,
   /** The initial state that is used to render the application. */
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
@@ -522,7 +522,7 @@ export function errorBoundary<
 ): oak.RouterMiddleware<
   string,
   RouteParams,
-  RouterState & { app: State<AppState> }
+  RouterState & { app: State<SharedState> }
 > {
   return async (_context, next) => {
     try {
@@ -551,27 +551,27 @@ const defaultRouter = new Router()
  * This interface is meant for internal use only.
  */
 export interface RouterDefinition<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 > {
   name: string;
-  parent?: RouterDefinition<AppState>;
+  parent?: RouterDefinition<SharedState>;
   react?: boolean;
   file?: {
     react?: RouteFile;
-    oak?: Router<AppState>;
+    oak?: Router<SharedState>;
   };
   main?: {
     react?: RouteFile;
-    oak?: Router<AppState>;
+    oak?: Router<SharedState>;
   };
   index?: {
     react?: RouteFile;
-    oak?: Router<AppState>;
+    oak?: Router<SharedState>;
   };
-  children?: Record<string, RouterDefinition<AppState>>;
+  children?: Record<string, RouterDefinition<SharedState>>;
 }
 
 export const ROUTE_PARAM = /^\[(.+)]$/;
@@ -592,18 +592,18 @@ export function routerPathFromName(name: string): string {
  * This function is meant for internal use only.
  */
 export function generateRouter<
-  AppState extends Record<string | number, unknown> = Record<
+  SharedState extends Record<string | number, unknown> = Record<
     string | number,
     unknown
   >,
 >(
-  options: RouterDefinition<AppState>,
+  options: RouterDefinition<SharedState>,
   relativePath?: string,
   parentBoundary?: string,
-): Router<AppState> {
+): Router<SharedState> {
   const { name, react, file, main, index, children, parent } = options;
 
-  const router = new Router<AppState>();
+  const router = new Router<SharedState>();
   if (parent?.react && !react) {
     router.use(async ({ request, response }, next) => {
       try {
@@ -674,7 +674,7 @@ export function generateRouter<
     }
 
     if (children) {
-      let notFoundRouter: Router<AppState> | undefined = undefined;
+      let notFoundRouter: Router<SharedState> | undefined = undefined;
       for (const [name, child] of Object.entries(children)) {
         child.parent = options;
         const childRouter = generateRouter(

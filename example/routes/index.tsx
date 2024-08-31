@@ -10,16 +10,11 @@ export default function Index() {
           content="This is a basic example of a Udibo React App."
         />
       </Helmet>
-      <h1>Home</h1>
-      <p>This is a basic example of a Udibo React App.</p>
-      <ul>
-        <li>
-          <a href="https://github.com/udibo/react_app">GitHub Repository</a>
-        </li>
-        <li>
-          <a href="https://deno.land/x/udibo_react_app">Deno docs</a>
-        </li>
-      </ul>
+      <h1>Welcome to Udibo React App</h1>
+      <p>
+        Learn how to get started{" "}
+        <a href="https://jsr.io/@udibo/react-app" target="_blank">here</a>.
+      </p>
     </>
   );
 }

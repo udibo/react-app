@@ -149,13 +149,13 @@ export interface SimulatedBrowser extends Disposable {
  * @returns A simulated browser environment resource that is disposable.
  */
 export function startBrowser<
-  AppState extends Record<string, unknown> = Record<string, unknown>,
->(app?: AppData<AppState>): SimulatedBrowser {
+  SharedState extends Record<string, unknown> = Record<string, unknown>,
+>(app?: AppData<SharedState>): SimulatedBrowser {
   const originalApp = (window as AppWindow).app;
   if (!app) {
     app = {
       env: getEnvironment(),
-      initialState: {} as AppState,
+      initialState: {} as SharedState,
     };
   }
   (window as AppWindow).app = app;
@@ -477,7 +477,7 @@ export function startEnvironment(
   }
 
   if (!("Deno" in globalThis)) {
-    throw new Error("Cannot only simulate environment on Deno server");
+    throw new Error("Can only simulate environment on a Deno server");
   }
 
   const originalEnvironment = Deno.env.toObject();
