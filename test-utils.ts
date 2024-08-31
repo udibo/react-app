@@ -151,14 +151,16 @@ export interface SimulatedBrowser extends Disposable {
 export function startBrowser<
   SharedState extends Record<string, unknown> = Record<string, unknown>,
 >(app?: AppData<SharedState>): SimulatedBrowser {
-  const originalApp = (window as AppWindow).app;
+  const originalWindow = globalThis.window;
+  globalThis.window = originalWindow ?? {};
+  const originalApp = (globalThis.window as AppWindow).app;
   if (!app) {
     app = {
       env: getEnvironment(),
       initialState: {} as SharedState,
     };
   }
-  (window as AppWindow).app = app;
+  (globalThis.window as AppWindow).app = app;
 
   const isServer = _env.isServer;
   _env.isServer = false;
@@ -167,10 +169,11 @@ export function startBrowser<
     end(): void {
       _env.isServer = isServer;
       if (originalApp) {
-        (window as AppWindow).app = originalApp;
+        (globalThis.window as AppWindow).app = originalApp;
       } else {
-        delete (window as AppWindow).app;
+        delete (globalThis.window as AppWindow).app;
       }
+      globalThis.window = originalWindow;
     },
     [Symbol.dispose]() {
       this.end();

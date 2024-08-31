@@ -28,7 +28,7 @@ it(startBrowserTests, "without arguments", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 
   // Simulate a new browser environment.
   const browser = startBrowser();
@@ -60,7 +60,7 @@ it(startBrowserTests, "without arguments", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 });
 
 it(startBrowserTests, "with app argument", () => {
@@ -73,7 +73,7 @@ it(startBrowserTests, "with app argument", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 
   // Simulate a new browser environment in development mode.
   const browser = startBrowser({
@@ -108,7 +108,7 @@ it(startBrowserTests, "with app argument", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 });
 
 it(startBrowserTests, "is disposable", () => {
@@ -121,7 +121,7 @@ it(startBrowserTests, "is disposable", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 
   // This function simulates a new browser environment until the function returns.
   function test() {
@@ -157,7 +157,7 @@ it(startBrowserTests, "is disposable", () => {
   assertEquals(isTest(), true);
 
   // There is no app in the current environment.
-  assertEquals((window as AppWindow).app, undefined);
+  assertEquals((globalThis.window as AppWindow)?.app, undefined);
 });
 
 const startEnvironmentTests = describe({
