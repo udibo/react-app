@@ -21,7 +21,9 @@ To learn more about using the default tasks, see the
 
 If you need to customize your build options to be different from the default,
 follow the instructions for adding the [build.ts](getting-started.md#buildts)
-and [dev.ts](getting-started.md#devts) files in the getting started guide.
+and [dev.ts](getting-started.md#devts) files in the getting started guide. Then
+for more information on the build configuration options available, see the
+[build](#build) section of this guide.
 
 You can add any tasks that you want to your configuration, for more information
 on how to do so, see Deno's
