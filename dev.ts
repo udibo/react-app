@@ -8,7 +8,7 @@
  * ```jsonc
  * "tasks": {
       // Builds and runs the application in development mode, with hot reloading.
- *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.1/dev",
+ *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/dev",
  * }
  * ```
  *

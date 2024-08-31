@@ -7,7 +7,7 @@
  * ```jsonc
  * "tasks": {
  *   // Builds the application.
- *   "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.1/build",
+ *   "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/build",
  *   // Builds the application in development mode.
  *   "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
  *   // Builds the application in production mode.
