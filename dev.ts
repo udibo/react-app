@@ -8,7 +8,7 @@
  * ```jsonc
  * "tasks": {
       // Builds and runs the application in development mode, with hot reloading.
- *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.22/dev",
+ *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.1/dev",
  * }
  * ```
  *
@@ -270,7 +270,8 @@ export function startDev(options: DevOptions = {}): void {
   artifacts.add(path.resolve(routesUrl, "./_main.ts"));
 
   function isBuildArtifact(pathname: string) {
-    return pathname.startsWith(buildDir) || artifacts.has(pathname);
+    return pathname.startsWith(buildDir) || artifacts.has(pathname) ||
+      pathname.endsWith("/node_modules/.deno/.deno.lock.poll");
   }
 
   const shouldBuild = isCustomBuildArtifact

@@ -103,13 +103,13 @@ Node.js-like environment.
 {
   "tasks": {
     // Builds the application.
-    "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24/build",
+    "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.1/build",
     // Builds the application in development mode.
     "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
     // Builds the application in production mode.
     "build-prod": "export APP_ENV=production NODE_ENV=production && deno task build",
     // Builds and runs the application in development mode, with hot reloading.
-    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24/dev",
+    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.1/dev",
     // Runs the application. Requires the application to be built first.
     "run": "deno run -A ./main.ts",
     // Runs the application in development mode. Requires the application to be built first.
@@ -141,7 +141,7 @@ Node.js-like environment.
   "imports": {
     "/": "./",
     "./": "./",
-    "@udibo/react-app": "jsr:@udibo/react-app@0.22",
+    "@udibo/react-app": "jsr:@udibo/react-app@0.24.1",
     "@std/assert": "jsr:@std/assert@1",
     "@std/log": "jsr:@std/log@0",
     "@std/path": "jsr:@std/path@1",
@@ -549,13 +549,13 @@ on:
 jobs:
   ci:
     name: CI
-    uses: udibo/react-app/.github/workflows/ci.yml@0.24.0
+    uses: udibo/react-app/.github/workflows/ci.yml@0.24.1
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   cd:
     name: CD
     needs: ci
-    uses: udibo/react-app/.github/workflows/deploy.yml@0.24.0
+    uses: udibo/react-app/.github/workflows/deploy.yml@0.24.1
     with:
       project: udibo-react-app-example
 ```
