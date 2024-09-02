@@ -684,11 +684,13 @@ comprehensive [error handling guide](./error-handling.md).
 ## Metadata
 
 Metadata is crucial for improving SEO, social media sharing, and overall user
-experience in your application.
+experience in your application. It is also where you can add scripts and styles
+to your application.
 
 For detailed information on implementing and managing metadata, including best
 practices and advanced techniques, please refer to our
-[Metadata guide](./metadata.md).
+[Metadata guide](./metadata.md). For more information on how to style your
+application, please refer to the [Styling guide](./styling.md).
 
 ## Logging
 
