@@ -1,12 +1,12 @@
-/** @jsxRuntime automatic */
-/** @jsxImportSource npm:react@18 */
-/** @jsxImportSourceTypes npm:@types/react@18 */
 /**
  * This module provides the server-side functionality for the Udibo React App framework.
  * It has utilities for creating the server, rendering the application, and handling errors.
  *
  * @module
  */
+/** @jsxRuntime automatic */
+/** @jsxImportSource npm:react@18 */
+/** @jsxImportSourceTypes npm:@types/react@18 */
 import * as path from "@std/path";
 import * as oak from "@oak/oak";
 import { StrictMode } from "react";

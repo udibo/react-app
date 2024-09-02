@@ -1,12 +1,12 @@
-/** @jsxRuntime automatic */
-/** @jsxImportSource npm:react@18 */
-/** @jsxImportSourceTypes npm:@types/react@18 */
 /**
  * This module provides utilities for handling errors in a React application.
  * It includes the http-error module for creating and handling HTTP errors.
  *
  * @module
  */
+/** @jsxRuntime automatic */
+/** @jsxImportSource npm:react@18 */
+/** @jsxImportSourceTypes npm:@types/react@18 */
 import {
   ErrorResponse,
   HttpError,
