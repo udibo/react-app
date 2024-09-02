@@ -14,6 +14,7 @@ application using the Udibo React App framework.
     - [routes/main.ts](#routesmaints)
     - [routes/main.tsx](#routesmaintsx)
     - [routes/index.tsx](#routesindextsx)
+    - [react.d.ts](#reactdts)
   - [Optional files](#optional-files)
     - [build.ts](#buildts)
     - [dev.ts](#devts)
@@ -79,6 +80,8 @@ explains their purpose.
 - [routes/main.tsx](#routesmaintsx): A wrapper around the client side of the
   application.
 - [routes/index.tsx](#routesindextsx): The homepage for the application.
+- [react.d.ts](#reactdts): Type definitions for React to enable autocompletion
+  and type checking.
 
 ### deno.jsonc
 
@@ -132,12 +135,13 @@ Node.js-like environment.
     "jsxImportSourceTypes": "@types/react"
   },
   "nodeModulesDir": true,
-  "lint": {
-    "exclude": ["public/build", "routes/_main.ts", "routes/_main.tsx"]
-  },
-  "fmt": {
-    "exclude": ["public/build"]
-  },
+  "exclude": [
+    "coverage",
+    "node_modules",
+    "public/build",
+    "routes/_main.ts",
+    "routes/_main.tsx"
+  ],
   "imports": {
     "/": "./",
     "./": "./",
@@ -341,6 +345,19 @@ export default function Index() {
       </ul>
     </>
   );
+}
+```
+
+### react.d.ts
+
+This file is required for Deno's LSP to recognize the types for React and to
+provide autocompletions.
+
+```ts
+declare module "react" {
+  // @ts-types="@types/react"
+  import React from "npm:react@18";
+  export = React;
 }
 ```
 
