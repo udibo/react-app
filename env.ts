@@ -106,7 +106,7 @@ export function isBrowser(): boolean {
 export function getEnvironment(): string {
   return (isServer()
     ? Deno.env.get("APP_ENV")
-    : (window as AppWindow).app?.env) ?? "development";
+    : (globalThis.window as AppWindow).app?.env) ?? "development";
 }
 
 /**

@@ -14,6 +14,7 @@ application using the Udibo React App framework.
     - [routes/main.ts](#routesmaints)
     - [routes/main.tsx](#routesmaintsx)
     - [routes/index.tsx](#routesindextsx)
+    - [react.d.ts](#reactdts)
   - [Optional files](#optional-files)
     - [build.ts](#buildts)
     - [dev.ts](#devts)
@@ -79,6 +80,8 @@ explains their purpose.
 - [routes/main.tsx](#routesmaintsx): A wrapper around the client side of the
   application.
 - [routes/index.tsx](#routesindextsx): The homepage for the application.
+- [react.d.ts](#reactdts): Type definitions for React to enable autocompletion
+  and type checking.
 
 ### deno.jsonc
 
@@ -103,13 +106,13 @@ Node.js-like environment.
 {
   "tasks": {
     // Builds the application.
-    "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/build",
+    "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.3/build",
     // Builds the application in development mode.
     "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
     // Builds the application in production mode.
     "build-prod": "export APP_ENV=production NODE_ENV=production && deno task build",
     // Builds and runs the application in development mode, with hot reloading.
-    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/dev",
+    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.3/dev",
     // Runs the application. Requires the application to be built first.
     "run": "deno run -A ./main.ts",
     // Runs the application in development mode. Requires the application to be built first.
@@ -132,16 +135,17 @@ Node.js-like environment.
     "jsxImportSourceTypes": "@types/react"
   },
   "nodeModulesDir": true,
-  "lint": {
-    "exclude": ["public/build", "routes/_main.ts", "routes/_main.tsx"]
-  },
-  "fmt": {
-    "exclude": ["public/build"]
-  },
+  "exclude": [
+    "coverage",
+    "node_modules",
+    "public/build",
+    "routes/_main.ts",
+    "routes/_main.tsx"
+  ],
   "imports": {
     "/": "./",
     "./": "./",
-    "@udibo/react-app": "jsr:@udibo/react-app@0.24.2",
+    "@udibo/react-app": "jsr:@udibo/react-app@0.24.3",
     "@std/assert": "jsr:@std/assert@1",
     "@std/log": "jsr:@std/log@0",
     "@std/path": "jsr:@std/path@1",
@@ -341,6 +345,19 @@ export default function Index() {
       </ul>
     </>
   );
+}
+```
+
+### react.d.ts
+
+This file is required for Deno's LSP to recognize the types for React and to
+provide autocompletions.
+
+```ts
+declare module "react" {
+  // @ts-types="@types/react"
+  import React from "npm:react@18";
+  export = React;
 }
 ```
 
@@ -549,13 +566,13 @@ on:
 jobs:
   ci:
     name: CI
-    uses: udibo/react-app/.github/workflows/ci.yml@0.24.2
+    uses: udibo/react-app/.github/workflows/ci.yml@0.24.3
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   cd:
     name: CD
     needs: ci
-    uses: udibo/react-app/.github/workflows/deploy.yml@0.24.2
+    uses: udibo/react-app/.github/workflows/deploy.yml@0.24.3
     with:
       project: udibo-react-app-example
 ```
@@ -667,11 +684,13 @@ comprehensive [error handling guide](./error-handling.md).
 ## Metadata
 
 Metadata is crucial for improving SEO, social media sharing, and overall user
-experience in your application.
+experience in your application. It is also where you can add scripts and styles
+to your application.
 
 For detailed information on implementing and managing metadata, including best
 practices and advanced techniques, please refer to our
-[Metadata guide](./metadata.md).
+[Metadata guide](./metadata.md). For more information on how to style your
+application, please refer to the [Styling guide](./styling.md).
 
 ## Logging
 

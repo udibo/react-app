@@ -1,6 +1,6 @@
 {
   "name": "@udibo/react-app",
-  "version": "0.24.2",
+  "version": "0.24.3",
   "exports": {
     ".": "./mod.tsx",
     "./build": "./build.ts",
@@ -24,7 +24,8 @@
       "**/*.test.tsx",
       "test-utils.tsx",
       "example",
-      "coverage"
+      "coverage",
+      "node_modules"
     ]
   },
   "tasks": {
@@ -58,17 +59,13 @@
     "jsxImportSourceTypes": "@types/react"
   },
   "nodeModulesDir": true,
-  "lint": {
-    "exclude": [
-      "coverage",
-      "example/public/build",
-      "example/routes/_main.ts",
-      "example/routes/_main.tsx"
-    ]
-  },
-  "fmt": {
-    "exclude": ["coverage", "example/public/build"]
-  },
+  "exclude": [
+    "coverage",
+    "node_modules",
+    "example/public/build",
+    "example/routes/_main.ts",
+    "example/routes/_main.tsx"
+  ],
   "imports": {
     "@udibo/http-error": "jsr:@udibo/http-error@0",
     "@udibo/react-app": "./mod.tsx",
