@@ -10,9 +10,9 @@ export default function About() {
           content="Udibo React App is a React Framework for Deno."
         />
       </Helmet>
-      <h1>About</h1>
-      <h2>Udibo React App</h2>
-      <p>A React Framework for Deno.</p>
+      <h1 className="text-2xl font-bold pb-4">About</h1>
+      <h2 className="text-lg">Udibo React App</h2>
+      <p className="pb-4">A React Framework for Deno.</p>
     </>
   );
 }

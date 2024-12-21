@@ -269,9 +269,10 @@ export function startDev(options: DevOptions = {}): void {
   artifacts.add(path.resolve(routesUrl, "./_main.tsx"));
   artifacts.add(path.resolve(routesUrl, "./_main.ts"));
 
+  const DENO_TEMP_FILE = /\/node_modules\/.deno\/.*$/;
   function isBuildArtifact(pathname: string) {
     return pathname.startsWith(buildDir) || artifacts.has(pathname) ||
-      pathname.endsWith("/node_modules/.deno/.deno.lock.poll");
+      DENO_TEMP_FILE.test(pathname);
   }
 
   const shouldBuild = isCustomBuildArtifact

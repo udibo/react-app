@@ -12,7 +12,7 @@ export default function Blog() {
       <Helmet defaultTitle="Example | Blog" titleTemplate="Example | Blog | %s">
         <title></title>
       </Helmet>
-      <h1>Blog</h1>
+      <h1 className="text-2xl font-bold pb-4">Blog</h1>
       <Suspense fallback={<Loading />}>
         <ErrorBoundary
           FallbackComponent={DefaultErrorFallback}

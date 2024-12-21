@@ -197,7 +197,7 @@ export function lazy<
     } catch (error) {
       const log = getLogger();
       log.error("Error loading component", error, { boundary });
-      window.location.reload();
+      (window as AppWindow).location.reload();
       throw error;
     }
   });

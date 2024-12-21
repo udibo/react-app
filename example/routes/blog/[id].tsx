@@ -17,7 +17,7 @@ export default function BlogPost() {
           <title>{post.title}</title>
           <meta name="description" content={post.content} />
         </Helmet>
-        <h2>{post.title}</h2>
+        <h2 className="text-lg font-bold pb-2">{post.title}</h2>
         <p>{post.content}</p>
       </>
     )

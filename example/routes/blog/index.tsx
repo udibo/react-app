@@ -11,10 +11,12 @@ export default function BlogIndex() {
         <Helmet>
           <meta name="description" content="This is an example blog." />
         </Helmet>
-        <ul>
+        <ul className="list-disc ml-4">
           {Object.entries(posts).map(([id, post]) => (
             <li key={`${id}`}>
-              <Link to={`${id}`}>{post.title}</Link>
+              <Link className="text-blue-700 hover:text-blue-900" to={`${id}`}>
+                {post.title}
+              </Link>
             </li>
           ))}
         </ul>

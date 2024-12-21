@@ -1,8 +1,7 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.unstable": false,
-  "deno.config": "./deno.jsonc",
+  "deno.config": "./deno.json",
   "files.associations": {
     "*.css": "tailwindcss"
   },

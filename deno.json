@@ -1,0 +1,128 @@
+{
+  "name": "@udibo/react-app",
+  "version": "0.25.0",
+  "exports": {
+    ".": "./mod.tsx",
+    "./build": "./build.ts",
+    "./dev": "./dev.ts",
+    "./client": "./client.tsx",
+    "./server": "./server.tsx",
+    "./test-utils": "./test-utils.ts",
+    "./global-jsdom": "./global-jsdom.ts"
+  },
+  "publish": {
+    "include": [
+      "LICENSE",
+      "**/*.json",
+      "**/*.jsonc",
+      "**/*.md",
+      "**/*.ts",
+      "**/*.tsx"
+    ],
+    "exclude": [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "test-utils.tsx",
+      "example",
+      "coverage",
+      "node_modules"
+    ]
+  },
+  "tasks": {
+    "build": {
+      "description": "Builds the application.",
+      "command": "cd ./example && deno run -A ./build.ts"
+    },
+    "build-dev": {
+      "description": "Builds the application in development mode.",
+      "command": "export APP_ENV=development NODE_ENV=development && deno task build"
+    },
+    "build-prod": {
+      "description": "Builds the application in production mode.",
+      "command": "export APP_ENV=production NODE_ENV=production && deno task build"
+    },
+    "dev": {
+      "description": "Builds and runs the application in development mode, with hot reloading.",
+      "command": "export APP_ENV=development NODE_ENV=development && cd ./example && deno run -A ./dev.ts"
+    },
+    "run": {
+      "description": "Runs the application. Requires the application to be built first.",
+      "command": "cd ./example && deno run -A ./main.ts"
+    },
+    "run-dev": {
+      "description": "Runs the application in development mode. Requires the application to be built first.",
+      "command": "export APP_ENV=development NODE_ENV=development && deno task run"
+    },
+    "run-prod": {
+      "description": "Runs the application in production mode. Requires the application to be built first.",
+      "command": "export APP_ENV=production NODE_ENV=production && deno task run"
+    },
+    "test": {
+      "description": "Runs the tests.",
+      "command": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks"
+    },
+    "test-watch": {
+      "description": "Runs the tests in watch mode.",
+      "command": "deno task test --watch"
+    },
+    "check": {
+      "description": "Checks the formatting and runs the linter.",
+      "command": "deno lint && deno fmt --check"
+    },
+    "git-rebase": {
+      "description": "Gets your branch up to date with master after a squash merge.",
+      "command": "git fetch origin main && git rebase --onto origin/main HEAD"
+    }
+  },
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
+  },
+  "nodeModulesDir": "auto",
+  "exclude": [
+    "coverage",
+    "node_modules",
+    "example/public/build",
+    "example/routes/_main.ts",
+    "example/routes/_main.tsx"
+  ],
+  "imports": {
+    "@udibo/http-error": "jsr:@udibo/http-error@0",
+    "@udibo/react-app": "./mod.tsx",
+    "@udibo/react-app/build": "./build.ts",
+    "@udibo/react-app/dev": "./dev.ts",
+    "@udibo/react-app/server": "./server.tsx",
+    "@udibo/react-app/client": "./client.tsx",
+    "@udibo/react-app/test-utils": "./test-utils.tsx",
+    "@udibo/react-app/global-jsdom": "./global-jsdom.ts",
+    "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@0.1",
+    "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@0.12",
+    "@oak/oak": "jsr:@oak/oak@16",
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/async": "jsr:@std/async@1",
+    "@std/fs": "jsr:@std/fs@1",
+    "@std/log": "jsr:@std/log@0",
+    "@std/path": "jsr:@std/path@1",
+    "@std/testing": "jsr:@std/testing@1",
+    "esbuild": "npm:esbuild@0.24",
+    "react": "npm:react@18",
+    "@types/react": "npm:@types/react@18",
+    "react-dom": "npm:react-dom@18",
+    "react-error-boundary": "npm:react-error-boundary@4",
+    "react-router-dom": "npm:react-router-dom@6",
+    "react-helmet-async": "npm:react-helmet-async@2",
+    "serialize-javascript": "npm:serialize-javascript@6",
+    "@testing-library/react": "npm:@testing-library/react@16",
+    "global-jsdom": "npm:global-jsdom@24",
+    "@tanstack/react-query": "npm:@tanstack/react-query@5",
+    "autoprefixer": "npm:autoprefixer@10",
+    "tailwindcss": "npm:tailwindcss@^3.4",
+    "@tailwindcss/forms": "npm:@tailwindcss/forms@0.5",
+    "@tailwindcss/typography": "npm:@tailwindcss/typography@0.5",
+    "@tailwindcss/aspect-ratio": "npm:@tailwindcss/aspect-ratio@0.4",
+    "@tailwindcss/container-queries": "npm:@tailwindcss/container-queries@0.1",
+    "postcss-import": "npm:postcss-import@16"
+  }
+}

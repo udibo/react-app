@@ -100,7 +100,7 @@ function html<
     ${headLines.join("\n    ")}
     <script type="module" src="/${
       isTest() ? "test-" : ""
-    }build/_main.js" defer></script>
+    }build/routes/_main.js" defer></script>
   </head>
   <body ${helmet.bodyAttributes.toString()}>
     <div id="root">`,

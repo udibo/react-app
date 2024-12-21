@@ -54,15 +54,19 @@
  */
 import { walk } from "@std/fs/walk";
 import { ensureDir } from "@std/fs/ensure-dir";
-import { exists } from "@std/fs/exists";
 import * as log from "@std/log";
 import * as path from "@std/path";
 import * as esbuild from "esbuild";
-import { denoPlugins } from "@luca/esbuild-deno-loader";
+import {
+  denoLoaderPlugin,
+  denoResolverPlugin,
+} from "@luca/esbuild-deno-loader";
 
 import { isDevelopment, isProduction, isTest, logFormatter } from "./mod.tsx";
 import { ROUTE_PARAM, ROUTE_WILDCARD, routePathFromName } from "./server.tsx";
 import { getLogger } from "./log.ts";
+
+export type esbuildPlugin = esbuild.Plugin;
 
 interface Route {
   name: string;
@@ -540,10 +544,22 @@ export interface BuildOptions {
   /** File url for your deno.json or deno.jsonc file. Defaults to checking your working directory for those files. */
   configPath?: string;
   /**
-   * ESBuild plugins to use when building your application.
-   * These plugins will be added after the deno plugin.
+   * esbuild plugins to use when building your application.
+   * These plugins will be added after the deno resolver plugin and postcss plugin,
+   * but before the deno loader plugin.
    */
-  esbuildPlugins?: esbuild.Plugin[];
+  esbuildPlugins?: esbuildPlugin[];
+  /**
+   * Entry points to build besides the main entry point.
+   * This is useful if you want to build other assets for your application.
+   * Defaults to an empty array.
+   *
+   * If you just have a single css entrypoint, you can pass `["./main.css"]`.
+   * If you want to build all css files in your routes directory, you can pass `["./routes/**\/*.css"]`.
+   *
+   * The built files will output to the public/build directory.
+   */
+  entryPoints?: string[];
 }
 
 let context: esbuild.BuildContext | undefined = undefined;
@@ -561,21 +577,24 @@ export function getBuildOptions(
   workingDirectory: string;
   routesUrl: string;
   publicUrl: string;
+  entryPoints: string[];
 } {
   const workingDirectory = options.workingDirectory ?? Deno.cwd();
   const routesUrl = options.routesUrl ??
     path.join(workingDirectory, "routes");
   const publicUrl = options.publicUrl ??
     path.join(workingDirectory, "public");
+  const entryPoints = options.entryPoints ?? [];
   return {
     ...options,
     workingDirectory,
     routesUrl,
     publicUrl,
+    entryPoints,
   };
 }
 
-function postBuild(success: boolean, error: Error | null) {
+function postBuild(success: boolean, error: unknown) {
   performance.mark("buildEnd");
   let duration: number = 0;
   let routesDuration: number | null = null;
@@ -616,24 +635,20 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
   getLogger().info("Building app");
   performance.mark("buildStart");
   let success = false;
-  let error: Error | null = null;
+  let error: unknown = null;
   try {
-    const { workingDirectory, routesUrl: _routesUrl, publicUrl } =
-      getBuildOptions(options);
+    const {
+      workingDirectory,
+      routesUrl: _routesUrl,
+      publicUrl,
+      configPath,
+      entryPoints,
+    } = getBuildOptions(options);
     routesUrl = path.resolve(_routesUrl);
     const entryPoint = path.relative(
       workingDirectory,
       path.join(routesUrl, "./_main.tsx"),
     );
-    let configPath = options.configPath ??
-      path.join(workingDirectory!, "deno.json");
-    if (!options.configPath && !await exists(configPath)) {
-      configPath = path.join(workingDirectory, "deno.jsonc");
-    }
-    if (!await exists(configPath)) {
-      throw new Error("Could not find deno config file");
-    }
-    configPath = path.resolve(configPath);
 
     const outdir = path.join(
       publicUrl,
@@ -661,12 +676,14 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
     performance.mark("esbuildStart");
     context = await esbuild.context({
       plugins: [
-        ...denoPlugins({ configPath }),
+        denoResolverPlugin({ configPath }),
         ...esbuildPlugins,
+        denoLoaderPlugin({ configPath }),
       ],
       absWorkingDir: workingDirectory,
-      entryPoints: [entryPoint],
+      entryPoints: [...entryPoints, entryPoint],
       outdir,
+      outbase: workingDirectory,
       bundle: true,
       splitting: true,
       treeShaking: true,
@@ -699,7 +716,7 @@ export async function rebuild(): Promise<boolean> {
   getLogger().info("Building app");
   performance.mark("buildStart");
   let success = false;
-  let error: Error | null = null;
+  let error: unknown = null;
   try {
     performance.mark("routesStart");
     await buildRoutes(routesUrl);
