@@ -48,9 +48,6 @@ export function ErrorFallback({ error }: FallbackProps) {
     </div>
   );
 }
-
-// Optionally, you can specify a custom boundary name
-export const boundary = "BlogPostErrorBoundary";
 ```
 
 In this example, if an error occurs within the `BlogPost` component, the
@@ -100,7 +97,7 @@ In the browser, any errors that occur within a route will be caught by the
 nearest error boundary. When rendering on the server, the errors will have a
 boundary key added to them to indicate which error boundary they should be
 associated with during rendering. If a route throws an error, it will default to
-the nearest route's error boundary.
+the nearest error boundary.
 
 In the following example, any errors thrown in the route will automatically have
 the boundary key set to the boundary for that route. If the route path is

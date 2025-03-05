@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Helmet } from "@udibo/react-app";
 
 import { getPosts } from "../../services/posts.tsx";

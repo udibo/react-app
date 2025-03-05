@@ -8,13 +8,16 @@ application using the Udibo React App framework.
     - [Copy example project](#copy-example-project)
     - [Manually create all the files](#manually-create-all-the-files)
   - [Required files](#required-files)
-    - [deno.jsonc](#denojsonc)
+    - [deno.json](#denojson)
     - [main.ts](#maints)
     - [log.ts](#logts)
     - [routes/main.ts](#routesmaints)
     - [routes/main.tsx](#routesmaintsx)
     - [routes/index.tsx](#routesindextsx)
-    - [react.d.ts](#reactdts)
+    - [Environment Files](#environment-files)
+      - [.env.development](#envdevelopment)
+      - [.env.production](#envproduction)
+      - [.env.test](#envtest)
   - [Optional files](#optional-files)
     - [build.ts](#buildts)
     - [dev.ts](#devts)
@@ -71,7 +74,7 @@ explains their purpose.
 
 ## Required files
 
-- [deno.jsonc](#denojsonc): The configuration for deno and contains a set of
+- [deno.json](#denojson): The configuration for deno and contains a set of
   shortcuts for doing tasks.
 - [main.ts](#maints): The main entrypoint for running the application.
 - [log.ts](#logts): The configuration for how logs are handled.
@@ -80,10 +83,11 @@ explains their purpose.
 - [routes/main.tsx](#routesmaintsx): A wrapper around the client side of the
   application.
 - [routes/index.tsx](#routesindextsx): The homepage for the application.
-- [react.d.ts](#reactdts): Type definitions for React to enable autocompletion
-  and type checking.
+- [.env.development](#env-files): Environment variables for development mode.
+- [.env.production](#env-files): Environment variables for production mode.
+- [.env.test](#env-files): Environment variables for test mode.
 
-### deno.jsonc
+### deno.json
 
 This is the configuration for deno and contains a set of shortcuts for doing
 tasks.
@@ -93,7 +97,7 @@ example: `deno task dev` would build and run the application in development mode
 with hot reloading. All of the configuration options besides the tasks are
 required. For more information about the tasks, see the [tasks section](#tasks).
 
-The `nodeModulesDir` option is set to `true` in this configuration. This is
+The `nodeModulesDir` option is set to `auto` in this configuration. This is
 necessary for compatibility with certain VS Code extensions, such as the
 TailwindCSS extension, and for tools like Playwright
 ([see this comment](https://github.com/denoland/deno/issues/16899#issuecomment-2307899834)).
@@ -102,31 +106,37 @@ While Deno typically doesn't use a `node_modules` directory, enabling this
 option ensures better compatibility with tools and extensions that expect a
 Node.js-like environment.
 
-```jsonc
+```json
 {
   "tasks": {
-    // Builds the application.
-    "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.3/build",
-    // Builds the application in development mode.
-    "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
-    // Builds the application in production mode.
-    "build-prod": "export APP_ENV=production NODE_ENV=production && deno task build",
-    // Builds and runs the application in development mode, with hot reloading.
-    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.3/dev",
-    // Runs the application. Requires the application to be built first.
-    "run": "deno run -A ./main.ts",
-    // Runs the application in development mode. Requires the application to be built first.
-    "run-dev": "export APP_ENV=development NODE_ENV=development && deno task run",
-    // Runs the application in production mode. Requires the application to be built first.
-    "run-prod": "export APP_ENV=production NODE_ENV=production && deno task run",
-    // Runs the tests.
-    "test": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks",
-    // Runs the tests in watch mode.
-    "test-watch": "export APP_ENV=test NODE_ENV=development && deno test -A --trace-leaks --watch",
-    // Checks the formatting and runs the linter.
-    "check": "deno lint && deno fmt --check",
-    // Gets your branch up to date with master after a squash merge.
-    "git-rebase": "git fetch origin main && git rebase --onto origin/main HEAD"
+    "build": {
+      "description": "Builds the application in production mode.",
+      "command": "deno run -A --config=deno.json --env-file --env-file=.env.production jsr:@udibo/react-app@0.25/build"
+    },
+    "run": {
+      "description": "Runs the application in production mode. Requires the application to be built first.",
+      "command": "deno run -A --env-file --env-file=.env.production ./main.ts"
+    },
+    "dev": {
+      "description": "Builds and runs the application in development mode, with hot reloading.",
+      "command": "deno run -A --config=deno.json --env-file --env-file=.env.development jsr:@udibo/react-app@0.25/dev"
+    },
+    "test": {
+      "description": "Runs the tests.",
+      "command": "deno test -A --trace-leaks --env-file --env-file=.env.test"
+    },
+    "test-watch": {
+      "description": "Runs the tests in watch mode.",
+      "command": "deno task test --watch"
+    },
+    "check": {
+      "description": "Checks the formatting and runs the linter.",
+      "command": "deno lint && deno fmt --check"
+    },
+    "git-rebase": {
+      "description": "Gets your branch up to date with master after a squash merge.",
+      "command": "git fetch origin main && git rebase --onto origin/main HEAD"
+    }
   },
   "compilerOptions": {
     "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
@@ -134,7 +144,6 @@ Node.js-like environment.
     "jsxImportSource": "react",
     "jsxImportSourceTypes": "@types/react"
   },
-  "nodeModulesDir": true,
   "exclude": [
     "coverage",
     "node_modules",
@@ -142,20 +151,19 @@ Node.js-like environment.
     "routes/_main.ts",
     "routes/_main.tsx"
   ],
+  "nodeModulesDir": "auto",
   "imports": {
     "/": "./",
     "./": "./",
-    "@udibo/react-app": "jsr:@udibo/react-app@0.24.3",
+    "@udibo/react-app": "jsr:@udibo/react-app@0.25",
     "@std/assert": "jsr:@std/assert@1",
     "@std/log": "jsr:@std/log@0",
     "@std/path": "jsr:@std/path@1",
     "@std/testing": "jsr:@std/testing@1",
     "react": "npm:react@18",
     "@types/react": "npm:@types/react@18",
-    "react-router-dom": "npm:react-router-dom@6",
-    "react-helmet-async": "npm:react-helmet-async@2",
-    "@testing-library/react": "npm:@testing-library/react@16",
-    "global-jsdom": "npm:global-jsdom@24"
+    "react-router": "npm:react-router@7",
+    "@testing-library/react": "npm:@testing-library/react@16"
   }
 }
 ```
@@ -182,7 +190,6 @@ await serve({
   port: 9000,
   router,
   route,
-  workingDirectory: path.dirname(path.fromFileUrl(import.meta.url)),
 });
 ```
 
@@ -265,7 +272,7 @@ section.
 
 ```tsx
 import { Suspense } from "react";
-import { Link, Outlet } from "npm:react-router-dom@6";
+import { Link, Outlet } from "npm:react-router@7";
 import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
 import "../log.ts";
 
@@ -348,17 +355,44 @@ export default function Index() {
 }
 ```
 
-### react.d.ts
+### Environment Files
 
-This file is required for Deno's LSP to recognize the types for React and to
-provide autocompletions.
+The framework requires three environment files to set up the appropriate
+environment variables for different modes of operation.
 
-```ts
-declare module "react" {
-  // @ts-types="@types/react"
-  import React from "npm:react@18";
-  export = React;
-}
+These environment variables are used by the framework to determine the current
+environment and adjust behavior accordingly. The `APP_ENV` variable is used by
+the application to determine the current environment, while `NODE_ENV` is used
+by React and other libraries to optimize for development or production.
+
+#### .env.development
+
+This file contains environment variables for development mode. It's used when
+running the application with `deno task dev`.
+
+```env
+APP_ENV=development
+NODE_ENV=development
+```
+
+#### .env.production
+
+This file contains environment variables for production mode. It's used when
+building and running the application with `deno task build` and `deno task run`.
+
+```env
+APP_ENV=production
+NODE_ENV=production
+```
+
+#### .env.test
+
+This file contains environment variables for test mode. It's used when running
+tests with `deno task test`.
+
+```env
+APP_ENV=test
+NODE_ENV=development
 ```
 
 ## Optional files
@@ -379,11 +413,12 @@ application, you can create a build script like shown below:
 import { buildOnce, type BuildOptions } from "@udibo/react-app/build";
 import "./log.ts";
 
-// export the buildOptions so that you can use them in your dev script.
-// You will need a dev script if you have non default build options.
-export const buildOptions: BuildOptions = {
+const buildOptions: BuildOptions = {
   // Add your own build options here if the defaults are not sufficient.
 };
+// export the buildOptions so that you can use them in your dev script.
+// You will need a dev script if you have non default build options.
+export default buildOptions;
 
 if (import.meta.main) {
   buildOnce(buildOptions);
@@ -392,7 +427,7 @@ if (import.meta.main) {
 
 Then update your deno config file's tasks section to use your build script:
 
-```jsonc
+```json
 "tasks": {
   // Builds the application.
   "build": "deno run -A ./build.ts",
@@ -419,13 +454,13 @@ import { buildOptions } from "./build.ts";
 
 startDev({
   buildOptions,
-  // Add your own options here
+  // Add your own dev server options here
 });
 ```
 
 Then update your deno config file's tasks section to use your dev script:
 
-```jsonc
+```json
 "tasks": {
    // Builds and runs the application in development mode, with hot reloading.
    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A ./dev.ts",
@@ -454,6 +489,10 @@ coverage
 # Node modules
 node_modules
 ```
+
+You should commit the basic environment files (.env.development,
+.env.production, and .env.test) as they contain default configuration, but any
+environment files with secrets should be excluded from version control.
 
 ### test-utils.tsx
 
@@ -606,19 +645,19 @@ information.
 
 #### .vscode/settings.json
 
-Your vscode settings must have your deno.jsonc referenced so that the extension
+Your vscode settings must have your deno.json referenced so that the extension
 knows how to work with your project. You can use unstable APIs if you want but
 by default I left that disabled in this example. Your code will automatically
 get formatted by the deno extension when you save. If there are parts of your
 code you would like ignored by Deno's linter or formatter, you can configure
-that in your [deno.jsonc](#denojsonc) file.
+that in your [deno.json](#denojson) file.
 
 ```json
 {
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": false,
-  "deno.config": "./deno.jsonc",
+  "deno.config": "./deno.json",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "denoland.vscode-deno",
   "editor.quickSuggestions": {
@@ -633,28 +672,22 @@ To run the tests, use `deno task test` or `deno task test-watch`.
 
 To check formatting and run the linter, use `deno task check`.
 
-The following 2 commands can be used for creating builds.
+The following commands can be used for building and running the application:
 
-- `deno task build-dev`: Builds the application in development mode.
-- `deno task build-prod`: Builds the application in production mode.
+- `deno task build`: Builds the application in production mode.
+- `deno task run`: Runs the application in production mode. Requires the
+  application to be built first.
+- `deno task dev`: Builds and runs the application in development mode, with hot
+  reloading.
 
-A build must be generated before you can run an application. You can use the
-following 2 commands to run the application.
+Each of these tasks uses the appropriate .env file for the environment:
 
-- `deno task run-dev`: Runs the application in development mode.
-- `deno task run-prod`: Runs the application in production mode.
+- `deno task build` and `deno task run` use `.env.production`
+- `deno task dev` uses `.env.development`
+- `deno task test` uses `.env.test`
 
-To run the application in development mode with live reloading, use
-`deno task dev`.
-
-When in development, identifiers are not minified and sourcemaps are generated
-and linked.
-
-The commands ending in `-dev` and `-prod` set the `APP_ENV` and `NODE_ENV`
-environment variables. The `NODE_ENV` environment variable is needed for react.
-If you use the `deno task build` or `deno task run` tasks, you should make sure
-that you set both of those environment variables. Those environment variables
-are also needed if you deploy to Deno Deploy.
+When the application runs in development mode, identifiers are not minified and
+sourcemaps are generated and linked.
 
 The `deno task git-rebase` task is useful if you use squash and merge. If you
 don't need it feel free to remove it.

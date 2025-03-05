@@ -1,12 +1,10 @@
 /**
  * This module provides utilities for handling errors in a React application.
- * It includes the http-error module for creating and handling HTTP errors.
+ * It includes the http-error module for creating and handling HTTP errors,
+ * and integrates with React Router and React Error Boundary for comprehensive error handling.
  *
  * @module
  */
-/** @jsxRuntime automatic */
-/** @jsxImportSource npm:react@18 */
-/** @jsxImportSourceTypes npm:@types/react@18 */
 import {
   ErrorResponse,
   HttpError,
@@ -27,7 +25,7 @@ import type {
   ReactElement,
   ReactNode,
 } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import type {
   ErrorBoundaryProps as ReactErrorBoundaryProps,
@@ -56,13 +54,12 @@ export type ErrorBoundaryProps = ReactErrorBoundaryProps & {
  * Your route component will be automatically wrapped with an error boundary.
  *
  * In the following example, the `DisplayId` component will throw a 400 bad request error if the id is not a positive integer.
- * If an error occurs, it will be caught by the `ErrorBoundary` and the `ErrorFallback` component will be rendered.
+ * If an error occurs, it will be caught by the `ErrorBoundary` and the `ErrorFallback` component will be rendered in it's place.
  *
  * ```tsx
- * import { useParams } from "react-router-dom";
+ * import { useParams } from "react-router";
  * import { ErrorBoundary, DefaultErrorFallback, HttpError } from "@udibo/react-app";
  *
- * export const boundary = "MyPage";
  * export const ErrorFallback = DefaultErrorFallback;
  *
  * export defualt function DisplayId(): ReactElement {
@@ -80,12 +77,15 @@ export type ErrorBoundaryProps = ReactErrorBoundaryProps & {
  * }
  * ```
  *
- * If no boundary parameter is provided to the component, it will capture any errors that occur within it that are not captured already.
- * This should only be used without a boundary at the top level of the app.
+ * You can use the ErrorBoundary component to create an error boundary within a component.
+ *
+ * If no boundary parameter is provided to the ErrorBoundary component, it will capture any errors that occur within it that are not captured already.
+ *
+ * The only time you wouldn't specify a boundary is at the top level of the app, where you would want to capture all errors.
  *
  * ```tsx
  * import { ErrorBoundary, DefaultErrorFallback } from "@udibo/react-app";
- * import { Outlet } from "react-router-dom";
+ * import { Outlet } from "react-router";
  *
  * import { Loading } from "../components/Loading.tsx";
  *
@@ -103,16 +103,15 @@ export type ErrorBoundaryProps = ReactErrorBoundaryProps & {
  * }
  * ```
  *
- * If you'd like to nest an error boundary within your route component, you can use the `boundary` prop to associate errors with it.
+ * If your route component is exporting a `boundary` string, it will be used as the boundary for any errors that occur within the route.
+ * You can pass that same boundary to an ErrorBoundary component to have it capture any errors that occur within the route.
  *
  * In the following example, the `DisplayId` component will throw a 400 bad request error if the id is not a positive integer.
  * If an error occurs, it will be caught by the `ErrorBoundary` within the `MyPage` component and the `DefaultErrorFallback` component will be rendered.
  *
  * ```tsx
- * import { useParams } from "react-router-dom";
+ * import { useParams } from "react-router";
  * import { ErrorBoundary, DefaultErrorFallback, HttpError } from "@udibo/react-app";
- *
- * export const boundary = "MyPage";
  *
  * function DisplayId(): ReactElement {
  *   const params = useParams();
@@ -127,6 +126,8 @@ export type ErrorBoundaryProps = ReactErrorBoundaryProps & {
  *     </>
  *   );
  * }
+ *
+ * export const boundary = "MyPage";
  *
  * export defualt function MyPage(): ReactElement {
  *   return (
@@ -189,13 +190,13 @@ export type ErrorBoundaryProps = ReactErrorBoundaryProps & {
  *
  * In the following example, the `DisplayId` component will throw a 400 bad request error if the id is not a positive integer.
  * That error will have a boundary of "DisplayId" and will be handled by the `ErrorBoundary` with the same boundary.
- * If any other errors occur outside of that boundary, they will be handled by the `ErrorBoundary` with the boundary "MyPage".
+ * If any other errors occur outside of that boundary, they will be handled by the route's error boundary,
+ * which uses the ErrorFallback component that is exported from the route.
  *
  * ```tsx
- * import { useParams } from "react-router-dom";
+ * import { useParams } from "react-router";
  * import { ErrorBoundary, DefaultErrorFallback, HttpError } from "@udibo/react-app";
  *
- * export const boundary = "MyPage";
  * export const ErrorFallback = DefaultErrorFallback;
  *
  * function DisplayId(): ReactElement {
@@ -305,10 +306,10 @@ export function ErrorBoundary(
  * If an error occurs, it will be caught by the `ErrorBoundary` that wraps the DisplayId component and the `DefaultErrorFallback` component will be rendered.
  *
  * ```tsx
- * import { useParams } from "react-router-dom";
+ * import { useParams } from "react-router";
  * import { ErrorBoundary, DefaultErrorFallback, HttpError } from "@udibo/react-app";
  *
- * function DisplayId(): ReactElement {
+ * export const DisplayId = withErrorBoundary(function DisplayId(): ReactElement {
  *   const params = useParams();
  *   const id = Number(params.id);
  *   if (isNaN(id) || Math.floor(id) !== id || id < 0) {
@@ -320,9 +321,7 @@ export function ErrorBoundary(
  *       <p>{id}</p>
  *     </>
  *   );
- * }
- *
- * export default withErrorBoundary(DisplayId, { FallbackComponent: DefaultErrorFallback, boundary: "DisplayId" });
+ * }, { FallbackComponent: DefaultErrorFallback, boundary: "DisplayId" });
  * ```
  *
  * @param Component - The component to wrap with an error boundary.
@@ -419,7 +418,7 @@ export function DefaultErrorFallback(
     <div role="alert">
       <p>{error.message || "Something went wrong"}</p>
       {isDevelopment() && error.stack ? <pre>{error.stack}</pre> : null}
-      <button onClick={reset}>Try again</button>
+      <button type="button" onClick={reset}>Try again</button>
     </div>
   );
 }

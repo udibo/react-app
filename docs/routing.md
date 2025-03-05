@@ -95,7 +95,7 @@ Here's an example of a main route for a blog route:
 
 ```tsx
 import { Suspense } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
 
 import { Loading } from "../../components/loading.tsx";
@@ -188,7 +188,7 @@ will be rendered when the user navigates to the directory's path.
 Here's an example of an index route for a blog section:
 
 ```tsx
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Helmet } from "@udibo/react-app";
 
 import { getPosts } from "../../services/posts.tsx";
@@ -378,7 +378,7 @@ component that can access and use the route parameters.
 Here's an example of a parameterized route for a blog post page:
 
 ```ts
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { Helmet, HttpError } from "@udibo/react-app";
 
 import { getPost } from "../../services/posts.tsx";
@@ -480,7 +480,7 @@ how you can implement inline routing for a blog post creation process:
 
 ```tsx
 import { useState } from "react";
-import { Link, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Route, Routes, useNavigate } from "react-router";
 
 function BlogPostForm({ title, setTitle, content, setContent, onSubmit }) {
   return (
@@ -695,7 +695,7 @@ parameters using the `useSearchParams` hook.
 Here's how you can use query parameters in your React components:
 
 ```tsx
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 export default function Post() {
   const [searchParams] = useSearchParams();

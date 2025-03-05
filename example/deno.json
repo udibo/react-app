@@ -1,49 +1,20 @@
 {
-  "name": "@udibo/react-app",
-  "version": "0.25.0",
-  "exports": {
-    ".": "./mod.tsx",
-    "./build": "./build.ts",
-    "./dev": "./dev.ts",
-    "./client": "./client.tsx",
-    "./server": "./server.tsx",
-    "./test-utils": "./test-utils.ts",
-    "./global-jsdom": "./global-jsdom.ts"
-  },
-  "publish": {
-    "include": [
-      "LICENSE",
-      "**/*.json",
-      "**/*.jsonc",
-      "**/*.md",
-      "**/*.ts",
-      "**/*.tsx"
-    ],
-    "exclude": [
-      "**/*.test.ts",
-      "**/*.test.tsx",
-      "test-utils.tsx",
-      "example",
-      "coverage",
-      "node_modules"
-    ]
-  },
   "tasks": {
     "build": {
       "description": "Builds the application in production mode.",
-      "command": "cd ./example && deno task build"
+      "command": "deno run -A --env-file --env-file=.env.production ./build.ts"
     },
     "run": {
       "description": "Runs the application in production mode. Requires the application to be built first.",
-      "command": "cd ./example && deno task run"
+      "command": "deno run -A --env-file --env-file=.env.production ./main.ts"
     },
     "dev": {
       "description": "Builds and runs the application in development mode, with hot reloading.",
-      "command": "cd ./example && deno task dev"
+      "command": "deno run -A --env-file --env-file=.env.development ./dev.ts"
     },
     "test": {
       "description": "Runs the tests.",
-      "command": "deno test -A --trace-leaks --env-file=example/.env --env-file=example/.env.test"
+      "command": "deno test -A --trace-leaks --env-file --env-file=.env.test"
     },
     "test-watch": {
       "description": "Runs the tests in watch mode.",
@@ -67,12 +38,19 @@
   "exclude": [
     "coverage",
     "node_modules",
-    "example/public/build",
-    "example/routes/_main.ts",
-    "example/routes/_main.tsx"
+    "public/build",
+    "routes/_main.ts",
+    "routes/_main.tsx"
   ],
   "nodeModulesDir": "auto",
   "imports": {
+    "@udibo/react-app": "../mod.tsx",
+    "@udibo/react-app/build": "../build.ts",
+    "@udibo/react-app/dev": "../dev.ts",
+    "@udibo/react-app/client": "../client.tsx",
+    "@udibo/react-app/server": "../server.tsx",
+    "@udibo/react-app/test-utils": "../test-utils.ts",
+    "@udibo/react-app/global-jsdom": "../global-jsdom.ts",
     "@udibo/http-error": "jsr:@udibo/http-error@0",
     "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.1",
     "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@^0.12",
@@ -92,6 +70,14 @@
     "react-helmet-async": "npm:react-helmet-async@2",
     "serialize-javascript": "npm:serialize-javascript@6",
     "@testing-library/react": "npm:@testing-library/react@16",
-    "global-jsdom": "npm:global-jsdom@25"
+    "global-jsdom": "npm:global-jsdom@25",
+    "@tanstack/react-query": "npm:@tanstack/react-query@4",
+    "autoprefixer": "npm:autoprefixer@10",
+    "tailwindcss": "npm:tailwindcss@3",
+    "@tailwindcss/forms": "npm:@tailwindcss/forms@^0.5",
+    "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5",
+    "@tailwindcss/aspect-ratio": "npm:@tailwindcss/aspect-ratio@^0.4",
+    "@tailwindcss/container-queries": "npm:@tailwindcss/container-queries@^0.1",
+    "postcss-import": "npm:postcss-import@16"
   }
 }

@@ -14,4 +14,5 @@ export const ErrorContext: Context<{ error?: HttpError }> = createContext<
  * A context object that is used to provide the initial state of the application to the browser.
  * This context is intended for internal use and testing only.
  */
-export const InitialStateContext: Context = createContext({});
+export const InitialStateContext: Context<Record<string, unknown>> =
+  createContext({});

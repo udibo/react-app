@@ -5,10 +5,12 @@
  *
  * If the default configuration settings work for building your application, you can run this script directly.
  * To call it directly, add the following to your deno config file's tasks section:
- * ```jsonc
+ * ```json
  * "tasks": {
-      // Builds and runs the application in development mode, with hot reloading.
- *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/dev",
+ *   "dev": {
+ *     "description": "Builds and runs the application in development mode, with hot reloading",
+ *     "command": "deno run -A --config=deno.json --env-file=.env.development jsr:@udibo/react-app@0.25/dev"
+ *   }
  * }
  * ```
  *
@@ -22,7 +24,7 @@
  * import * as log from "@std/log";
  *
  * // Import the build options from the build script
- * import { buildOptions } from "./build.ts";
+ * import buildOptions from "./build.ts";
  *
  * // You can enable dev script logging here or in a separate file that you import into this file.
  * const level = isDevelopment() ? "DEBUG" : "INFO";
@@ -42,10 +44,12 @@
  * ```
  *
  * Then update your deno config file's tasks section to use your dev script:
- * ```jsonc
+ * ```json
  * "tasks": {
-      // Builds and runs the application in development mode, with hot reloading.
- *    "dev": "export APP_ENV=development NODE_ENV=development && deno run -A ./dev.ts",
+ *   "dev": {
+ *     "description": "Builds and runs the application in development mode, with hot reloading",
+ *     "command": "deno run -A --env-file=.env.development ./dev.ts"
+ *   }
  * }
  * ```
  *
@@ -239,7 +243,7 @@ export interface DevOptions {
  * import * as log from "@std/log";
  *
  * // Import the build options from the build script
- * import { buildOptions } from "./build.ts";
+ * import buildOptions from "./build.ts";
  *
  * // You can enable dev script logging here or in a separate file that you import into this file.
  * log.setup({
@@ -250,6 +254,16 @@ export interface DevOptions {
  *   buildOptions,
  *   // Add your own options here
  * });
+ * ```
+ *
+ * Then update your deno.json tasks:
+ * ```json
+ * "tasks": {
+ *   "dev": {
+ *     "description": "Builds and runs the application in development mode, with hot reloading",
+ *     "command": "export APP_ENV=development NODE_ENV=development && deno run -A ./dev.ts"
+ *   }
+ * }
  * ```
  */
 export function startDev(options: DevOptions = {}): void {

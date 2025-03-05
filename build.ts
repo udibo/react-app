@@ -1,33 +1,32 @@
 /**
- * This module provides functions for building your application.
- * It is meant to be used in a build script that you create for your application.
+ * This module provides functions for building your React application with esbuild.
+ * It handles route generation, bundling, and development/production builds.
  *
- * If the default configuration settings work for building your application, you can run this script directly.
- * To call it directly, add the following to your deno config file's tasks section:
- * ```jsonc
+ * For basic applications, you can use the default configuration by adding these tasks to your deno.json:
+ * ```json
  * "tasks": {
- *   // Builds the application.
- *   "build": "deno run -A --config=deno.jsonc jsr:@udibo/react-app@0.24.2/build",
- *   // Builds the application in development mode.
- *   "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
- *   // Builds the application in production mode.
- *   "build-prod": "export APP_ENV=production NODE_ENV=production && deno task build",
+ *   "build": {
+ *     "description": "Builds the application",
+ *     "command": "deno run -A --config=deno.json --env-file=.env.production jsr:@udibo/react-app@0.25/build"
+ *   },
+    "run": {
+      "description": "Runs the application in production mode. Requires the application to be built first.",
+      "command": "deno run -A --env-file=.env.production ./main.ts"
+    },
  * }
  * ```
  *
- * Note: The `NODE_ENV` environment variable is set because some libraries like react use it to determine the environment.
- * Calling it directly also requires you to specify the config file to use along with using a jsr specifier.
- *
- * If the default configuration settings are insufficient for your application, you can create a build script like shown below:
+ * For more complex applications, create a custom build script:
  * ```ts
  * import { buildOnce, type BuildOptions } from "@udibo/react-app/build";
  * import * as log from "@std/log";
  *
- * // export the buildOptions so that you can use them in your dev script.
- * // You will need a dev script if you have non default build options.
- * export const buildOptions: BuildOptions = {
+ * const buildOptions: BuildOptions = {
  *   // Add your own build options here if the defaults are not sufficient.
  * };
+ *
+ * // Export buildOptions as default to reuse in your dev script
+ * export default buildOptions;
  *
  * if (import.meta.main) {
  *   // You can enable build script logging here or in a separate file that you import into this file.
@@ -38,22 +37,28 @@
  * }
  * ```
  *
- * Then update your deno config file's tasks section to use your build script:
- * ```jsonc
+ * Then update your deno.json tasks:
+ * ```json
  * "tasks": {
- *   // Builds the application.
- *   "build": "deno run -A ./build.ts",
- *   // Builds the application in development mode.
- *   "build-dev": "export APP_ENV=development NODE_ENV=development && deno task build",
- *   // Builds the application in production mode.
- *   "build-prod": "export APP_ENV=production NODE_ENV=production && deno task build",
+ *   "build": {
+ *     "description": "Builds the application",
+ *     "command": "deno run -A --env-file=.env.production ./build.ts"
+ *   },
+    "run": {
+      "description": "Runs the application in production mode. Requires the application to be built first.",
+      "command": "deno run -A --env-file=.env.production ./main.ts"
+    },
  * }
  * ```
+ *
+ * Note: The NODE_ENV environment variable is used by React and other libraries
+ * to determine the build environment and optimize accordingly.
  *
  * @module
  */
 import { walk } from "@std/fs/walk";
 import { ensureDir } from "@std/fs/ensure-dir";
+import { exists } from "@std/fs/exists";
 import * as log from "@std/log";
 import * as path from "@std/path";
 import * as esbuild from "esbuild";
@@ -224,7 +229,7 @@ async function routeFileData(
       routeId++;
     } else if (!relativePath) {
       importLines.push(
-        `import { Outlet } from "react-router-dom";`,
+        `import { Outlet } from "react-router";`,
         `const $${routeId} = withErrorBoundary(() => <Outlet />, { FallbackComponent: DefaultErrorFallback });`,
       );
       routeText += `, element: <$${routeId} />`;
@@ -477,7 +482,7 @@ async function updateRoutes(routesUrl: string, rootRoute: Route) {
     const lines = [
       `import { DefaultErrorFallback, isBrowser, NotFound, withErrorBoundary } from "@udibo/react-app";`,
       `import { hydrate, lazy } from "@udibo/react-app/client";`,
-      `import type { RouteObject } from "react-router-dom";`,
+      `import type { RouteObject } from "react-router";`,
       "",
     ];
     const { importLines, routeText } = await routeFileData(
@@ -520,44 +525,63 @@ async function buildRoutes(routesUrl: string) {
   await updateRoutes(routesUrl, appRoute);
 }
 
-/** The options used for building an application. */
+/**
+ * Configuration options for building the application.
+ */
 export interface BuildOptions {
-  /** The absolute path to the working directory for your application. Defaults to your current working directory. */
-  workingDirectory?: string;
   /**
-   * Url for the routes directory that your app uses.
-   * The routes directory will have 2 files generated in them.
-   * - `_main.ts`: Contains the oak router for the routes.
-   * - `_main.tsx`: Contains the react router routes for controlling navigation in the app.
-   * Your server entrypoint should import and use both of the generated files for each routes directory.
-   * Your client entry point should only import the react router routes.
-   * Defaults to the routes directory in your working directory.
+   * The absolute path to the application's working directory.
+   * All other paths will be resolved relative to this directory.
+   * Defaults to the current working directory.
+   */
+  workingDirectory?: string;
+
+  /**
+   * Path to the routes directory containing your application's route files.
+   * The build process will generate two files in this directory:
+   * - `_main.ts`: Oak router configuration for server-side routing
+   * - `_main.tsx`: React Router configuration for client-side routing
+   *
+   * Your server entry point should import both files, while your client
+   * entry point should only import the React Router configuration.
+   *
+   * Defaults to the "routes" directory in your working directory.
    */
   routesUrl?: string;
+
   /**
-   * The application will serve all files from this directory.
-   * The build for your client entry point will be stored in public/build.
-   * Test builds will be stored in public/test-build.
-   * Defaults to the public directory in your working directory.
+   * Path to the public directory that will serve your application's static files.
+   * Built files will be placed in:
+   * - public/build: Production and development builds
+   * - public/test-build: Test builds
+   *
+   * Defaults to the "public" directory in your working directory.
    */
   publicUrl?: string;
-  /** File url for your deno.json or deno.jsonc file. Defaults to checking your working directory for those files. */
-  configPath?: string;
+
   /**
-   * esbuild plugins to use when building your application.
-   * These plugins will be added after the deno resolver plugin and postcss plugin,
-   * but before the deno loader plugin.
+   * Path to your deno.json or deno.jsonc configuration file.
+   * Defaults to searching for these files in your working directory.
+   */
+  configPath?: string;
+
+  /**
+   * Additional esbuild plugins to use when building your application.
+   * These plugins will be inserted after the deno resolver but before the deno loader plugin.
    */
   esbuildPlugins?: esbuildPlugin[];
+
   /**
-   * Entry points to build besides the main entry point.
-   * This is useful if you want to build other assets for your application.
+   * Additional entry points to build beyond the main application entry point.
+   * This is useful for building stylesheets, worker scripts, or other assets.
+   *
+   * Examples:
+   * - Single CSS file: ["./styles/main.css"]
+   * - All CSS files in routes: ["./routes/**\/*.css"]
+   * - Multiple entry points: ["./styles/main.css", "./workers/sw.ts"]
+   *
+   * Built files will be placed in the public/build directory.
    * Defaults to an empty array.
-   *
-   * If you just have a single css entrypoint, you can pass `["./main.css"]`.
-   * If you want to build all css files in your routes directory, you can pass `["./routes/**\/*.css"]`.
-   *
-   * The built files will output to the public/build directory.
    */
   entryPoints?: string[];
 }
@@ -566,10 +590,11 @@ let context: esbuild.BuildContext | undefined = undefined;
 let routesUrl: string | undefined = undefined;
 
 /**
- * Extends the user specified build options with the default workingDirectory, routesUrl, and publicUrl if they were not specified.
+ * Gets the complete build options by merging provided options with defaults.
+ * This is used internally to ensure all required options have values.
  *
- * @param options - The options to use when building the application.
- * @returns The build options with the default workingDirectory, routesUrl, and publicUrl if they were not specified.
+ * @param options - Partial build options to merge with defaults
+ * @returns Complete build options with all required fields
  */
 export function getBuildOptions(
   options: BuildOptions = {},
@@ -620,9 +645,8 @@ function postBuild(success: boolean, error: unknown) {
 }
 
 /**
- * Builds the application and all of it's routes.
- *
- * If the build is successful, this function will return true.
+ * Starts the build process with watch mode enabled.
+ * This is useful for development when you want automatic rebuilds on file changes.
  *
  * This function creates an esbuild context for the build and then triggers a build for the application.
  * If you want to trigger a rebuild after the initial build, you can use the rebuild function.
@@ -641,7 +665,6 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
       workingDirectory,
       routesUrl: _routesUrl,
       publicUrl,
-      configPath,
       entryPoints,
     } = getBuildOptions(options);
     routesUrl = path.resolve(_routesUrl);
@@ -649,6 +672,15 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
       workingDirectory,
       path.join(routesUrl, "./_main.tsx"),
     );
+
+    let configPath = options.configPath ?? "deno.json";
+    configPath = path.resolve(workingDirectory, configPath);
+    if (!await exists(configPath)) {
+      configPath = path.resolve(configPath, "deno.jsonc");
+      if (!await exists(configPath)) {
+        throw new Error("Could not find deno config file");
+      }
+    }
 
     const outdir = path.join(
       publicUrl,
@@ -705,9 +737,10 @@ export async function build(options: BuildOptions = {}): Promise<boolean> {
 }
 
 /**
- * After a build has been run, you can use the rebuild function to trigger an update to that build.
+ * Rebuilds the application using the existing build configuration.
+ * This is typically called internally when files change in watch mode.
  *
- * This is used internally by the dev script to trigger a rebuild when a file changes.
+ * @returns A promise that resolves to true if the rebuild succeeds, false otherwise
  */
 export async function rebuild(): Promise<boolean> {
   if (!context || !routesUrl) {
@@ -732,7 +765,11 @@ export async function rebuild(): Promise<boolean> {
   return success;
 }
 
-/** Stops esbuild from continuing to run. */
+/**
+ * Stops the build process and cleans up any watchers or build contexts.
+ * This should be called when you're done with the build process,
+ * especially in watch mode.
+ */
 export async function stop() {
   if (context) {
     context = undefined;
@@ -752,9 +789,11 @@ export async function stop() {
  * import { logFormatter } from "@udibo/react-app";
  * import * as log from "@std/log";
  *
- * export const buildOptions: BuildOptions = {
+ * const buildOptions: BuildOptions = {
  *   // Add your own build options here if the defaults are not sufficient.
  * };
+ *
+ * export default buildOptions;
  *
  * if (import.meta.main) {
  *   // You can enable build script logging here or in a separate file that you import into this file.

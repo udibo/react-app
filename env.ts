@@ -45,7 +45,7 @@ export type AppWindow<
  * This example comes from `example/routes/blog/[id].tsx` and the only change is to import `isServer` and to not call `getPost(id)` if it returns `true`.
  *
  * ```tsx
- * import { useParams } from "react-router-dom";
+ * import { useParams } from "react-router";
  * import { Helmet, HttpError, isServer } from "@udibo/react-app";
  *
  * import { getPost } from "../../services/posts.tsx";
@@ -98,10 +98,10 @@ export function isBrowser(): boolean {
 /**
  * A function that returns the environment the application is running in.
  * On the server, this value comes from the `APP_ENV` environment variable.
- * In the browser, this value is set on the `window.app.env` property.
+ * In the browser, this value is set on the `window.app.env` property during server-side rendering.
  * If it is not set in either case, the default value is `development`.
  *
- * @returns The environment that the application is running in.
+ * @returns The environment that the application is running in (`development`, `production`, `test`, etc.).
  */
 export function getEnvironment(): string {
   return (isServer()
@@ -110,18 +110,18 @@ export function getEnvironment(): string {
 }
 
 /**
- * A function that returns a boolean indicating whether the code is running in the test environment or not.
+ * A function that returns a boolean indicating whether the code is running in the test environment.
  *
- * @returns A boolean indicating whether the code is running in the test environment or not.
+ * @returns `true` if the environment is `test`, `false` otherwise.
  */
 export function isTest(): boolean {
   return getEnvironment() === "test";
 }
 
 /**
- * A function that returns a boolean indicating whether the code is running in the development environment or not.
+ * A function that returns a boolean indicating whether the code is running in the development environment.
  *
- * @returns A boolean indicating whether the code is running in the development environment or not.
+ * @returns `true` if the environment is `development` or not set, `false` otherwise.
  */
 export function isDevelopment(): boolean {
   const env = getEnvironment();
@@ -129,9 +129,9 @@ export function isDevelopment(): boolean {
 }
 
 /**
- * A function that returns a boolean indicating whether the code is running in the production environment or not.
+ * A function that returns a boolean indicating whether the code is running in the production environment.
  *
- * @returns A boolean indicating whether the code is running in the production environment or not.
+ * @returns `true` if the environment is `production`, `false` otherwise.
  */
 export function isProduction(): boolean {
   return getEnvironment() === "production";

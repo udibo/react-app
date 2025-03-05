@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
 
 import { Loading } from "../../components/loading.tsx";

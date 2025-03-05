@@ -1,6 +1,7 @@
 import { Suspense } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet } from "react-router";
 import { DefaultErrorFallback, ErrorBoundary, Helmet } from "@udibo/react-app";
+
 import "../log.ts";
 
 import { Loading } from "../components/loading.tsx";

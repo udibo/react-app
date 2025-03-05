@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { Helmet, HttpError } from "@udibo/react-app";
 
 import { getPost } from "../../services/posts.tsx";
