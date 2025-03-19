@@ -1,6 +1,12 @@
 # Styling
 
-TODO: Make an outline then fill it in with details.
+This guide covers the various approaches to styling your Deno React application.
+It explains how to use plain CSS, CSS modules, and CSS-in-JS libraries, as well
+as how to set up and use preprocessors like PostCSS, Sass, Less, and Stylus. The
+guide also includes detailed instructions for integrating Tailwind CSS (both v3
+and v4) and explains how to use multiple preprocessors together in the same
+project. Each section provides setup instructions with code examples to help you
+implement your preferred styling approach.
 
 - [Styling](#styling)
   - [CSS](#css)
@@ -58,7 +64,7 @@ export default {
     postcssImport, // Allows @import rules in CSS
     autoprefixer, // Adds vendor prefixes to CSS
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 2. Then, update your build script to use the PostCSS plugin:
@@ -109,22 +115,12 @@ leaving your HTML.
 
 ```ts
 import type { Config } from "tailwindcss";
-import tailwindcssForms from "@tailwindcss/forms";
-import tailwindcssTypography from "@tailwindcss/typography";
-import tailwindcssAspectRatio from "@tailwindcss/aspect-ratio";
-import tailwindcssContainerQueries from "@tailwindcss/container-queries";
 
 export default {
   content: [
     "{routes,components}/**/*.{ts,tsx,js,jsx}", // Paths to your components
   ],
-  plugins: [
-    tailwindcssForms,
-    tailwindcssTypography,
-    tailwindcssAspectRatio,
-    tailwindcssContainerQueries,
-  ],
-} satisfies Config;
+} as Config;
 ```
 
 2. Update your `postcss.config.ts` to include Tailwind CSS:
@@ -144,7 +140,7 @@ export default {
     autoprefixer,
     tailwindcss(tailwindcssConfig),
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 3. Create a main CSS file (e.g., `main.css`) with Tailwind directives:
@@ -153,8 +149,6 @@ export default {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Your custom CSS here */
 ```
 
 4. Add Tailwind CSS and its plugins to your `deno.json` or `deno.jsonc`:
@@ -162,11 +156,7 @@ export default {
 ```json
 {
   "imports": {
-    "tailwindcss": "npm:tailwindcss@3",
-    "@tailwindcss/forms": "npm:@tailwindcss/forms@^0.5",
-    "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5",
-    "@tailwindcss/aspect-ratio": "npm:@tailwindcss/aspect-ratio@^0.4",
-    "@tailwindcss/container-queries": "npm:@tailwindcss/container-queries@^0.1"
+    "tailwindcss": "npm:tailwindcss@3"
   }
 }
 ```
@@ -190,59 +180,29 @@ export default {
 utility-first CSS framework with significant improvements in performance,
 developer experience, and features. It introduces a new engine called Oxide,
 built in Rust, which provides faster builds and a more streamlined development
-experience.
+experience. The plugins postcss-import and autoprefixer are needed in Tailwind
+CSS v4.
 
 #### Setup
 
-1. Create a `tailwind.config.ts` file:
-
-```ts
-import type { Config } from "tailwindcss";
-
-export default {
-  content: [
-    "{routes,components}/**/*.{ts,tsx,js,jsx}", // Paths to your components
-  ],
-  // Tailwind CSS v4 plugins are imported differently
-  plugins: [
-    // Official plugins are now included in the main package
-    // and accessed via the 'plugins' property
-    require("tailwindcss/plugins/typography"),
-    require("tailwindcss/plugins/forms"),
-    require("tailwindcss/plugins/aspect-ratio"),
-    require("tailwindcss/plugins/container-queries"),
-  ],
-} satisfies Config;
-```
-
-2. Update your `postcss.config.ts` to include Tailwind CSS v4:
+1. Update your `postcss.config.ts` to include Tailwind CSS v4:
 
 ```ts
 import type { PostCSSPluginOptions } from "@udibo/esbuild-plugin-postcss";
-import postcssImport from "postcss-import";
-// Note: autoprefixer is no longer needed with Tailwind CSS v4
-import tailwindcss from "tailwindcss";
-
-import tailwindcssConfig from "./tailwind.config.ts";
+import tailwindcss from "@tailwindcss/postcss";
 
 export default {
   modules: true,
   plugins: [
-    postcssImport,
-    // autoprefixer is no longer needed as Tailwind CSS v4 handles this internally
-    tailwindcss(tailwindcssConfig),
+    tailwindcss(),
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 3. Create a main CSS file (e.g., `main.css`) with Tailwind directives:
 
 ```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Your custom CSS here */
+@import "tailwindcss";
 ```
 
 4. Add Tailwind CSS v4 to your `deno.json` or `deno.jsonc`:
@@ -250,9 +210,8 @@ export default {
 ```json
 {
   "imports": {
-    "tailwindcss": "npm:tailwindcss@4"
-    // Note: In v4, plugins are now included in the main package
-    // so separate imports for plugins are no longer needed
+    "tailwindcss": "npm:tailwindcss@4",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@4"
   }
 }
 ```
@@ -266,10 +225,7 @@ export default {
   },
   "editor.quickSuggestions": {
     "strings": true
-  },
-  "tailwindCSS.experimental.classRegex": [
-    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
-  ]
+  }
 }
 ```
 
@@ -324,7 +280,7 @@ export default {
   preprocessors: [
     sassPreprocessor(), // Use Sass preprocessor with default options
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 2. Update your build script to include Sass files as entry points:
@@ -406,7 +362,7 @@ export default {
   preprocessors: [
     lessPreprocessor(), // Use Less preprocessor with default options
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 2. Update your build script to include Less files as entry points:
@@ -485,7 +441,7 @@ export default {
   preprocessors: [
     stylusPreprocessor(), // Use Stylus preprocessor with default options
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 2. Update your build script to include Stylus files as entry points:
@@ -560,7 +516,7 @@ export default {
     lessPreprocessor(),
     stylusPreprocessor(),
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 Then update your build script to include entry points for all preprocessor file

@@ -52,7 +52,7 @@
     "@udibo/react-app/test-utils": "../test-utils.ts",
     "@udibo/react-app/global-jsdom": "../global-jsdom.ts",
     "@udibo/http-error": "jsr:@udibo/http-error@0",
-    "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.1",
+    "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.2",
     "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@^0.12",
     "@oak/oak": "jsr:@oak/oak@17",
     "@std/assert": "jsr:@std/assert@1",
@@ -72,12 +72,7 @@
     "@testing-library/react": "npm:@testing-library/react@16",
     "global-jsdom": "npm:global-jsdom@25",
     "@tanstack/react-query": "npm:@tanstack/react-query@4",
-    "autoprefixer": "npm:autoprefixer@10",
-    "tailwindcss": "npm:tailwindcss@3",
-    "@tailwindcss/forms": "npm:@tailwindcss/forms@^0.5",
-    "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5",
-    "@tailwindcss/aspect-ratio": "npm:@tailwindcss/aspect-ratio@^0.4",
-    "@tailwindcss/container-queries": "npm:@tailwindcss/container-queries@^0.1",
-    "postcss-import": "npm:postcss-import@16"
+    "tailwindcss": "npm:tailwindcss@4",
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@4"
   }
 }

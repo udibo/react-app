@@ -225,7 +225,7 @@ export default {
   plugins: [
     autoprefixer(),
   ],
-} satisfies PostCSSPluginOptions;
+} as PostCSSPluginOptions;
 ```
 
 Then in your build script, import and use the PostCSS plugin:

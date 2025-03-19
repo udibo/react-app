@@ -74,7 +74,7 @@
   "nodeModulesDir": "auto",
   "imports": {
     "@udibo/http-error": "jsr:@udibo/http-error@0",
-    "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.1",
+    "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.2",
     "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@^0.12",
     "@oak/oak": "jsr:@oak/oak@17",
     "@std/assert": "jsr:@std/assert@1",

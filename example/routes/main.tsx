@@ -26,14 +26,14 @@ export default function Main() {
         <link rel="stylesheet" href="/build/main.css" />
       </Helmet>
       <nav className="border-b border-gray-200 bg-white">
-        <div className="mx-auto px-4">
-          <div className="flex h-12 items-center space-x-4">
+        <div className="mx-auto">
+          <div className="flex items-center flex-row">
             {navLinks.map((link) => (
               <NavLink
                 key={link.label}
                 to={link.to}
                 className={({ isActive }) =>
-                  "inline-flex items-center text-lg font-medium border-b-2 " +
+                  "inline-flex items-center h-12 text-lg font-medium border-b-2 px-4 " +
                   (isActive
                     ? "border-indigo-500 text-gray-900"
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700")}

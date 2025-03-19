@@ -8,4 +8,5 @@ coverage
 node_modules
 
 # WIP
+TODO.md
 test-utils.tsx

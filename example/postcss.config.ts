@@ -1,15 +1,7 @@
 import type { PostCSSPluginOptions } from "@udibo/esbuild-plugin-postcss";
-import postcssImport from "postcss-import";
-import autoprefixer from "autoprefixer";
-import tailwindcss from "tailwindcss";
-
-import tailwindcssConfig from "./tailwind.config.ts";
+import tailwindcss from "@tailwindcss/postcss";
 
 export default {
   modules: true,
-  plugins: [
-    postcssImport,
-    autoprefixer,
-    tailwindcss(tailwindcssConfig),
-  ],
-} satisfies PostCSSPluginOptions;
+  plugins: [tailwindcss()],
+} as PostCSSPluginOptions;
