@@ -70,6 +70,7 @@ to use the framework.
 - [Static Files](docs/static-files.md)
 - [Metadata](docs/metadata.md)
 - [Styling](docs/styling.md)
+- [Database](docs/database.md)
 - [State Management](docs/state-management.md)
 - [Forms](docs/forms.md)
 - [Error Handling](docs/error-handling.md)

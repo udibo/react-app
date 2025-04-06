@@ -22,7 +22,7 @@ This guide covers the configuration options available for your project.
     - [buildOptions](#buildoptions)
   - [Environment variables](#environment-variables)
     - [Required Environment Files](#required-environment-files)
-      - [.env.development](#envdevelopment)
+      - [.env](#env)
       - [.env.production](#envproduction)
       - [.env.test](#envtest)
     - [Environment Variables Usage](#environment-variables-usage)
@@ -351,27 +351,32 @@ startDev({
 
 ## Environment variables
 
-The Udibo React App framework uses environment variables to configure different
-aspects of your application based on the current environment (development,
-production, or test). These variables are loaded from `.env` files.
+The framework uses environment variables to configure various aspects of your
+application. These variables can be set in different ways, but the most common
+approach is using environment files.
 
 ### Required Environment Files
 
-The framework requires three environment files for different operational modes:
+#### .env
 
-#### .env.development
-
-Used when running the application in development mode with `deno task dev`.
+This is your default environment file containing the base environment variables.
+It's used when running the application in development mode with `deno task dev`.
 
 ```env
+APP_NAME=Example
 APP_ENV=development
 NODE_ENV=development
 ```
 
+The `APP_ENV` variable is used by the framework to determine which mode to run
+in. The `NODE_ENV` variable is used by React and other libraries to optimize for
+development or production.
+
 #### .env.production
 
-Used when building and running the application in production mode with
-`deno task build` and `deno task run`.
+This file contains environment variables for production mode. It's used when
+building the application with `deno task build` and running it with
+`deno task run`.
 
 ```env
 APP_ENV=production
@@ -380,11 +385,11 @@ NODE_ENV=production
 
 #### .env.test
 
-Used when running tests with `deno task test`.
+This file contains environment variables for test mode. It's used when running
+tests with `deno task test`.
 
 ```env
 APP_ENV=test
-NODE_ENV=development
 ```
 
 ### Environment Variables Usage
@@ -416,7 +421,7 @@ on the task being run. This is configured in the `deno.json` file:
     },
     "dev": {
       "description": "Builds and runs the application in development mode, with hot reloading.",
-      "command": "deno run -A --env-file --env-file=.env.development ./dev.ts"
+      "command": "deno run -A --env-file ./dev.ts"
     },
     "test": {
       "description": "Runs the tests.",
@@ -450,7 +455,7 @@ To use a local environment file alongside the default ones, update your tasks in
   "tasks": {
     "dev": {
       "description": "Builds and runs the application in development mode, with hot reloading.",
-      "command": "deno run -A --env-file --env-file=.env.development --env-file=.env.local ./dev.ts"
+      "command": "deno run -A --env-file --env-file=.env.local ./dev.ts"
     }
   }
 }
@@ -463,9 +468,9 @@ override those from earlier files if they have the same name.
 
 It's important to handle environment files properly with version control:
 
-- **Commit to version control**: The basic environment files
-  (`.env.development`, `.env.production`, and `.env.test`) should be committed
-  as they contain default configuration without secrets.
+- **Commit to version control**: The basic environment files (`.env`,
+  `.env.production`, and `.env.test`) should be committed as they contain
+  default configuration without secrets.
 - **Exclude from version control**: Any environment files containing secrets or
   personal configuration should be excluded.
 

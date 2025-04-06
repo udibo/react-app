@@ -9,7 +9,7 @@
  * "tasks": {
  *   "dev": {
  *     "description": "Builds and runs the application in development mode, with hot reloading",
- *     "command": "deno run -A --config=deno.json --env-file=.env.development jsr:@udibo/react-app@0.25/dev"
+ *     "command": "deno run -A --config=deno.json --env-file jsr:@udibo/react-app@0.25/dev"
  *   }
  * }
  * ```
@@ -48,7 +48,7 @@
  * "tasks": {
  *   "dev": {
  *     "description": "Builds and runs the application in development mode, with hot reloading",
- *     "command": "deno run -A --env-file=.env.development ./dev.ts"
+ *     "command": "deno run -A --env-file ./dev.ts"
  *   }
  * }
  * ```

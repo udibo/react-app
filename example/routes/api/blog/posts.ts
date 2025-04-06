@@ -1,21 +1,36 @@
 import { HttpError } from "@udibo/react-app";
 import { Router } from "@udibo/react-app/server";
+import { ZodError } from "zod";
 
-import { getPost, getPosts } from "../../../services/posts.ts";
-import type { PostsState } from "../../../models/posts.ts";
+import { createPost, getPost, getPosts } from "../../../services/posts.ts";
+import { postInsertSchema } from "../../../database/schema/posts.ts";
 
-export default new Router<PostsState>()
-  .get("/", (context) => {
+export default new Router()
+  .get("/", async (context) => {
     const { response } = context;
-    response.body = getPosts();
+    response.body = await getPosts();
   })
-  .get("/:id", (context) => {
+  .get("/:id", async (context) => {
     const { response, params } = context;
-    const id = parseFloat(params.id);
-    if (isNaN(id) || Math.floor(id) !== id || id < 0) {
-      throw new HttpError(400, "Invalid id");
+    response.body = await getPost(params.id);
+  })
+  .post("/", async (context) => {
+    const { request, response } = context;
+    try {
+      const data = postInsertSchema.parse(await request.body.json());
+      response.body = await createPost(data);
+    } catch (cause: unknown) {
+      if (cause instanceof ZodError) {
+        throw new HttpError(400, "Validation failed", {
+          expose: true,
+          errors: cause.errors.map((
+            err: { path: (string | number)[]; message: string },
+          ) => ({
+            path: err.path.join("."),
+            message: err.message,
+          })),
+        });
+      }
+      throw cause;
     }
-    const post = getPost(id);
-    if (!post) throw new HttpError(404, "Not found");
-    response.body = post;
   });

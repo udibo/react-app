@@ -294,7 +294,7 @@ export interface ApplicationOptions<
    * Data can be added to it before the application is rendered.
    * These initialState can be accessed from the React application using `useInitialState`.
    */
-  initialState?: SharedState;
+  initialState: SharedState;
   /**
    * The React Router route for the application.
    * The build script will automatically generate this for your application's routes.

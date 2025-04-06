@@ -56,6 +56,30 @@
     "git-rebase": {
       "description": "Gets your branch up to date with master after a squash merge.",
       "command": "git fetch origin main && git rebase --onto origin/main HEAD"
+    },
+    "start-dev": {
+      "description": "Starts the development services.",
+      "command": "cd ./example && deno task start-dev"
+    },
+    "start-test": {
+      "description": "Starts the test services.",
+      "command": "cd ./example && deno task start-test"
+    },
+    "start": {
+      "description": "Starts the development and test services.",
+      "command": "cd ./example && deno task start"
+    },
+    "stop-dev": {
+      "description": "Stops the development services.",
+      "command": "cd ./example && deno task stop-dev"
+    },
+    "stop-test": {
+      "description": "Stops the test services.",
+      "command": "cd ./example && deno task stop-test"
+    },
+    "stop": {
+      "description": "Stops the development and test services.",
+      "command": "cd ./example && deno task stop"
     }
   },
   "compilerOptions": {
@@ -73,7 +97,7 @@
   ],
   "nodeModulesDir": "auto",
   "imports": {
-    "@udibo/http-error": "jsr:@udibo/http-error@0",
+    "@udibo/http-error": "jsr:@udibo/http-error@^0.9",
     "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.2",
     "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@^0.12",
     "@oak/oak": "jsr:@oak/oak@17",

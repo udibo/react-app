@@ -1,15 +1,15 @@
 import { useParams } from "react-router";
-import { Helmet, HttpError } from "@udibo/react-app";
+import { Helmet } from "@udibo/react-app";
+import { z } from "zod";
 
-import { getPost } from "../../services/posts.tsx";
+import { usePost } from "../../services/posts.tsx";
 
 export default function BlogPost() {
   const params = useParams();
-  const id = Number(params.id);
-  if (isNaN(id) || Math.floor(id) !== id || id < 0) {
-    throw new HttpError(400, "Invalid id");
-  }
-  const post = getPost(id);
+  const id = z.string().uuid().parse(params.id);
+  const postResponse = usePost(id);
+  const { post } = postResponse ?? {};
+
   return post
     ? (
       <>

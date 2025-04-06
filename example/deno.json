@@ -10,15 +10,18 @@
     },
     "dev": {
       "description": "Builds and runs the application in development mode, with hot reloading.",
-      "command": "deno run -A --env-file --env-file=.env.development ./dev.ts"
+      "command": "deno run -A --env-file ./dev.ts",
+      "dependencies": ["start-dev"]
     },
     "test": {
       "description": "Runs the tests.",
-      "command": "deno test -A --trace-leaks --env-file --env-file=.env.test"
+      "command": "deno test -A --trace-leaks --env-file --env-file=.env.test",
+      "dependencies": ["start-test"]
     },
     "test-watch": {
       "description": "Runs the tests in watch mode.",
-      "command": "deno task test --watch"
+      "command": "deno task test --watch",
+      "dependencies": ["start-test"]
     },
     "check": {
       "description": "Checks the formatting and runs the linter.",
@@ -27,6 +30,42 @@
     "git-rebase": {
       "description": "Gets your branch up to date with master after a squash merge.",
       "command": "git fetch origin main && git rebase --onto origin/main HEAD"
+    },
+    "start-dev": {
+      "description": "Starts the development services.",
+      "command": "docker compose ps --services | grep -q '^postgres-dev$' || (docker compose up -d --wait postgres-dev && deno task drizzle-kit migrate && deno task drizzle-kit push && deno run -A --env-file ./database/seeds/default.ts)"
+    },
+    "start-test": {
+      "description": "Starts the test services.",
+      "command": "docker compose ps --services | grep -q '^postgres-test$' || (docker compose up -d --wait postgres-test && deno task drizzle-kit-test migrate && deno task drizzle-kit-test push && deno run -A --env-file --env-file=.env.test ./database/seeds/default.ts)"
+    },
+    "start": {
+      "description": "Starts the development and test services.",
+      "command": "deno task start-dev && deno task start-test"
+    },
+    "stop-dev": {
+      "description": "Stops the development services.",
+      "command": "docker compose down postgres-dev"
+    },
+    "stop-test": {
+      "description": "Stops the test services.",
+      "command": "docker compose down postgres-test"
+    },
+    "stop": {
+      "description": "Stops the development and test services.",
+      "command": "deno task stop-dev ; deno task stop-test"
+    },
+    "drizzle-kit": {
+      "description": "Runs the drizzle-kit commands for the database.",
+      "command": "deno -A --env-file npm:drizzle-kit"
+    },
+    "drizzle-kit-test": {
+      "description": "Runs the drizzle-kit commands for the test database.",
+      "command": "deno -A --env-file --env-file=.env.test npm:drizzle-kit"
+    },
+    "drizzle-kit:push": {
+      "description": "Pushes your drizzle schema to the development and test databases.",
+      "command": "deno task drizzle-kit push ; deno task drizzle-kit-test push"
     }
   },
   "compilerOptions": {
@@ -44,6 +83,8 @@
   ],
   "nodeModulesDir": "auto",
   "imports": {
+    "@hookform/resolvers": "npm:@hookform/resolvers@^5.0.1",
+    "@types/pg": "npm:@types/pg@^8.11.11",
     "@udibo/react-app": "../mod.tsx",
     "@udibo/react-app/build": "../build.ts",
     "@udibo/react-app/dev": "../dev.ts",
@@ -51,21 +92,27 @@
     "@udibo/react-app/server": "../server.tsx",
     "@udibo/react-app/test-utils": "../test-utils.ts",
     "@udibo/react-app/global-jsdom": "../global-jsdom.ts",
-    "@udibo/http-error": "jsr:@udibo/http-error@0",
+    "@udibo/http-error": "jsr:@udibo/http-error@^0.9.0",
     "@udibo/esbuild-plugin-postcss": "jsr:@udibo/esbuild-plugin-postcss@^0.2",
     "@luca/esbuild-deno-loader": "jsr:@kylejune/esbuild-deno-loader@^0.12",
     "@oak/oak": "jsr:@oak/oak@17",
     "@std/assert": "jsr:@std/assert@1",
     "@std/async": "jsr:@std/async@1",
+    "@std/encoding": "jsr:@std/encoding@1",
     "@std/fs": "jsr:@std/fs@1",
     "@std/log": "jsr:@std/log@0",
     "@std/path": "jsr:@std/path@1",
     "@std/testing": "jsr:@std/testing@1",
+    "drizzle-kit": "npm:drizzle-kit@^0.30.6",
+    "drizzle-orm": "npm:drizzle-orm@^0.41.0",
+    "drizzle-zod": "npm:drizzle-zod@^0.7.1",
     "esbuild": "npm:esbuild@^0.24",
+    "pg": "npm:pg@^8.14.1",
     "react": "npm:react@18",
     "@types/react": "npm:@types/react@18",
     "react-dom": "npm:react-dom@18",
     "react-error-boundary": "npm:react-error-boundary@4",
+    "react-hook-form": "npm:react-hook-form@^7.55.0",
     "react-router": "npm:react-router@7",
     "react-helmet-async": "npm:react-helmet-async@2",
     "serialize-javascript": "npm:serialize-javascript@6",
@@ -73,6 +120,7 @@
     "global-jsdom": "npm:global-jsdom@25",
     "@tanstack/react-query": "npm:@tanstack/react-query@4",
     "tailwindcss": "npm:tailwindcss@4",
-    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@4"
+    "@tailwindcss/postcss": "npm:@tailwindcss/postcss@4",
+    "zod": "npm:zod@^3.24.1"
   }
 }

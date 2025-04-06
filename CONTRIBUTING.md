@@ -6,13 +6,31 @@ formatting/lint checks before being approved and merged.
 
 ## Prerequisites
 
-You must install deno to be able to run the application locally.
+You must install `deno` and `docker` to be able to run the application and it's
+tests locally.
 
 - https://deno.land
+- https://docs.docker.com/get-docker/
+
+If you are using WSL 2, you should install Docker Desktop on windows, then
+[turn on Docker Desktop WSL 2](https://docs.docker.com/desktop/features/wsl/#turn-on-docker-desktop-wsl-2)
 
 ## Development
 
 For development, the tests and example application can be run with deno.
+
+To be able to run the tests, you will need to start up the services it depends
+on. After starting the services it will apply all the migrations for them. You
+can choose to just start the tests or just start udibo locally in your
+development environment. If the test services are not started before running the
+tests, all tests that depend on them will fail.
+
+```sh
+deno task start
+# or
+deno task start-dev
+deno task start-test
+```
 
 To run the tests, use `deno task test` or `deno task test-watch`.
 

@@ -15,7 +15,7 @@ application using the Udibo React App framework.
     - [routes/main.tsx](#routesmaintsx)
     - [routes/index.tsx](#routesindextsx)
     - [Environment Files](#environment-files)
-      - [.env.development](#envdevelopment)
+      - [.env](#env)
       - [.env.production](#envproduction)
       - [.env.test](#envtest)
   - [Optional files](#optional-files)
@@ -83,7 +83,7 @@ explains their purpose.
 - [routes/main.tsx](#routesmaintsx): A wrapper around the client side of the
   application.
 - [routes/index.tsx](#routesindextsx): The homepage for the application.
-- [.env.development](#env-files): Environment variables for development mode.
+- [.env](#env): Default environment variables.
 - [.env.production](#env-files): Environment variables for production mode.
 - [.env.test](#env-files): Environment variables for test mode.
 
@@ -119,7 +119,7 @@ Node.js-like environment.
     },
     "dev": {
       "description": "Builds and runs the application in development mode, with hot reloading.",
-      "command": "deno run -A --config=deno.json --env-file --env-file=.env.development jsr:@udibo/react-app@0.25/dev"
+      "command": "deno run -A --config=deno.json --env-file=.env jsr:@udibo/react-app@0.25/dev"
     },
     "test": {
       "description": "Runs the tests.",
@@ -365,12 +365,12 @@ environment and adjust behavior accordingly. The `APP_ENV` variable is used by
 the application to determine the current environment, while `NODE_ENV` is used
 by React and other libraries to optimize for development or production.
 
-#### .env.development
+#### .env
 
-This file contains environment variables for development mode. It's used when
-running the application with `deno task dev`.
+This file contains default environment variables.
 
 ```env
+APP_NAME=Example
 APP_ENV=development
 NODE_ENV=development
 ```
@@ -392,7 +392,6 @@ tests with `deno task test`.
 
 ```env
 APP_ENV=test
-NODE_ENV=development
 ```
 
 ## Optional files
@@ -490,9 +489,10 @@ coverage
 node_modules
 ```
 
-You should commit the basic environment files (.env.development,
-.env.production, and .env.test) as they contain default configuration, but any
-environment files with secrets should be excluded from version control.
+You should commit the basic environment files (`.env`, `.env.production`, and
+`.env.test`) to version control as they contain default configuration without
+secrets. Any environment files containing secrets or personal configuration
+should be excluded.
 
 ### test-utils.tsx
 
@@ -682,9 +682,9 @@ The following commands can be used for building and running the application:
 
 Each of these tasks uses the appropriate .env file for the environment:
 
-- `deno task build` and `deno task run` use `.env.production`
-- `deno task dev` uses `.env.development`
-- `deno task test` uses `.env.test`
+- `deno task dev` uses `.env`
+- `deno task build` and `deno task run` use `.env` and `.env.production`
+- `deno task test` uses `.env` and `.env.test`
 
 When the application runs in development mode, identifiers are not minified and
 sourcemaps are generated and linked.
