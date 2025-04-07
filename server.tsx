@@ -40,7 +40,7 @@ interface HTMLOptions<
   >,
 > {
   helmet: HelmetServerState;
-  initialState: SharedState;
+  initialStateSerialized: string;
   error?: HttpError<{ boundary?: string }>;
   devPort?: number;
 }
@@ -59,7 +59,7 @@ function html<
 >(
   options: HTMLOptions<SharedState>,
 ): { start: string; end: string } {
-  const { helmet, initialState, devPort, error } = options;
+  const { helmet, initialStateSerialized, devPort, error } = options;
   const errorJSON = HttpError.json(error);
   if (isDevelopment()) {
     if (error?.expose) errorJSON.expose = error.expose;
@@ -79,9 +79,9 @@ function html<
     `<script>
       window.app = {
         env: ${serialize(getEnvironment(), { isJSON: true })},
-        initialState: ${serialize(initialState, { isJSON: true })},`,
+        initialState: ${initialStateSerialized},`,
     error &&
-    `    error: ${serialize(errorJSON)},`,
+    `    error: ${serialize(errorJSON, { isJSON: true })},`,
     isDevelopment() && devPort &&
     `    devPort: ${serialize(devPort, { isJSON: true })},`,
     `  };
@@ -177,7 +177,6 @@ async function renderAppToReadableStream<
 ) {
   const { request, response, state } = context;
   const { handler, error, devPort } = options;
-  const { initialState } = state.app;
   const helmetContext = {} as { helmet: HelmetServerState };
 
   const fetchRequest = getFetchRequest(request, response);
@@ -186,6 +185,11 @@ async function renderAppToReadableStream<
   ) as StaticHandlerContext;
 
   const router = createStaticRouter(handler.dataRoutes, routerContext);
+
+  const initialStateSerialized = serialize(state.app.initialState, {
+    isJSON: true,
+  });
+  const initialState = JSON.parse(initialStateSerialized);
 
   const stream = await renderToReadableStream(
     <StrictMode>
@@ -207,7 +211,7 @@ async function renderAppToReadableStream<
 
   const { start, end } = html({
     helmet: helmetContext.helmet,
-    initialState,
+    initialStateSerialized,
     error,
     devPort,
   });
