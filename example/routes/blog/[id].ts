@@ -14,11 +14,11 @@ export default new Router<{
     try {
       const id = z.string().uuid().parse(params.id);
       state.app.initialState.getPost = await getPost(id);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        throw new HttpError(400, "Invalid id");
+    } catch (cause) {
+      if (cause instanceof ZodError) {
+        throw new HttpError(400, "Invalid id", { cause });
       }
-      throw error;
+      throw cause;
     }
     await state.app.render();
   });

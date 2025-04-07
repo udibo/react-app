@@ -42,6 +42,7 @@ export default new Router<{
     } catch (cause: unknown) {
       if (cause instanceof ZodError) {
         throw new HttpError(400, "Validation failed", {
+          cause,
           expose: true,
           errors: cause.errors.map((
             err: { path: (string | number)[]; message: string },

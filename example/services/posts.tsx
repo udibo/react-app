@@ -21,9 +21,9 @@ export interface GetPostsResponse {
 export async function getPosts(): Promise<GetPostsResponse> {
   const response = await fetch("/api/blog/posts");
   if (!response.ok) {
-    throw ErrorResponse.toError(response);
+    throw await ErrorResponse.toError(response);
   }
-  return await response.json();
+  return response.json();
 }
 
 export function usePosts(): GetPostsResponse | null {
@@ -65,9 +65,9 @@ export interface GetPostResponse {
 export async function getPost(id: string): Promise<GetPostResponse> {
   const response = await fetch(`/api/blog/posts/${id}`);
   if (!response.ok) {
-    throw ErrorResponse.toError(response);
+    throw await ErrorResponse.toError(response);
   }
-  return await response.json();
+  return response.json();
 }
 
 export function usePost(id: string): GetPostResponse | null {
@@ -118,10 +118,10 @@ export async function createPost(
   });
 
   if (!response.ok) {
-    throw ErrorResponse.toError(response);
+    throw await ErrorResponse.toError(response);
   }
 
-  return await response.json();
+  return response.json();
 }
 
 export type UseCreatePostFormProps = UseFormProps<NewPost>;
